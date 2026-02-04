@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Admin Login</title>
+    <link rel="stylesheet" href="tripwise.css" />
+
+    <script defer>
+      (() => {
+        "use strict";
+
+        document.addEventListener("DOMContentLoaded", () => {
+          const form = document.getElementById("adminLogin");
+          const passwordEl = document.getElementById("a_password");
+          const errorEl = document.getElementById("adminError");
+
+          form.addEventListener("submit", (e) => {
+            e.preventDefault(); 
+
+            const ok = passwordEl.value === "password123";
+
+            errorEl.style.display = ok ? "none" : "block";
+            if (ok) alert("Admin login success (placeholder).");
+          });
+        });
+      })();
+    </script>
+  </head>
+
+  <body>
+    <header class="header" aria-label="Site header"></header>
+
+    <div class="logo-bar">
+      <img src="../images/logo1.png" alt="TripWise Logo" />
+      <div class="brand-title">TripWise</div>
+    </div>
+
+    <main class="container">
+      <section class="box" aria-labelledby="page-title">
+        <h2 id="page-title">Admin Login</h2>
+        <p class="subtitle">Log in to access moderation and management tools.</p>
+
+        <form id="adminLogin" action="#" method="post" novalidate>
+          <label for="a_email">Work Email</label>
+          <input
+            id="a_email"
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="admin@tripwise.com"
+          />
+
+          <label for="a_password">Password</label>
+          <input
+            id="a_password"
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            placeholder="Your password"
+          />
+
+          <div id="adminError" class="error" style="display: none">
+            Incorrect email or password.
+          </div>
+
+          <div class="row">
+            <a class="link" href="forgot-password.html">Forgot password?</a>
+            <a class="link" href="traveller-login.html">Traveller login</a>
+          </div>
+
+          <button class="btn" type="submit">Log In</button>
+        </form>
+      </section>
+    </main>
+
+    <div class="logo-bar">
+      <img src="../images/logo1.png" alt="TripWise Logo" />
+      <div class="brand-title">TripWise</div>
+    </div>
+
+    <footer class="footer" aria-label="Site footer"></footer>
+  </body>
+</html>

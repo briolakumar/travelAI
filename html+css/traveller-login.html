@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Traveller Login</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+  <header class="header" aria-label="Site header">
+    <div class="logo-bar">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <span class="brand-title">TripWise</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="box" aria-labelledby="page-title">
+      <h1 id="page-title">Traveller Login</h1>
+      <p class="subtitle">Log in to view bookings and guidance.</p>
+
+      <form id="travLogin" action="#" method="post" novalidate>
+        <div class="field">
+          <label for="t_email">Email</label>
+          <input id="t_email" name="email" type="email" required autocomplete="email" inputmode="email"
+            placeholder="name@example.com" />
+        </div>
+
+        <div class="field">
+          <label for="t_password">Password</label>
+          <input id="t_password" name="password" type="password" required autocomplete="current-password"
+            placeholder="Your password" />
+        </div>
+
+        <p id="travError" class="error" role="alert" aria-live="polite">
+          Incorrect email or password.
+        </p>
+
+        <div class="row">
+          <div class="checks">
+            <label for="remember">
+              <input id="remember" type="checkbox" name="remember" />
+              Remember me
+            </label>
+          </div>
+
+          <a class="link" href="forgot-password.html">Forgot password?</a>
+        </div>
+
+        <button class="btn" type="submit">Log In</button>
+
+        <div class="row-actions">
+          <a class="link" href="traveller-register.html">Don’t have an account? Register</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer" aria-label="Site footer">
+    <div class="logo-bar">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <span class="brand-title">TripWise</span>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      "use strict";
+      // Enables strict mode to avoid silent JS errors and enforce cleaner coding practices
+
+      const form = document.getElementById("travLogin");
+      const email = document.getElementById("t_email");
+      const password = document.getElementById("t_password");
+      const errorBox = document.getElementById("travError");
+
+      // Ensure the error message is hidden on initial load
+      errorBox.style.display = "none";
+
+      /**
+       * Hides the error message and clears any custom validation error attached to the password field.
+       * This runs when the user starts correcting input.
+       */
+      const hideError = () => {
+        errorBox.style.display = "none";
+        password.setCustomValidity("");
+      };
+
+      // Remove error feedback as the user edits their input
+      email.addEventListener("input", hideError);
+      password.addEventListener("input", hideError);
+
+      // Handle form submission
+      form.addEventListener("submit", (e) => {
+        // Prevent default form submission (demo / client-side only)
+        e.preventDefault();
+
+        // Let the browser validate required fields and email format
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        // Demo-only authentication logic
+        // Replace with server-side authentication in production
+        const ok = password.value === "password123";
+
+        if (!ok) {
+          // Show inline error feedback
+          errorBox.style.display = "block";
+
+          // Attach a validation error to the password field
+          password.setCustomValidity("Incorrect email or password.");
+          form.reportValidity();
+          return;
+        }
+
+        // Clear any existing errors before continuing
+        hideError();
+
+        // Placeholder success behaviour
+        // In a real application, redirect after server validation
+        window.location.href = "traveller-dashboard.html";
+      });
+    })();
+  </script>
+
+</body>
+
+</html>

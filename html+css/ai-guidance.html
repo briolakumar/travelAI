@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — AI Guidance</title>
+  <link rel="stylesheet" href="tripwise.css" />
+
+  <script defer>
+    (() => {
+      "use strict";
+   
+      const DESTINATIONS = [
+        { id: "kyoto-jp", name: "Kyoto, Japan", country: "Japan" },
+        { id: "tokyo-jp", name: "Tokyo, Japan", country: "Japan" },
+        { id: "paris-fr", name: "Paris, France", country: "France" },
+        { id: "rome-it", name: "Rome, Italy", country: "Italy" },
+        { id: "barcelona-es", name: "Barcelona, Spain", country: "Spain" },
+        { id: "newyork-us", name: "New York, USA", country: "USA" },
+        { id: "marrakech-ma", name: "Marrakech, Morocco", country: "Morocco" },
+        { id: "bangkok-th", name: "Bangkok, Thailand", country: "Thailand" },
+        { id: "reykjavik-is", name: "Reykjavik, Iceland", country: "Iceland" },
+        { id: "siemreap-kh", name: "Siem Reap, Cambodia", country: "Cambodia" }
+      ];
+
+      const DEST_ASSETS = {
+        "Kyoto, Japan": { emoji: "⛩️", img: "../images/kyoto.png" },
+        "Tokyo, Japan": { emoji: "🗼", img: "../images/tokyo.png" },
+        "Paris, France": { emoji: "🗼", img: "../images/paris.png" },
+        "Rome, Italy": { emoji: "🏛️", img: "../images/rome.png" },
+        "Barcelona, Spain": { emoji: "🏖️", img: "../images/barcelona.png" },
+        "New York, USA": { emoji: "🗽", img: "../images/newyork.png" },
+        "Marrakech, Morocco": { emoji: "🕌", img: "../images/marrakech.png" },
+        "Bangkok, Thailand": { emoji: "🛕", img: "../images/bangkok.png" },
+        "Reykjavik, Iceland": { emoji: "❄️", img: "../images/reykjavik.png" },
+        "Siem Reap, Cambodia": { emoji: "🏯", img: "../images/siemreap.png" }
+      };
+      function svgDataURI({ title, emoji, a = "#2d1a4a", b = "#5a2cff" }) {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="450">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${a}" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="${b}" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="450" fill="url(#g)"/>
+  <circle cx="720" cy="120" r="95" fill="rgba(255,255,255,0.18)"/>
+  <circle cx="785" cy="165" r="70" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="150" cy="330" r="150" fill="rgba(255,255,255,0.08)"/>
+  <text x="60" y="130" font-family="Arial" font-size="64" font-weight="800" fill="rgba(255,255,255,0.95)">${emoji}</text>
+  <text x="60" y="210" font-family="Arial" font-size="54" font-weight="900" fill="rgba(255,255,255,0.96)">${title}</text>
+  <text x="60" y="270" font-family="Arial" font-size="26" font-weight="700" fill="rgba(255,255,255,0.85)">Tap a prompt or ask a question</text>
+</svg>`;
+        return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+      }
+
+      function getDestinationByName(name) {
+        return DESTINATIONS.find((d) => d.name === name) || DESTINATIONS[0];
+      }
+
+      function getDestAsset(name) {
+        return (
+          DEST_ASSETS[name] || {
+            emoji: "🌍",
+            img: svgDataURI({ title: "TripWise", emoji: "🌍" })
+          }
+        );
+      }
+      const COUNTRY_QUICK_PROMPTS = {
+        Japan: [
+          { label: "Shrine etiquette", q: "What should I do at shrines/temples (shoes, photos, behaviour)?" },
+          { label: "Local rules", q: "What rules do tourists often break in Japan (quiet areas, smoking, etc.)?" },
+          { label: "Photography", q: "Can I take photos of people and in cultural areas? Any sensitive spots?" },
+          { label: "Transport", q: "How should I behave on trains/buses (noise, queues, bags)?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in Japan?" }
+        ],
+        France: [
+          { label: "Politeness", q: "How do I greet people politely in Paris (shops/cafés)?" },
+          { label: "Local rules", q: "Any rules tourists commonly miss in Paris (metro, museums, streets)?" },
+          { label: "Photography", q: "Any respectful photography tips for Paris (people, museums, metros)?" },
+          { label: "Transport", q: "How should I behave on the Metro and in queues?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in Paris?" }
+        ],
+        Italy: [
+          { label: "Church etiquette", q: "What do I need to know for churches in Rome (dress, behaviour)?" },
+          { label: "Local rules", q: "Any rules tourists miss around historic sites or street behaviour?" },
+          { label: "Photography", q: "Any photography rules for churches/museums in Rome?" },
+          { label: "Crowds", q: "How can I be respectful in busy areas like tourist hotspots?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in Rome?" }
+        ],
+        Spain: [
+          { label: "Local customs", q: "What local customs matter most in Barcelona?" },
+          { label: "Local rules", q: "Any rules tourists miss (noise, public behaviour, beaches)?" },
+          { label: "Photography", q: "Any respectful photography tips for Barcelona (people, markets)?" },
+          { label: "Night etiquette", q: "How do I enjoy nightlife without upsetting residents?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in Barcelona?" }
+        ],
+        USA: [
+          { label: "Tipping", q: "How does tipping work in New York?" },
+          { label: "Local rules", q: "Any rules tourists miss in NYC (subway, IDs, restricted areas)?" },
+          { label: "Photography", q: "Any tips about filming/photography in public or venues?" },
+          { label: "Transport", q: "What’s the etiquette on the NYC subway?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in New York?" }
+        ],
+        Morocco: [
+          { label: "Dress & respect", q: "What dress/behaviour is respectful in Marrakech?" },
+          { label: "Local rules", q: "Any rules tourists often miss (markets, public behaviour)?" },
+          { label: "Photography", q: "Can I photograph people/markets in Marrakech? What’s respectful?" },
+          { label: "Markets", q: "How should I behave in souks (bargaining, personal space)?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in Marrakech?" }
+        ],
+        Thailand: [
+          { label: "Temple etiquette", q: "What’s the temple etiquette in Bangkok (dress, shoes, behaviour)?" },
+          { label: "Local rules", q: "Any rules tourists miss (respect norms, restricted areas)?" },
+          { label: "Photography", q: "Any photography etiquette around temples and people?" },
+          { label: "Public behaviour", q: "Any key do’s/don’ts for public behaviour in Bangkok?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in Bangkok?" }
+        ],
+        Iceland: [
+          { label: "Nature safety", q: "What safety rules should I follow around nature spots in Reykjavik/Iceland?" },
+          { label: "Local rules", q: "Any rules tourists miss (paths, off-road, environment)?" },
+          { label: "Photography", q: "Any etiquette around photography in nature or with locals?" },
+          { label: "Driving", q: "Any driving tips/etiquette for Iceland?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in Iceland?" }
+        ],
+        Cambodia: [
+          { label: "Temple etiquette", q: "What etiquette should I follow at Angkor/temples near Siem Reap?" },
+          { label: "Local rules", q: "Any rules tourists miss at heritage sites (climbing, restricted zones)?" },
+          { label: "Photography", q: "What’s respectful photography with locals/children?" },
+          { label: "Community respect", q: "How can I support locals respectfully (shopping/tours)?" },
+          { label: "Common mistakes", q: "What common mistakes should I avoid in Cambodia?" }
+        ],
+        DEFAULT: [
+          { label: "Etiquette", q: "What are the key etiquette rules I should follow?" },
+          { label: "Local laws", q: "Any important local rules tourists commonly miss?" },
+          { label: "Photography", q: "What are respectful photography rules for people and sacred places?" },
+          { label: "Transport", q: "What public transport etiquette should I follow?" },
+          { label: "Common mistakes", q: "What common tourist mistakes should I avoid?" }
+        ]
+      };
+
+      function setQuickPrompts(country) {
+        const chips = Array.from(document.querySelectorAll(".chip"));
+        const prompts = COUNTRY_QUICK_PROMPTS[country] || COUNTRY_QUICK_PROMPTS.DEFAULT;
+        
+        chips.forEach((chip, i) => {
+          const p = prompts[i] || prompts[0];
+          chip.textContent = p.label;
+          chip.dataset.q = p.q;
+          chip.dataset.tip = `Ask about: ${p.label}`;
+        });
+      }
+
+      
+      const DEST_RULES = {
+        "Kyoto, Japan": {
+          do: [
+            { text: "In temples/shrines: speak quietly and follow queues.", tags: ["temple", "shrine", "etiquette", "queue"] },
+            { text: "Remove shoes where required (check signs/shelves).", tags: ["temple", "shrine", "shoe", "sign"] },
+            { text: "On buses/trains: keep noise low and keep bags close.", tags: ["transport", "train", "bus", "noise"] },
+            { text: "Check for 'No Photo' signs before taking pictures.", tags: ["photo", "photography", "sign"] }
+          ],
+          dont: [
+            { text: "Don’t take photos in restricted areas or during ceremonies.", tags: ["photo", "temple", "shrine"] },
+            { text: "Don’t talk loudly or take calls on public transport.", tags: ["transport", "train", "bus", "noise"] },
+            { text: "Don’t block paths—sites can be crowded and narrow.", tags: ["crowd", "queue", "street"] }
+          ],
+          etiquette: [
+            { situation: "Temples/shrines", advice: "Modest clothing, calm behaviour, follow signs and staff.", tags: ["temple", "shrine", "dress"] },
+            { situation: "Public transport", advice: "Quiet voices, queue, let people off first.", tags: ["transport", "train", "bus"] }
+          ],
+          localLaws: [
+            { rule: "Respect restricted areas and posted site rules", why: "Preservation and safety rules are enforced at major sites.", tags: ["temple", "shrine", "sign", "restricted"] },
+            { rule: "Privacy-aware photography", why: "Avoid close-up photos of people without consent.", tags: ["photo", "people", "privacy"] }
+          ]
+        },
+
+        "Tokyo, Japan": {
+          do: [
+            { text: "Follow station signs and queue markers.", tags: ["transport", "train", "queue", "station"] },
+            { text: "Keep phones on silent in trains; be low-key.", tags: ["transport", "train", "noise", "phone"] },
+            { text: "Carry rubbish until you find a bin (keep streets clean).", tags: ["street", "clean", "rubbish"] },
+            { text: "Ask before filming inside shops/cafes.", tags: ["photo", "film", "shop", "cafe"] }
+          ],
+          dont: [
+            { text: "Don’t block escalators—follow local flow.", tags: ["transport", "queue", "escalator"] },
+            { text: "Don’t assume photos are allowed in every venue.", tags: ["photo", "venue", "museum"] },
+            { text: "Don’t be loud on trains, especially in quiet carriages.", tags: ["transport", "train", "noise"] }
+          ],
+          etiquette: [
+            { situation: "Trains & stations", advice: "Queue, keep quiet, don’t block doors/escalators.", tags: ["transport", "train", "station"] },
+            { situation: "Shops", advice: "Ask before filming; keep your voice low in small spaces.", tags: ["shop", "photo", "film"] }
+          ],
+          localLaws: [
+            { rule: "Follow venue policies (filming, access, queues)", why: "Rules are posted and staff enforce them.", tags: ["venue", "sign", "film"] },
+            { rule: "Photography consent", why: "Avoid close-ups of strangers without permission.", tags: ["photo", "people", "privacy"] }
+          ]
+        },
+
+        "Paris, France": {
+          do: [
+            { text: "Greet staff politely in shops/cafés (a quick hello).", tags: ["greet", "greeting", "shop", "cafe"] },
+            { text: "Keep valuables secure in busy areas and the Metro.", tags: ["safety", "metro", "crowd"] },
+            { text: "In museums: follow signage and keep a respectful distance.", tags: ["museum", "sign", "queue"] },
+            { text: "Stand to one side on escalators to keep flow moving.", tags: ["metro", "transport", "escalator"] }
+          ],
+          dont: [
+            { text: "Don’t assume photography is allowed in museums/exhibits.", tags: ["photo", "museum", "sign"] },
+            { text: "Don’t block sidewalks—foot traffic moves fast.", tags: ["street", "crowd"] },
+            { text: "Don’t be loud on public transport late at night.", tags: ["metro", "transport", "noise"] }
+          ],
+          etiquette: [
+            { situation: "Cafés", advice: "Say hello when you enter; be patient with service.", tags: ["cafe", "greeting"] },
+            { situation: "Museums", advice: "Keep noise low and follow staff directions.", tags: ["museum", "queue"] }
+          ],
+          localLaws: [
+            { rule: "Museum/venue rules on photos and access", why: "Some exhibits ban photos/flash; staff enforce it.", tags: ["museum", "photo", "sign"] },
+            { rule: "Respect privacy when filming strangers", why: "Avoid close-ups without consent; be discreet.", tags: ["photo", "people", "privacy"] }
+          ]
+        },
+
+        "Rome, Italy": {
+          do: [
+            { text: "Cover shoulders/knees in churches and religious sites.", tags: ["church", "dress", "religious"] },
+            { text: "Follow barriers at ruins—preservation rules matter.", tags: ["historic", "ruin", "sign", "barrier"] },
+            { text: "Be patient in crowds; keep moving and don’t block entrances.", tags: ["crowd", "queue", "street"] },
+            { text: "Check for 'no eating/drinking' signs at heritage sites.", tags: ["historic", "sign", "food"] }
+          ],
+          dont: [
+            { text: "Don’t climb on ruins or restricted structures.", tags: ["historic", "restricted", "ruin"] },
+            { text: "Don’t wear beachwear in churches.", tags: ["church", "dress"] },
+            { text: "Don’t cross barriers at major sites.", tags: ["historic", "barrier", "sign"] }
+          ],
+          etiquette: [
+            { situation: "Churches", advice: "Quiet behaviour, modest clothing, no flash if photos allowed.", tags: ["church", "photo", "dress"] },
+            { situation: "Historic areas", advice: "Treat ruins like a museum; respect barriers.", tags: ["historic", "ruin"] }
+          ],
+          localLaws: [
+            { rule: "Heritage protection rules", why: "Violations can lead to removal or fines.", tags: ["historic", "ruin", "sign"] },
+            { rule: "Restricted areas and barriers", why: "Crossing barriers is taken seriously at big sites.", tags: ["historic", "restricted"] }
+          ]
+        },
+
+        "Barcelona, Spain": {
+          do: [
+            { text: "Be mindful of noise late at night in residential areas.", tags: ["night", "noise", "residential"] },
+            { text: "Keep bags/phones secure in crowded areas.", tags: ["crowd", "safety"] },
+            { text: "Follow beach signage (zones, flags, local rules).", tags: ["beach", "sign"] },
+            { text: "Respect queues and personal space at attractions.", tags: ["queue", "museum", "venue"] }
+          ],
+          dont: [
+            { text: "Don’t be disruptive outside homes/hotels at night.", tags: ["night", "noise"] },
+            { text: "Don’t ignore beach/park rules and restricted areas.", tags: ["beach", "sign", "restricted"] },
+            { text: "Don’t film people up-close without permission.", tags: ["photo", "people", "privacy"] }
+          ],
+          etiquette: [
+            { situation: "Nightlife", advice: "Keep voices down when leaving venues late.", tags: ["night"] },
+            { situation: "Public spaces", advice: "Don’t block paths; be considerate in shared areas.", tags: ["street", "crowd"] }
+          ],
+          localLaws: [
+            { rule: "Follow beach/park rules and restricted zones", why: "Rules vary by area; signage is key.", tags: ["beach", "sign"] },
+            { rule: "Respect venue policies", why: "Many attractions enforce entry/behaviour rules.", tags: ["venue", "sign"] }
+          ]
+        },
+
+        "New York, USA": {
+          do: [
+            { text: "On the subway: let people off first; stand clear of doors.", tags: ["transport", "subway", "train", "metro"] },
+            { text: "Tip where expected (restaurants and some services).", tags: ["tipping", "restaurant"] },
+            { text: "Carry ID for age-restricted venues.", tags: ["id", "venue"] },
+            { text: "Follow signs and staff instructions in stations and venues.", tags: ["sign", "venue", "restricted"] }
+          ],
+          dont: [
+            { text: "Don’t enter restricted areas (rules are enforced).", tags: ["restricted", "sign", "venue"] },
+            { text: "Don’t block sidewalks/escalators—keep moving.", tags: ["street", "crowd", "escalator"] },
+            { text: "Don’t assume you can film everywhere (some venues ban it).", tags: ["photo", "film", "venue"] }
+          ],
+          etiquette: [
+            { situation: "Subway", advice: "Don’t block doors; keep bags close; move along on platforms.", tags: ["transport", "subway"] },
+            { situation: "Restaurants", advice: "Check if service is included; tip if not included.", tags: ["tipping", "restaurant"] }
+          ],
+          localLaws: [
+            { rule: "Venue policies (IDs, bag checks, filming rules)", why: "Many places have strict entry policies.", tags: ["venue", "id", "film"] },
+            { rule: "Restricted areas", why: "Ignoring restricted signs can lead to fines/removal.", tags: ["restricted", "sign"] }
+          ]
+        },
+
+        "Marrakech, Morocco": {
+          do: [
+            { text: "Dress modestly in traditional areas (especially near religious sites).", tags: ["dress", "religious"] },
+            { text: "Ask before photographing people—especially in markets.", tags: ["photo", "people", "market"] },
+            { text: "Be polite when declining offers; keep it calm.", tags: ["market", "street"] },
+            { text: "Bargain respectfully in souks (friendly, not aggressive).", tags: ["market", "shopping"] }
+          ],
+          dont: [
+            { text: "Don’t take close-up photos without consent.", tags: ["photo", "people", "privacy"] },
+            { text: "Don’t be confrontational in markets.", tags: ["market"] },
+            { text: "Don’t treat religious spaces casually.", tags: ["religious"] }
+          ],
+          etiquette: [
+            { situation: "Souks", advice: "Ask before photos; negotiate politely; avoid crowding stalls.", tags: ["market", "photo"] },
+            { situation: "Religious context", advice: "Modest dress and respectful behaviour near mosques.", tags: ["religious", "dress"] }
+          ],
+          localLaws: [
+            { rule: "Respect privacy when filming/photographing people", why: "Consent reduces conflict and is culturally important.", tags: ["photo", "people"] },
+            { rule: "Follow restricted-area signs", why: "Some venues limit access/photos; signage is key.", tags: ["sign", "restricted"] }
+          ]
+        },
+
+        "Bangkok, Thailand": {
+          do: [
+            { text: "At temples: cover shoulders/knees and remove shoes if required.", tags: ["temple", "dress", "shoe"] },
+            { text: "Use calm, polite behaviour in sacred places.", tags: ["temple", "etiquette"] },
+            { text: "Ask before photographing monks or worshippers.", tags: ["photo", "people", "monk", "temple"] },
+            { text: "Follow BTS/MRT queue rules and keep moving.", tags: ["transport", "queue", "train", "metro"] }
+          ],
+          dont: [
+            { text: "Don’t treat temples like photo sets—avoid loud posing/flash.", tags: ["temple", "photo", "noise"] },
+            { text: "Don’t touch or climb on religious structures.", tags: ["temple", "restricted"] },
+            { text: "Don’t be loud on public transport.", tags: ["transport", "noise"] }
+          ],
+          etiquette: [
+            { situation: "Temples", advice: "Dress modestly, be quiet, follow staff and signage.", tags: ["temple", "dress"] },
+            { situation: "Public transport", advice: "Queue, let people off first, keep bags close.", tags: ["transport", "queue"] }
+          ],
+          localLaws: [
+            { rule: "Temple/site rules (dress, access, no-climb zones)", why: "Rules protect sacred spaces and visitors.", tags: ["temple", "sign", "restricted"] },
+            { rule: "Photography restrictions", why: "Some areas ban photos; staff can enforce bans.", tags: ["photo", "temple", "sign"] }
+          ]
+        },
+
+        "Reykjavik, Iceland": {
+          do: [
+            { text: "Stick to marked paths at nature spots (fragile ground).", tags: ["nature", "path"] },
+            { text: "Check weather and road conditions before trips.", tags: ["weather", "driving"] },
+            { text: "Follow pool/hot spring shower rules before entering.", tags: ["hotspring", "pool"] },
+            { text: "Pack layers and waterproof gear (conditions change fast).", tags: ["weather"] }
+          ],
+          dont: [
+            { text: "Don’t walk off-path in protected areas.", tags: ["nature", "path", "restricted"] },
+            { text: "Don’t ignore warning signs near cliffs/waves/ice.", tags: ["nature", "sign", "warning"] },
+            { text: "Don’t drive off-road.", tags: ["driving", "nature", "restricted"] }
+          ],
+          etiquette: [
+            { situation: "Nature sites", advice: "Stay on paths, keep distance from wildlife, leave no trace.", tags: ["nature"] },
+            { situation: "Pools/hot springs", advice: "Shower properly; follow posted hygiene rules.", tags: ["hotspring", "pool"] }
+          ],
+          localLaws: [
+            { rule: "Environmental protection rules", why: "Off-path/off-road damage can lead to penalties.", tags: ["nature", "driving", "path"] },
+            { rule: "Follow safety signage", why: "Warnings exist for real hazards (waves, cliffs, ice).", tags: ["sign", "nature"] }
+          ]
+        },
+
+        "Siem Reap, Cambodia": {
+          do: [
+            { text: "At Angkor/temples: dress modestly and behave quietly.", tags: ["temple", "dress", "etiquette"] },
+            { text: "Follow signs about where you can walk or climb.", tags: ["temple", "sign", "restricted"] },
+            { text: "Ask permission before photographing people; be extra careful with kids.", tags: ["photo", "people", "child", "children"] },
+            { text: "Support local businesses and avoid aggressive haggling.", tags: ["shopping", "market", "community"] }
+          ],
+          dont: [
+            { text: "Don’t climb or touch restricted heritage structures.", tags: ["temple", "restricted"] },
+            { text: "Don’t photograph children without clear consent.", tags: ["photo", "child", "children"] },
+            { text: "Don’t leave litter at heritage sites.", tags: ["temple", "environment"] }
+          ],
+          etiquette: [
+            { situation: "Angkor/temples", advice: "Modest clothing, calm voices, follow staff/signage.", tags: ["temple", "dress"] },
+            { situation: "Communities/markets", advice: "Negotiate fairly; be respectful to sellers and guides.", tags: ["market", "shopping"] }
+          ],
+          localLaws: [
+            { rule: "Heritage site restrictions (no-climb / no-entry areas)", why: "Protects sites; enforcement can include removal or fines.", tags: ["temple", "restricted", "sign"] },
+            { rule: "Photography consent (especially children)", why: "Ask first; avoid sensitive situations.", tags: ["photo", "child", "children", "people"] }
+          ]
+        }
+      };
+
+      const DEFAULT_RULES = {
+        do: [
+          { text: "Follow signs and staff instructions.", tags: ["sign"] },
+          { text: "Ask permission before close-up photos of people.", tags: ["photo", "people"] }
+        ],
+        dont: [
+          { text: "Don’t ignore restricted areas or 'No photo' rules.", tags: ["sign", "photo", "restricted"] },
+          { text: "Don’t disrupt ceremonies or quiet spaces.", tags: ["temple", "museum", "quiet"] }
+        ],
+        etiquette: [
+          { situation: "Cultural sites", advice: "Dress appropriately and keep noise low.", tags: ["culture", "dress"] },
+          { situation: "Public spaces", advice: "Queue politely and don’t block pathways.", tags: ["queue", "street"] }
+        ],
+        localLaws: [
+          { rule: "Restricted areas and posted rules", why: "Rules exist for safety, privacy, and preservation.", tags: ["sign", "restricted"] }
+        ]
+      };
+
+      
+      const STOP = new Set([
+        "the", "a", "an", "and", "or", "to", "for", "of", "in", "on", "at", "is", "are", "be", "with", "about",
+        "i", "we", "you", "they", "it", "this", "that", "my", "our", "your", "me", "should", "can", "could", "would",
+        "what", "how", "when", "where", "why", "please", "any"
+      ]);
+
+     const SYNONYMS = {
+          metro: ["subway", "train"],
+          subway: ["metro", "train"],
+          train: ["metro", "subway"],
+          shrine: ["temple"],
+          temple: ["shrine"],
+          photo: ["photography", "camera", "filming"],
+          photography: ["photo", "camera", "filming"],
+          filming: ["photo", "photography", "camera"],
+          bus: ["transport"],
+          transport: ["bus", "train", "metro", "subway"],
+          church: ["cathedral"],
+          cathedral: ["church"]
+        };
+
+        const normalizeWord = (w) => {
+          let s = String(w || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+          if (s.endsWith("ies")) return s.slice(0, -3) + "y";
+          if (s.endsWith("es")) return s.slice(0, -2);
+          if (s.endsWith("s") && s.length > 3) return s.slice(0, -1);
+          return s;
+        };
+
+        const tokenize = (text) =>
+          String(text || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, " ")
+            .split(/\s+/)
+            .filter(Boolean)
+            .map(normalizeWord)
+            .filter(Boolean)
+            .filter((w) => !STOP_WORDS.has(w));
+
+        const expandTokens = (tokens) => {
+          const out = new Set(tokens.map(normalizeWord));
+          tokens.forEach((t) => (SYNONYMS[t] || []).forEach((s) => out.add(normalizeWord(s))));
+          return [...out];
+        };
+
+        const matchesTags = (itemTags = [], tokens = []) => {
+          const tagSet = new Set(itemTags.map(normalizeWord));
+          const expanded = expandTokens(tokens);
+          return expanded.some((t) => tagSet.has(t));
+        };
+
+        const pickRelevant = (list = [], tokens = [], max = 4) => {
+          if (!Array.isArray(list) || list.length === 0) return [];
+          if (tokens.length === 0) return list.slice(0, max);
+
+          const expanded = expandTokens(tokens);
+
+          const matched = list.filter((item) => {
+            const tags = item.tags || [];
+            if (matchesTags(tags, expanded)) return true;
+
+            const blob = `${item.text || ""} ${item.rule || ""} ${item.advice || ""}`.toLowerCase();
+            return expanded.some((t) => blob.includes(t));
+          });
+
+          return (matched.length ? matched : list).slice(0, max);
+        };
+
+       
+        function buildAnswer(destination, question) {
+          const rules = DEST_RULES[destination] || DEFAULT_RULES;
+          const tokens = tokenize(question);
+
+          const doList = pickRelevant(rules.do, tokens, 4).map((x) => x.text);
+          const dontList = pickRelevant(rules.dont, tokens, 4).map((x) => x.text);
+          const etiquetteList = pickRelevant(rules.etiquette, tokens, 3);
+          const lawList = pickRelevant(rules.localLaws, tokens, 3);
+
+          const hasMatch =
+            (rules.do || []).some((x) => matchesTags(x.tags, tokens)) ||
+            (rules.dont || []).some((x) => matchesTags(x.tags, tokens)) ||
+            (rules.etiquette || []).some((x) => matchesTags(x.tags, tokens)) ||
+            (rules.localLaws || []).some((x) => matchesTags(x.tags, tokens));
+
+          return {
+            destination,
+            country: getDestinationByName(destination).country,
+            confidence: tokens.length === 0 ? "low" : hasMatch ? "medium" : "low",
+            doList,
+            dontList,
+            etiquetteList,
+            lawList
+          };
+        }
+
+       
+        function addMsg(chatEl, content, who = "ai", { asHTML = false, extraClass = "" } = {}) {
+          const div = document.createElement("div");
+          div.className = `msg ${who} ${extraClass}`.trim();
+          if (asHTML) div.innerHTML = content;
+          else div.textContent = content;
+
+          chatEl.appendChild(div);
+          chatEl.scrollTop = chatEl.scrollHeight;
+          return div;
+        }
+
+        function renderAnswer(chatEl, answer) {
+          const asset = getDestAsset(answer.destination);
+          const intro =
+            answer.confidence === "medium"
+              ? "Here’s guidance tailored to your destination and question:"
+              : "Here’s destination-specific guidance (ask a more specific question for tighter tips):";
+
+          const html = `
+            <div class="answer-head">
+              <img src="${asset.img}" alt="${answer.destination}">
+              <div class="h">
+                <div class="line1">${asset.emoji} ${answer.destination} (${answer.country})</div>
+                <div class="line2">${intro}</div>
+              </div>
+            </div>
+
+            <strong>DO ✅</strong><br>
+            - ${answer.doList.join("<br>- ")}<br><br>
+
+            <strong>DON’T ❌</strong><br>
+            - ${answer.dontList.join("<br>- ")}<br><br>
+
+            <strong>LOCAL LAWS ⚖️</strong><br>
+            - ${answer.lawList.map((x) => `${x.rule} — ${x.why}`).join("<br>- ")}<br><br>
+
+            <strong>ETIQUETTE 🤝</strong><br>
+            - ${answer.etiquetteList.map((x) => `${x.situation}: ${x.advice}`).join("<br>- ")}
+          `;
+
+          addMsg(chatEl, html, "ai", { asHTML: true });
+          addMsg(chatEl, "✨ Want to test yourself? Head to the Learning Hub and try a quick scenario mission.", "ai");
+        }
+
+        function resetChat(chatEl) {
+          chatEl.innerHTML = `
+            <div class="msg ai">
+              👋 Welcome to TripWise!
+
+              Pick a destination and ask a question. I’ll give you:
+              • destination-specific do’s & don’ts
+              • etiquette for common situations
+              • “rules tourists miss” type guidance
+
+              Try a quick prompt to get started.
+            </div>
+          `;
+        }
+
+        function populateDestinationSelect(selectEl) {
+          selectEl.innerHTML = "";
+          DESTINATIONS.forEach((d) => {
+            const opt = document.createElement("option");
+            opt.value = d.name;
+            opt.textContent = d.name;
+            selectEl.appendChild(opt);
+          });
+        }
+
+        function updateDestinationPreview(destName, elements) {
+          const dest = getDestinationByName(destName);
+          const asset = getDestAsset(dest.name);
+
+          elements.destImg.src = asset.img;
+          elements.destTitle.textContent = dest.name;
+          elements.destSub.textContent = `Country: ${dest.country}`;
+          elements.destBadge.textContent = `${asset.emoji} Destination`;
+        }
+
+        
+        document.addEventListener("DOMContentLoaded", () => {
+          const el = {
+            chat: document.getElementById("chat"),
+            qInput: document.getElementById("q"),
+            askBtn: document.getElementById("askBtn"),
+            clearBtn: document.getElementById("clearBtn"),
+            destSelect: document.getElementById("destination"),
+            destImg: document.getElementById("destImg"),
+            destTitle: document.getElementById("destTitle"),
+            destSub: document.getElementById("destSub"),
+            destBadge: document.getElementById("destBadge"),
+            chips: Array.from(document.querySelectorAll(".chip"))
+          };
+
+          populateDestinationSelect(el.destSelect);
+          updateDestinationPreview(el.destSelect.value, el);
+          setQuickPrompts(getDestinationByName(el.destSelect.value).country);
+
+          el.destSelect.addEventListener("change", () => {
+            updateDestinationPreview(el.destSelect.value, el);
+            setQuickPrompts(getDestinationByName(el.destSelect.value).country);
+          });
+
+          const send = async () => {
+            const question = el.qInput.value.trim();
+            if (!question) return;
+
+            addMsg(el.chat, question, "user"); 
+            el.qInput.value = "";
+
+            const typing = addMsg(el.chat, "✈️ Pulling destination tips…", "ai", { extraClass: "typing" });
+            await new Promise((r) => setTimeout(r, 200));
+
+            const answer = buildAnswer(el.destSelect.value, question);
+            typing.remove();
+            renderAnswer(el.chat, answer);
+          };
+
+          el.askBtn.addEventListener("click", send);
+          el.qInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") send(); 
+          });
+
+          el.clearBtn.addEventListener("click", () => resetChat(el.chat));
+
+          el.chips.forEach((chip) => {
+            chip.addEventListener("click", () => {
+              el.qInput.value = chip.dataset.q || "";
+              el.qInput.focus();
+            });
+          });
+        });
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div class="header"></div>
+
+    <div class="top">
+      <div class="brand">
+        <img src="../images/logo1.png" alt="TripWise Logo" />
+        <h1>TripWise</h1>
+      </div>
+
+      <div class="chips" style="margin-top: 0">
+        <a class="link" href="traveller-dashboard.html">Dashboard</a>
+        <a class="link" href="booking-details.html">Booking details</a>
+        <a class="link" href="learning-home.html">Learning Hub</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="grid">
+        <section class="card span-4" aria-label="Trip context">
+          <h2>Trip Context</h2>
+          <p><strong>Offline AI demo</strong></p>
+
+          <label for="destination">Destination</label>
+          <select id="destination"></select>
+
+          <div class="dest-preview" id="destPreview" title="Hover me ✨">
+            <img class="img" id="destImg" alt="Destination preview" />
+            <div class="meta">
+              <div>
+                <div class="dest-title" id="destTitle">—</div>
+                <div class="dest-sub" id="destSub">—</div>
+              </div>
+              <div class="badge" id="destBadge">—</div>
+            </div>
+          </div>
+
+          <label for="nationality">Nationality (optional)</label>
+          <input id="nationality" placeholder="e.g., British" />
+
+          <label for="tripType">Trip type (optional)</label>
+          <select id="tripType">
+            <option value="">Select…</option>
+            <option>Solo</option>
+            <option>Couple</option>
+            <option>Family</option>
+            <option>Friends</option>
+            <option>Business</option>
+          </select>
+
+          <label for="interests">Interests (optional)</label>
+          <input id="interests" placeholder="e.g., temples, culture, food" />
+
+          <div class="note" style="margin-top: 10px"><strong>Quick prompts</strong></div>
+          <div class="chips">
+            <div class="chip" data-q="" data-tip="Do’s & don’ts for common situations">Etiquette</div>
+            <div class="chip" data-q="" data-tip="Rules tourists commonly miss">Local laws</div>
+            <div class="chip" data-q="" data-tip="What’s respectful to film/photograph">Photography</div>
+            <div class="chip" data-q="" data-tip="How to behave on trains/buses/metros">Transport</div>
+            <div class="chip" data-q="" data-tip="Top mistakes to avoid">Common mistakes</div>
+          </div>
+        </section>
+
+        <section class="card span-8" aria-label="AI guidance">
+          <h2>AI Guidance</h2>
+          <p>Ask about etiquette, laws, and respectful behaviour.</p>
+
+          <div class="chat" id="chat">
+            <div class="msg ai">
+              👋 Welcome to TripWise!
+
+              Pick a destination and ask a question. I’ll give you:
+              • destination-specific do’s & don’ts
+              • etiquette for common situations
+              • “rules tourists miss” type guidance
+
+              Try a quick prompt to get started.
+            </div>
+          </div>
+
+          <div class="composer">
+            <input id="q" type="text" placeholder="Type your question…" />
+            <button type="button" id="askBtn">Ask</button>
+            <button type="button" class="btn-ghost" id="clearBtn">Clear</button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="footer"></div>
+  </body>
+</html>

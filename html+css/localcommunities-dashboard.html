@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Community Dashboard</title>
+    <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+    <header class="header" aria-label="Top bar"></header>
+
+    <div class="top" role="banner">
+        <div class="brand">
+            <img src="../images/logo1.png" alt="TripWise logo" />
+            <h1>TripWise</h1>
+        </div>
+
+        <nav class="actions" aria-label="Community dashboard navigation" style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="link" href="localcommunities-login.html">Logout</a>
+            <a class="link" href="traveller-dashboard.html">Traveller View</a>
+        </nav>
+    </div>
+
+    <main class="container">
+        <section class="hero" aria-label="Community overview">
+            <div>
+                <h2>Local Communities Dashboard 🌍</h2>
+                <p>
+                    You’re logged in as a verified local community partner for <strong>Kyoto, Japan</strong>.
+                    Share etiquette tips, flag concerns, and help travellers learn respectful behaviour after booking.
+                </p>
+
+                <div class="stats" aria-label="Community stats">
+                    <div class="pill">📍 Community: <strong id="communityName">Kyoto Partner Group</strong></div>
+                    <div class="pill">🗾 Location: <strong>Kyoto, Japan</strong></div>
+                    <div class="pill">📝 Tips Published: <strong id="tipsCount">6</strong></div>
+                    <div class="pill">🚩 Reports Open: <strong id="reportsOpen">2</strong></div>
+                    <div class="pill">✅ Resolved: <strong id="reportsResolved">11</strong></div>
+                </div>
+            </div>
+
+            <div class="hero-actions">
+                <button class="btn btn-primary" type="button" data-action="open-tip">➕ Add Etiquette Tip</button>
+                <button class="btn btn-ghost" type="button" data-action="open-report">🚩 Report an Issue</button>
+                <a class="btn btn-ghost" href="feedback.html">⭐ View Feedback</a>
+            </div>
+        </section>
+
+        <section class="grid" aria-label="Community dashboard sections">
+            <article class="card span-7">
+                <h3>Kyoto Tips & Local Guidance</h3>
+                <p>These tips can be used in AI Guidance and Learning missions for travellers visiting Kyoto.</p>
+
+                <div class="detail">
+                    <strong>Latest tip</strong>
+                    <span id="latestTip">“Avoid chasing maiko for photos in Gion.”</span>
+                    <span class="tag ok">Published</span>
+                </div>
+
+                <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+                    <button class="btn btn-primary" type="button" data-action="open-tip">Add new tip</button>
+                    <button class="btn btn-ghost" type="button" data-action="manage-tips">Manage tips</button>
+                </div>
+
+                <div style="height:14px" aria-hidden="true"></div>
+
+                <div class="detail">
+                    <strong>What travellers struggle with most</strong>
+                    <span>Photography etiquette • Smoking zones • Temple dress code</span>
+                </div>
+            </article>
+
+            <article class="card span-5">
+                <h3>Kyoto Community Alerts</h3>
+                <p>Flag recurring issues so TripWise can warn travellers proactively before arrival.</p>
+
+                <div class="detail">
+                    <strong>Open report</strong>
+                    <span>Overcrowding & loud groups near temples</span>
+                    <span class="tag up">Open</span>
+                </div>
+
+                <div class="detail">
+                    <strong>Open report</strong>
+                    <span>Unauthorized street photography complaints (Gion)</span>
+                    <span class="tag up">Open</span>
+                </div>
+
+                <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+                    <button class="btn btn-primary" type="button" data-action="open-report">Submit report</button>
+                    <button class="btn btn-ghost" type="button" data-action="view-reports">View all</button>
+                </div>
+            </article>
+
+            <article class="card span-12">
+                <h3>Kyoto Impact Snapshot (Prototype)</h3>
+                <p>Simple view of traveller patterns for Kyoto (no real analytics yet).</p>
+
+                <div class="grid" style="margin-top:12px">
+                    <div class="card span-4" style="margin:0">
+                        <h4 style="margin-top:0">Top Booked (Kyoto)</h4>
+                        <p style="margin-bottom:0">Kyoto, Japan — Eco Ryokan</p>
+                        <span class="tag ok">Confirmed</span>
+                    </div>
+
+                    <div class="card span-4" style="margin:0">
+                        <h4 style="margin-top:0">Learning Completion</h4>
+                        <p style="margin-bottom:0"><strong>68%</strong> of Kyoto-booked users finished a mission</p>
+                        <span class="tag">Improving</span>
+                    </div>
+
+                    <div class="card span-4" style="margin:0">
+                        <h4 style="margin-top:0">Most Useful Tips</h4>
+                        <p style="margin-bottom:0">Quiet transport • Photo consent • Shrine manners</p>
+                        <span class="tag">High impact</span>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <div id="tipModal" role="dialog" aria-modal="true" aria-labelledby="tipModalTitle"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);padding:20px;z-index:50">
+        <div class="card" style="max-width:720px;margin:40px auto">
+            <h3 id="tipModalTitle" style="margin-top:0">Add Etiquette Tip (Kyoto)</h3>
+            <p>Keep tips short and specific. They can power AI Guidance + Learning for Kyoto travellers.</p>
+
+            <div class="detail">
+                <strong>City</strong>
+                <span>
+                    <input class="input" style="width:100%" value="Kyoto" disabled />
+                </span>
+            </div>
+
+            <div class="detail">
+                <strong>Category</strong>
+                <span>
+                    <select id="tipCategory" class="input" style="width:100%">
+                        <option>Etiquette</option>
+                        <option>Local Laws</option>
+                        <option>Community Respect</option>
+                        <option>Safety</option>
+                    </select>
+                </span>
+            </div>
+
+            <div class="detail">
+                <strong>Tip</strong>
+                <span>
+                    <textarea id="tipText" class="input" rows="4" style="width:100%"
+                        placeholder="Example: Observe maiko quietly from a distance—don’t block their path."></textarea>
+                </span>
+            </div>
+
+            <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+                <button class="btn btn-primary" type="button" data-action="save-tip">Publish tip</button>
+                <button class="btn btn-ghost" type="button" data-action="close-tip">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);padding:20px;z-index:50">
+        <div class="card" style="max-width:720px;margin:40px auto">
+            <h3 id="reportModalTitle" style="margin-top:0">Report an Issue (Kyoto)</h3>
+            <p>Flag patterns you’re seeing in Kyoto so travellers can be guided before arrival.</p>
+
+            <div class="detail">
+                <strong>City</strong>
+                <span>
+                    <input class="input" style="width:100%" value="Kyoto" disabled />
+                </span>
+            </div>
+
+            <div class="detail">
+                <strong>Issue type</strong>
+                <span>
+                    <select id="reportType" class="input" style="width:100%">
+                        <option>Noise / crowding</option>
+                        <option>Photography complaints</option>
+                        <option>Dress code violations</option>
+                        <option>Littering</option>
+                        <option>Other</option>
+                    </select>
+                </span>
+            </div>
+
+            <div class="detail">
+                <strong>Description</strong>
+                <span>
+                    <textarea id="reportText" class="input" rows="4" style="width:100%"
+                        placeholder="Describe what’s happening and where (no personal data)."></textarea>
+                </span>
+            </div>
+
+            <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+                <button class="btn btn-primary" type="button" data-action="submit-report">Submit report</button>
+                <button class="btn btn-ghost" type="button" data-action="close-report">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" aria-label="Footer"></footer>
+
+    <script>
+        (() => {
+            "use strict";
+
+            const LOGGED_CITY = "Kyoto";
+
+            const $ = (id) => document.getElementById(id);
+            const show = (el) => (el.style.display = "block"); 
+            const hide = (el) => (el.style.display = "none"); 
+
+            const tipModal = $("tipModal");
+            const reportModal = $("reportModal");
+
+            const KEYS = {
+                tips: "tw_community_tips",
+                reports: "tw_community_reports",
+            };
+
+            // Safe JSON read helper (prevents crashes if storage is corrupted)
+            const readStore = (key) => {
+                try {
+                    return JSON.parse(localStorage.getItem(key) || "[]");
+                } catch {
+                    return [];
+                }
+            };
+
+            const writeStore = (key, value) => {
+                localStorage.setItem(key, JSON.stringify(value));
+            };
+
+            // Updates the stat cards based on Kyoto-only stored data
+            const refreshCounts = () => {
+                const tips = readStore(KEYS.tips).filter((t) => t.city === LOGGED_CITY);
+                const reports = readStore(KEYS.reports).filter((r) => r.city === LOGGED_CITY);
+                const openReports = reports.filter((r) => r.status === "Open").length;
+
+                // Keep base prototype numbers, layer stored content on top
+                $("tipsCount").textContent = String(6 + tips.length);
+                $("reportsOpen").textContent = String(2 + openReports);
+
+                // Show most recent stored tip if available
+                if (tips.length > 0) {
+                    const t = tips[0];
+                    $("latestTip").textContent = `(${t.city} • ${t.cat}) ${t.text}`;
+                }
+            };
+
+            const openTipModal = () => show(tipModal);
+            const closeTipModal = () => hide(tipModal);
+            const openReportModal = () => show(reportModal);
+            const closeReportModal = () => hide(reportModal);
+
+            const saveTip = () => {
+                const cat = $("tipCategory").value;
+                const text = $("tipText").value.trim();
+
+                if (!text) {
+                    alert("Please write a tip first.");
+                    return;
+                }
+
+                const tips = readStore(KEYS.tips);
+                tips.unshift({ city: LOGGED_CITY, cat, text, ts: Date.now() });
+                writeStore(KEYS.tips, tips);
+
+                $("tipText").value = ""; 
+                closeTipModal();
+                refreshCounts();
+                alert("Tip published (prototype).");
+            };
+
+            const submitReport = () => {
+                const type = $("reportType").value;
+                const text = $("reportText").value.trim();
+
+                if (!text) {
+                    alert("Please describe the issue.");
+                    return;
+                }
+
+                const reports = readStore(KEYS.reports);
+                reports.unshift({ city: LOGGED_CITY, type, text, status: "Open", ts: Date.now() });
+                writeStore(KEYS.reports, reports);
+
+                $("reportText").value = ""; 
+                closeReportModal();
+                refreshCounts();
+                alert("Report submitted (prototype).");
+            };
+
+            // Central click handling: avoids many inline onclick attributes
+            document.addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-action]");
+                if (!btn) return;
+
+                const action = btn.dataset.action;
+
+                if (action === "open-tip") openTipModal();
+                if (action === "close-tip") closeTipModal();
+                if (action === "save-tip") saveTip();
+
+                if (action === "open-report") openReportModal();
+                if (action === "close-report") closeReportModal();
+                if (action === "submit-report") submitReport();
+
+                if (action === "manage-tips") alert("Prototype: open tip editor list");
+                if (action === "view-reports") alert("Prototype: view all reports");
+            });
+
+            tipModal.addEventListener("click", (e) => {
+                if (e.target === tipModal) closeTipModal();
+            });
+
+            reportModal.addEventListener("click", (e) => {
+                if (e.target === reportModal) closeReportModal();
+            });
+
+            refreshCounts();
+        })();
+    </script>
+</body>
+
+</html>

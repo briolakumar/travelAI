@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Traveller Dashboard</title>
+    <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+    <header class="header" aria-label="Top bar"></header>
+
+    <div class="topbar-wrap">
+        <div class="topbar">
+            <div class="brand">
+                <img src="../images/logo1.png" alt="TripWise logo" />
+                <h1>TripWise</h1>
+            </div>
+
+            <div class="user-area">
+                <div class="pill">
+                    <span class="dot" aria-hidden="true"></span>
+                    Signed in as <strong>Traveller</strong>
+                </div>
+
+                <button class="btn btn-ghost" type="button" data-action="profile">
+                    👤 Profile
+                </button>
+                <button class="btn btn-primary" type="button" data-action="logout">
+                    🚪 Log out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="container">
+        <section class="hero" aria-label="Dashboard overview">
+            <div>
+                <h2>Ready for your next journey? 🌍</h2>
+                <p>
+                    Search destinations, book responsibly, and get personalised cultural, legal, and etiquette guidance.
+                    Your
+                    actions support local communities and better travel experiences.
+                </p>
+
+                <div class="badge">
+                    <span class="spark" aria-hidden="true">✨</span>
+                    <span><strong>Guidance progress:</strong> Kyoto trip</span>
+                </div>
+
+                <!-- Progress bar: keep label + percent readable -->
+                <div class="progress-wrap" aria-label="Guidance progress">
+                    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuenow="65" aria-valuemax="100">
+                        <div style="width: 65%"></div>
+                        <!-- Inline width used here only as a simple demo value -->
+                    </div>
+                    <div class="progress-label">65% complete</div>
+                </div>
+            </div>
+
+            <!-- Primary actions -->
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="search-destination.html">🔎 Search destinations</a>
+                <a class="btn btn-ghost" href="ai-guidance.html">🤖 Open AI guidance</a>
+                <a class="btn btn-ghost" href="notifications.html">🔔 Notifications</a>
+            </div>
+        </section>
+
+        <!-- Dashboard grid -->
+        <section class="grid" aria-label="Dashboard cards">
+            <!-- Quick actions -->
+            <article class="card span-6">
+                <h3><span class="ico" aria-hidden="true">🧭</span> Quick Actions</h3>
+                <p>Jump straight into the most common tasks.</p>
+
+                <div class="actions">
+                    <a class="btn btn-primary" href="search-destination.html">Search</a>
+                    <a class="btn btn-ghost" href="booking-history.html">Bookings</a>
+                    <a class="btn btn-ghost" href="feedback.html">Feedback</a>
+                </div>
+            </article>
+
+            <!-- Responsible tip -->
+            <article class="card span-6">
+                <h3><span class="ico" aria-hidden="true">🌿</span> Responsible Tip of the Day</h3>
+                <p>
+                    <strong>Small actions matter:</strong> choose locally owned stays and respect photo rules at
+                    cultural sites.
+                </p>
+
+                <div class="actions">
+                    <a class="link" href="learning-home.html">Open learning module →</a>
+                </div>
+            </article>
+
+            <!-- Upcoming bookings -->
+            <article class="card span-8">
+                <h3><span class="ico" aria-hidden="true">📌</span> Upcoming Bookings</h3>
+                <p>Keep track of your trips and access saved guidance anytime.</p>
+
+                <div class="list" aria-label="Upcoming bookings list">
+                    <div class="item">
+                        <div>
+                            <strong>Kyoto, Japan — Eco Ryokan</strong>
+                            <small>12 Mar – 16 Mar • Guidance available</small>
+                        </div>
+                        <span class="tag ok">Confirmed</span>
+                    </div>
+                    <div class="item">
+                        <div>
+                            <strong>Rome, Italy — City Boutique Hotel</strong>
+                            <small>20 Sept – 24 Sept • uidance available</small>
+                        </div>
+                        <span class="tag ok">Confimed</span>
+                    </div>
+                </div>
+
+
+                <div class="item">
+                    <div>
+                        <strong>Siem Reap, Cambodia — Local Homestay</strong>
+                        <small>02 Apr – 06 Apr • Reminder: review etiquette</small>
+                    </div>
+                    <span class="tag warn">Past</span>
+                </div>
+                </div>
+                <div class="actions" style="margin-top: 12px">
+                    <a class="btn btn-ghost" href="booking-history.html">View history</a>
+                    <a class="btn btn-ghost" href="booking-details.html">View booking details</a>
+                </div>
+            </article>
+
+            <!-- Notifications preview -->
+            <article class="card span-4">
+                <h3><span class="ico" aria-hidden="true">🔔</span> Latest Notifications</h3>
+                <p>Quick look at what’s new.</p>
+
+                <div class="list" aria-label="Notifications preview">
+                    <div class="item">
+                        <div>
+                            <strong>Reminder</strong>
+                            <small>Complete guidance before your trip.</small>
+                        </div>
+                        <span class="tag info">New</span>
+                    </div>
+
+                    <div class="item">
+                        <div>
+                            <strong>Update</strong>
+                            <small>New local etiquette tips added.</small>
+                        </div>
+                        <span class="tag">Info</span>
+                    </div>
+                </div>
+
+                <div class="actions" style="margin-top: 12px">
+                    <a class="btn btn-ghost" href="notifications.html" id="viewAllNotif">View all</a>
+                </div>
+            </article>
+
+            <!-- Feedback -->
+            <article class="card span-12">
+                <h3><span class="ico" aria-hidden="true">💬</span> Help Improve TripWise</h3>
+                <p>Your feedback helps improve guidance quality and supports local communities.</p>
+
+                <div class="actions">
+                    <a class="btn btn-primary" href="feedback.html">Leave feedback</a>
+                    <a class="link" href="ai-guidance.html">Review saved guidance →</a>
+                </div>
+            </article>
+        </section>
+
+        <div class="actions" style="margin-top: 14px">
+            <a class="btn btn-ghost" href="learning-home.html">🎮 Learning Hub</a>
+        </div>
+    </main>
+
+    <footer aria-label="Site footer">
+        <div class="footer"></div>
+        <div class="footer-bar">© TripWise • Smart Travel, Respectful Journey</div>
+    </footer>
+
+    <script>
+        (() => {
+            "use strict";
+            // Centralised click handling (avoids inline onclick attributes)
+
+            const go = (url) => (window.location.href = url); 
+
+            // Handle top-right action buttons using data-action
+            document.addEventListener("click", (e) => {
+                const btn = e.target.closest("[data-action]");
+                if (!btn) return;
+
+                const action = btn.dataset.action;
+
+                if (action === "profile") {
+                    alert("Profile page placeholder");
+                    return;
+                }
+
+                // Logout: redirect to login
+                if (action === "logout") {
+                    go("traveller-login.html");
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

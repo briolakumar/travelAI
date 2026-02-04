@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Booking Confirmation</title>
+    <link rel="stylesheet" href="tripwise.css" />
+
+    <script defer>
+      (() => {
+        "use strict";
+
+        const generateConfirmationId = () =>
+          `TW-${Math.floor(100000 + Math.random() * 900000)}`;
+
+        const getParam = (params, key, fallback = "—") => params.get(key) || fallback;
+
+        document.addEventListener("DOMContentLoaded", () => {
+          const el = {
+            confirmId: document.getElementById("confirmId"),
+            destination: document.getElementById("d_destination"),
+            stay: document.getElementById("d_stay"),
+            checkin: document.getElementById("d_checkin"),
+            checkout: document.getElementById("d_checkout"),
+            guests: document.getElementById("d_guests"),
+            updates: document.getElementById("d_updates")
+          };
+
+          el.confirmId.textContent = generateConfirmationId();
+
+          const params = new URLSearchParams(window.location.search);
+
+          el.destination.textContent = getParam(params, "destination", "Kyoto, Japan");
+          el.stay.textContent = getParam(params, "stayType", "Eco Ryokan");
+          el.checkin.textContent = getParam(params, "checkin");
+          el.checkout.textContent = getParam(params, "checkout");
+          el.guests.textContent = getParam(params, "guests");
+          el.updates.textContent = params.has("updates") ? "Enabled" : "Disabled";
+        });
+      })();
+    </script>
+  </head>
+
+  <body>
+    <header class="header" aria-label="Site header"></header>
+
+    <div class="top" role="banner">
+      <div class="brand">
+        <img src="../images/logo1.png" alt="TripWise Logo" />
+        <h1>TripWise</h1>
+      </div>
+
+      <nav class="actions" aria-label="Primary navigation">
+        <a class="link" href="traveller-dashboard.html">Dashboard</a>
+        <a class="link" href="booking-history.html">Booking history</a>
+      </nav>
+    </div>
+
+    <main class="container">
+      <section class="card" aria-labelledby="page-title">
+        <h2 id="page-title">Booking Confirmed ✅</h2>
+        <p>Your booking has been saved (prototype simulation). Next, view your cultural guidance.</p>
+
+        <div class="success" role="status" aria-live="polite">
+          Confirmation ID:
+          <div class="code" id="confirmId">TW-000000</div>
+        </div>
+
+        <div class="details" aria-label="Booking details">
+          <div>
+            <strong>Destination</strong>
+            <span id="d_destination">—</span>
+          </div>
+          <div>
+            <strong>Accommodation</strong>
+            <span id="d_stay">—</span>
+          </div>
+          <div>
+            <strong>Check-in</strong>
+            <span id="d_checkin"></span>
+          </div>
+          <div>
+            <strong>Check-out</strong>
+            <span id="d_checkout">—</span>
+          </div>
+          <div>
+            <strong>Guests</strong>
+            <span id="d_guests">—</span>
+          </div>
+          <div>
+            <strong>Updates</strong>
+            <span id="d_updates">—</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="button" onclick="window.location.href='ai-guidance.html'">
+            Open AI Guidance
+          </button>
+          <button class="btn btn-ghost" type="button" onclick="window.location.href='post-booking-education.html'">
+            Start Learning Module
+          </button>
+          <button class="btn btn-ghost" type="button" onclick="window.location.href='traveller-dashboard.html'">
+            Back to Dashboard
+          </button>
+        </div>
+
+        <p style="margin-top: 12px">
+          Want to browse more? <a class="link" href="search-destination.html">Search destinations</a>
+        </p>
+
+        <div class="actions" style="margin-top: 12px">
+          <button class="btn btn-ghost" type="button" onclick="window.location.href='learning-home.html'">
+            🎮 Start Learning Mission
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer" aria-label="Site footer"></footer>
+  </body>
+</html>

@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Admin Dashboard</title>
+    <link rel="stylesheet" href="tripwise.css" />
+
+    <script defer>
+      (() => {
+        "use strict";
+
+      
+        const $ = (id) => document.getElementById(id);
+        const show = (el) => (el.style.display = "block");
+        const hide = (el) => (el.style.display = "none");
+
+        
+        const STORAGE_KEY = "tw_kb";
+        const BASE_KB_COUNT = 42; 
+        const REQUIRED_CITIES = ["Kyoto", "Rome", "Barcelona"]; 
+
+        
+        const openKbModal = () => show($("kbModal"));
+        const closeKbModal = () => hide($("kbModal"));
+
+       
+        const readKb = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const writeKb = (kb) => localStorage.setItem(STORAGE_KEY, JSON.stringify(kb));
+
+        const truncate = (text, max = 60) =>
+          text.length > max ? `${text.slice(0, max)}…` : text;
+
+        const updateKbStats = (kb) => {
+          $("kbCount").textContent = String(BASE_KB_COUNT + kb.length);
+
+          if (kb.length > 0) {
+            const latest = kb[0];
+            $("kbRecent").textContent = `${latest.city} • ${truncate(latest.text)}`;
+          }
+        };
+
+        const saveKb = () => {
+          const city = $("kbCity").value;
+          const type = $("kbType").value;
+          const text = $("kbText").value.trim();
+
+          if (!text) {
+            alert("Please write an entry.");
+            return;
+          }
+
+          const kb = readKb();
+          kb.unshift({ city, type, text, ts: Date.now() }); 
+          writeKb(kb);
+
+          updateKbStats(kb);
+          $("kbText").value = ""; 
+          closeKbModal();
+          alert("KB entry saved (prototype).");
+        };
+
+      
+        const warnings = { minor: 2, critical: 0 };
+
+        const renderWarnings = () => {
+          $("warnLine").textContent = `${warnings.critical} critical • ${warnings.minor} minor`;
+          $("sysStatus").textContent = warnings.critical > 0 ? "Attention" : "OK";
+        };
+
+        const addMockWarning = () => {
+          Math.random() > 0.8 ? (warnings.critical += 1) : (warnings.minor += 1);
+          renderWarnings();
+        };
+
+        const clearMockWarnings = () => {
+          warnings.minor = 0;
+          warnings.critical = 0;
+          renderWarnings();
+        };
+
+        
+        document.addEventListener("DOMContentLoaded", () => {
+          updateKbStats(readKb());
+          renderWarnings();
+
+          $("openKbBtn").addEventListener("click", openKbModal);
+          $("openKbBtn2").addEventListener("click", openKbModal);
+          $("saveKbBtn").addEventListener("click", saveKb);
+          $("cancelKbBtn").addEventListener("click", closeKbModal);
+
+          $("warnBtn").addEventListener("click", addMockWarning);
+          $("warnClearBtn").addEventListener("click", clearMockWarnings);
+
+          $("kbModal").addEventListener("click", (e) => {
+            if (e.target === $("kbModal")) closeKbModal();
+          });
+        });
+      })();
+    </script>
+  </head>
+
+  <body>
+    <header class="header" aria-label="Site header"></header>
+
+    <div class="top" role="banner">
+      <div class="brand">
+        <img src="../images/logo1.png" alt="TripWise Logo" />
+        <h1>TripWise</h1>
+      </div>
+
+      <nav class="actions" aria-label="Primary navigation" style="display: flex; gap: 10px; flex-wrap: wrap">
+        <a class="link" href="admin-login.html">Logout</a>
+        <a class="link" href="notifications.html">Notifications</a>
+        <a class="link" href="traveller-dashboard.html">Traveller View</a>
+      </nav>
+    </div>
+
+    <main class="container">
+      <section class="hero" aria-label="Admin summary">
+        <div>
+          <h2>Admin Dashboard 🛠️</h2>
+          <p>Manage Knowledge Base content, monitor activity, and review bookings (prototype data).</p>
+
+          <div class="stats" aria-label="Key stats">
+            <div class="pill">📚 KB Entries: <strong id="kbCount">42</strong></div>
+            <div class="pill">🧾 Bookings (confirmed): <strong id="bkCount">3</strong></div>
+            <div class="pill">💬 AI Guidance sessions: <strong id="aiCount">18</strong></div>
+            <div class="pill">🟢 System status: <strong id="sysStatus">OK</strong></div>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary" type="button" id="openKbBtn">➕ Add KB Entry</button>
+          <button class="btn btn-ghost" type="button" onclick="alert('Prototype: run AI re-index / update')">
+            🔄 Update AI Knowledge
+          </button>
+          <button class="btn btn-ghost" type="button" onclick="alert('Prototype: export logs')">📤 Export Activity</button>
+        </div>
+      </section>
+
+      <div class="grid">
+        <section class="card span-7" aria-label="Knowledge base management">
+          <h3>Knowledge Base Management</h3>
+          <p>Add/edit cultural etiquette, local laws, and learning content for each destination.</p>
+
+          <div class="detail">
+            <strong>Recent update</strong>
+            <span id="kbRecent">Rome • “Spanish Steps: sitting restrictions + fines”</span>
+            <span class="tag">Saved</span>
+          </div>
+
+          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap">
+            <button class="btn btn-primary" type="button" id="openKbBtn2">Add entry</button>
+            <button class="btn btn-ghost" type="button" onclick="alert('Prototype: open KB table view')">
+              Manage entries
+            </button>
+          </div>
+
+          <div style="height: 12px"></div>
+
+          <div class="detail">
+            <strong>Active destination set</strong>
+            <span>
+              Kyoto • Rome • Barcelona
+            </span>
+          </div>
+        </section>
+
+        <section class="card span-5" aria-label="System activity monitor">
+          <h3>System Activity Monitor</h3>
+          <p>Quick status view (prototype). In a real build, this reads from logs.</p>
+
+          <div class="detail">
+            <strong>Last 24h</strong>
+            <span>Login: 21 • Search: 46 • Bookings: 3 • Learning: 15</span>
+          </div>
+
+          <div class="detail">
+            <strong>Warnings</strong>
+            <span id="warnLine">0 critical • 2 minor</span>
+            <span class="tag">Stable</span>
+          </div>
+
+          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap">
+            <button class="btn btn-primary" type="button" id="warnBtn">Simulate warning</button>
+            <button class="btn btn-ghost" type="button" id="warnClearBtn">Clear</button>
+          </div>
+        </section>
+
+        <!-- Booking overview -->
+        <section class="card span-12" aria-label="Confirmed bookings overview">
+          <h3>Confirmed Bookings (Prototype)</h3>
+          <p>This mirrors what your traveller booking pages show: Kyoto, Rome, Barcelona.</p>
+
+          <div class="grid" style="margin-top: 12px">
+            <div class="card span-4" style="margin: 0">
+              <h4 style="margin-top: 0">Kyoto, Japan</h4>
+              <p style="margin-bottom: 6px">Eco Ryokan • 12 Mar – 16 Mar</p>
+              <span class="tag">Confirmed</span>
+            </div>
+
+            <div class="card span-4" style="margin: 0">
+              <h4 style="margin-top: 0">Rome, Italy</h4>
+              <p style="margin-bottom: 6px">City Boutique Hotel • 20 Apr – 24 Apr</p>
+              <span class="tag">Confirmed</span>
+            </div>
+
+            <div class="card span-4" style="margin: 0">
+              <h4 style="margin-top: 0">Barcelona, Spain</h4>
+              <p style="margin-bottom: 6px">Beachside Stay • 02 May – 06 May</p>
+              <span class="tag">Confirmed</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap">
+            <button class="btn btn-ghost" type="button" onclick="window.location.href='booking-history.html'">
+              View booking history
+            </button>
+            <button class="btn btn-ghost" type="button" onclick="window.location.href='booking-details.html'">
+              Open booking details
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- KB Modal -->
+    <div
+      id="kbModal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add knowledge base entry"
+      style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); padding: 20px; z-index: 50"
+    >
+      <div class="card" style="max-width: 760px; margin: 40px auto">
+        <h3 style="margin-top: 0">Add Knowledge Base Entry</h3>
+        <p>This content can power AI Guidance + Learning questions.</p>
+
+        <div class="detail">
+          <strong>Destination</strong>
+          <span>
+            <select id="kbCity" class="input" style="width: 100%">
+              <option value="Kyoto">Kyoto</option>
+              <option value="Rome">Rome</option>
+              <option value="Barcelona">Barcelona</option>
+            </select>
+          </span>
+        </div>
+
+        <div class="detail">
+          <strong>Type</strong>
+          <span>
+            <select id="kbType" class="input" style="width: 100%">
+              <option value="Local Laws">Local Laws</option>
+              <option value="Etiquette">Etiquette</option>
+              <option value="Safety">Safety</option>
+              <option value="Learning Question">Learning Question</option>
+            </select>
+          </span>
+        </div>
+
+        <div class="detail">
+          <strong>Entry</strong>
+          <span>
+            <textarea
+              id="kbText"
+              class="input"
+              rows="5"
+              style="width: 100%"
+              placeholder="Example: Rome — Sitting on the Spanish Steps can result in fines."
+            ></textarea>
+          </span>
+        </div>
+
+        <div class="actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px">
+          <button class="btn btn-primary" type="button" id="saveKbBtn">Save entry</button>
+          <button class="btn btn-ghost" type="button" id="cancelKbBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer" aria-label="Site footer"></footer>
+  </body>
+</html>

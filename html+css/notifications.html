@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Notifications</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+  <header class="header" aria-label="Top bar"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+
+    <nav class="actions" aria-label="Notifications navigation">
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+      <a class="link" href="notification-settings.html">Settings</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <section class="card" aria-labelledby="page-title">
+      <h2 id="page-title">Notifications</h2>
+      <p>Booking confirmations, reminders, and responsible travel updates.</p>
+
+      <!-- Notifications list -->
+      <div class="list" aria-label="Notifications list">
+        <div class="item">
+          <div>
+            <strong>Reminder: Review temple etiquette</strong>
+            <small>Kyoto trip • Complete guidance before you arrive.</small>
+          </div>
+          <span class="tag warn">Action</span>
+        </div>
+
+        <div class="item">
+          <div>
+            <strong>Update: New cultural tips added</strong>
+            <small>Kyoto • Quiet transport etiquette and photography rules.</small>
+          </div>
+          <span class="tag info">New</span>
+        </div>
+
+        <div class="item">
+          <div>
+            <strong>Booking confirmed</strong>
+            <small>Your booking TW-123456 has been stored.</small>
+          </div>
+          <span class="tag">Info</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <!-- Use data-action to avoid inline onclick -->
+        <button class="btn btn-primary" type="button" data-action="mark-read">
+          Mark all as read
+        </button>
+
+        <!-- Use a link for navigation -->
+        <a class="btn btn-ghost" href="traveller-dashboard.html">Back</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" aria-label="Footer"></footer>
+
+  <script>
+    (() => {
+      "use strict";
+      // Keep behaviour in JS, not inline HTML attributes
+
+      const markReadBtn = document.querySelector('[data-action="mark-read"]');
+
+      // Prototype behaviour: replace with real state/API later
+      markReadBtn.addEventListener("click", () => {
+        alert("Marked all as read (placeholder)");
+      });
+    })();
+  </script>
+</body>
+
+</html>

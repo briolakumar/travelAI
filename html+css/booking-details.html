@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Booking Details</title>
+    <link rel="stylesheet" href="tripwise.css" />
+
+    <script src="../nodejs/destinations.js" defer></script>
+
+    <script defer>
+      (() => {
+        "use strict";
+
+        const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+        const daysBetween = (a, b) => Math.ceil((b - a) / (1000 * 60 * 60 * 24));
+
+        const formatISODate = (iso) => {
+          const d = new Date(iso);
+          if (Number.isNaN(d.getTime())) return iso;
+          return d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+        };
+
+        
+        const getCountdown = (startISO, endISO) => {
+          const today = startOfDay(new Date());
+          const start = startOfDay(new Date(startISO));
+          const end = startOfDay(new Date(endISO));
+
+          if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+            return { text: "Dates unavailable", status: "ended" };
+          }
+
+          if (today < start) {
+            const d = daysBetween(today, start);
+            return { text: `${d} day${d === 1 ? "" : "s"} to go`, status: "upcoming" };
+          }
+
+          if (today >= start && today <= end) {
+            return { text: "Trip in progress", status: "in-progress" };
+          }
+
+          return { text: "Trip ended", status: "ended" };
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+          const listEl = document.getElementById("bookingList");
+          if (!listEl) return;
+
+          const confirmedBookings = [
+            {
+              destination: "Kyoto, Japan",
+              accommodation: "Eco Ryokan",
+              startDate: "2026-03-12",
+              endDate: "2026-03-16",
+              guests: "2 guests",
+              id: "TW-123456",
+              status: "Confirmed"
+            },
+            {
+              destination: "Rome, Italy",
+              accommodation: "Boutique Hotel Roma",
+              startDate: "2026-04-28",
+              endDate: "2026-05-02",
+              guests: "2 guests",
+              id: "TW-654321",
+              status: "Confirmed"
+            },
+            {
+              destination: "Barcelona, Spain",
+              accommodation: "City Center Apartment",
+              startDate: "2026-06-09",
+              endDate: "2026-06-13",
+              guests: "2 guests",
+              id: "TW-998877",
+              status: "Confirmed"
+            }
+          ];
+
+          listEl.innerHTML = confirmedBookings
+            .map((b) => {
+              const countdown = getCountdown(b.startDate, b.endDate);
+
+              return `
+                <article class="booking-item" aria-label="Booking ${b.id}">
+                  <div>
+                    <div class="booking-dest">${b.destination}</div>
+                    <div class="booking-meta">🏨 ${b.accommodation}</div>
+
+                    <div class="booking-meta">
+                      📅 ${formatISODate(b.startDate)} → ${formatISODate(b.endDate)} • 👥 ${b.guests}
+                    </div>
+
+                    <div class="booking-meta">
+                      Confirmation ID: <strong>${b.id}</strong>
+                    </div>
+                  </div>
+
+                  <div class="booking-right">
+                    <span class="tag booking-tag">${b.status}</span>
+
+                    <!-- Countdown placed UNDER Confirmed (engaging pill) -->
+                    <div class="countdown-pill ${countdown.status}" aria-label="Countdown to trip">
+                      <span class="countdown-ico" aria-hidden="true">⏳</span>
+                      <span class="countdown-text">${countdown.text}</span>
+                    </div>
+                  </div>
+                </article>
+              `;
+            })
+            .join("");
+        });
+      })();
+    </script>
+  </head>
+
+  <body>
+    <header class="header" aria-label="Site header"></header>
+
+    <div class="top" role="banner">
+      <div class="brand">
+        <img src="../images/logo1.png" alt="TripWise logo" />
+        <h1>TripWise</h1>
+      </div>
+
+      <nav class="actions" aria-label="Secondary navigation">
+        <a class="link" href="booking-history.html">← Booking history</a>
+        <a class="link" href="traveller-dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+
+    <main class="container">
+      <div class="grid">
+        <section class="card span-7" aria-labelledby="page-title">
+          <h2 id="page-title">Booking Details</h2>
+          <p>Confirmed bookings (prototype).</p>
+
+          <div class="booking-list" id="bookingList" aria-label="Confirmed bookings list"></div>
+
+          <div class="actions" style="margin-top: 14px">
+            <a class="link" href="destination-details.html">View destination again</a>
+            <a class="link" href="feedback.html">Leave feedback</a>
+          </div>
+        </section>
+
+        <aside class="card span-5" aria-labelledby="next-steps-title">
+          <h2 id="next-steps-title">Next Steps</h2>
+          <p>TripWise provides guidance after booking to support respectful travel.</p>
+
+          <button class="btn btn-primary" type="button" onclick="window.location.href='ai-guidance.html'">
+            Open AI Guidance
+          </button>
+
+          <div style="height: 10px"></div>
+
+          <button class="btn btn-ghost" type="button" onclick="window.location.href='notifications.html'">
+            View Notifications
+          </button>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="footer" aria-label="Site footer"></footer>
+  </body>
+</html>

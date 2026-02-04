@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Learning Home</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+  <header class="header" aria-label="Top bar"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+
+    <nav aria-label="Learning hub navigation" style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+      <a class="link" href="booking-details.html">Booking details</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <section class="hero" aria-label="Learning hub overview">
+      <div>
+        <h2>Learning Hub 🎮</h2>
+        <p>Play quick missions to master local laws & etiquette. Earn points, level up, and collect badges.</p>
+
+        <div class="stats" aria-label="Learning stats">
+          <div class="pill"><span class="dot" aria-hidden="true"></span> Streak: <strong id="streak">0</strong> days</div>
+          <div class="pill">⭐ Points: <strong id="points">0</strong></div>
+          <div class="pill">🏅 Badges: <strong id="badges">0</strong></div>
+          <div class="pill">🧠 Level: <strong id="level">1</strong></div>
+        </div>
+
+        <!-- Points progress bar -->
+        <div class="levelbar" title="XP progress" aria-label="XP progress">
+          <div id="xpBar"></div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn btn-primary" type="button" id="dailyBtn">⚡ Daily Challenge</button>
+        <button class="btn btn-ghost" type="button" id="leaderboardBtn">🏆 Leaderboard</button>
+        <a class="btn btn-ghost" href="ai-guidance.html">🤖 Ask AI</a>
+      </div>
+    </section>
+
+    <section class="grid learning-tiles" aria-label="Missions">
+      <a class="learn-tile tile-kyoto" href="learning-game.html?mission=kyoto-laws-etiquette" aria-label="Kyoto mission">
+        <img src="../images/bg-kyoto.jpg" alt="Kyoto" />
+        <div class="learn-overlay">
+          <h3>Kyoto</h3>
+          <p>Rules + Respect</p>
+        </div>
+      </a>
+
+      <a class="learn-tile tile-rome" href="learning-game.html?mission=rome-laws-etiquette" aria-label="Rome mission">
+        <img src="../images/bg-rome.jpg" alt="Rome" />
+        <div class="learn-overlay">
+          <h3>Rome</h3>
+          <p>Monuments + Manners</p>
+        </div>
+      </a>
+
+      <a class="learn-tile tile-barcelona" href="learning-game.html?mission=barcelona-laws-etiquette" aria-label="Barcelona mission">
+        <img src="../images/bg-barcelona.jpg" alt="Barcelona" />
+        <div class="learn-overlay">
+          <h3>Barcelona</h3>
+          <p>City Rules + Street Smarts</p>
+        </div>
+      </a>
+    </section>
+  </main>
+
+  <footer class="footer" aria-label="Footer"></footer>
+
+  <script>
+    (() => {
+      "use strict";
+
+    
+      const bgMap = {
+        kyoto: "../images/bg-kyoto.jpg",
+        rome: "../images/bg-rome.jpg",
+        barcelona: "../images/bg-barcelona.jpg"
+      };
+
+      function setBg(src) {
+        document.documentElement.style.setProperty("--city-bg", `url("${src}")`);
+      }
+
+      // Default background when page loads
+      setBg(bgMap.kyoto);
+
+      const kyotoTile = document.querySelector(".tile-kyoto");
+      const romeTile = document.querySelector(".tile-rome");
+      const barcaTile = document.querySelector(".tile-barcelona");
+
+      kyotoTile.addEventListener("mouseenter", () => setBg(bgMap.kyoto));
+      romeTile.addEventListener("mouseenter", () => setBg(bgMap.rome));
+      barcaTile.addEventListener("mouseenter", () => setBg(bgMap.barcelona));
+
+      const tileSection = document.querySelector(".learning-tiles");
+      tileSection.addEventListener("mouseleave", () => setBg(bgMap.kyoto));
+
+    
+      const getNum = (key, fallback = 0) => Number(localStorage.getItem(key) ?? fallback);
+
+      const calcLevel = (points) => Math.max(1, Math.floor(points / 300) + 1);
+
+      const calcXpProgress = (points) => {
+        const base = Math.floor(points / 300) * 300;
+        const within = points - base;
+        return Math.max(0, Math.min(100, Math.round((within / 300) * 100)));
+      };
+
+      const points = getNum("tw_points", 0);
+      const streak = getNum("tw_streak", 0);
+      const badges = getNum("tw_badges", 0);
+      const level = calcLevel(points);
+
+      document.getElementById("points").textContent = String(points);
+      document.getElementById("streak").textContent = String(streak);
+      document.getElementById("badges").textContent = String(badges);
+      document.getElementById("level").textContent = String(level);
+      document.getElementById("xpBar").style.width = `${calcXpProgress(points)}%`;
+
+      
+      const missionList = ["kyoto-laws-etiquette", "rome-laws-etiquette", "barcelona-laws-etiquette"];
+
+      const startDaily = () => {
+        const day = new Date().getDate();
+        const pick = missionList[day % missionList.length];
+        window.location.href = `learning-game.html?mission=${encodeURIComponent(pick)}&daily=1`;
+      };
+
+      document.getElementById("dailyBtn").addEventListener("click", startDaily);
+      document.getElementById("leaderboardBtn").addEventListener("click", () => {
+        alert("Leaderboard (optional)");
+      });
+    })();
+  </script>
+</body>
+
+</html>

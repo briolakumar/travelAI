@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Traveller Registration</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+  <header class="header" aria-label="Site header">
+    <div class="logo-bar">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <span class="brand-title">TripWise</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="box" aria-labelledby="page-title">
+      <h1 id="page-title">Traveller Registration</h1>
+      <p class="subtitle">Create an account to book trips and receive destination guidance.</p>
+
+      <form id="travRegister" action="#" method="post" autocomplete="on" novalidate>
+        <div class="field">
+          <label for="t_name">Full Name</label>
+          <input id="t_name" name="fullname" type="text" required autocomplete="name" placeholder="e.g., Alex Smith" />
+        </div>
+
+        <div class="field">
+          <label for="t_email">Email</label>
+          <input id="t_email" name="email" type="email" required autocomplete="email" inputmode="email"
+            placeholder="name@example.com" />
+        </div>
+
+        <div class="field">
+          <label for="t_password">Password</label>
+          <input id="t_password" name="password" type="password" minlength="8" required autocomplete="new-password"
+            placeholder="Minimum 8 characters" aria-describedby="password-hint" />
+          <p class="hint" id="password-hint">Use at least 8 characters.</p>
+        </div>
+
+        <div class="field">
+          <label for="t_confirm">Confirm Password</label>
+          <input id="t_confirm" name="confirmPassword" type="password" minlength="8" required
+            autocomplete="new-password" placeholder="Re-enter password" />
+        </div>
+
+        <div class="checks">
+          <label>
+            <input id="terms" type="checkbox" required />
+            I agree to the Terms and Conditions
+          </label>
+        </div>
+
+        <button class="btn" type="submit">Create Traveller Account</button>
+
+        <div class="row-actions">
+          <a class="link" href="traveller-login.html">Already have an account? Log in</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer" aria-label="Site footer">
+    <div class="logo-bar">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <span class="brand-title">TripWise</span>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      "use strict";
+      // Enables strict mode to prevent common JS mistakes
+      const form = document.getElementById("travRegister");
+      const password = document.getElementById("t_password");
+      const confirmPassword = document.getElementById("t_confirm");
+
+      /**
+       * Checks whether the password and confirm-password fields match.
+       * If they do not match, a custom validation message is attached to the confirm password input.
+       */
+      const validatePasswordsMatch = () => {
+        if (password.value !== confirmPassword.value) {
+          // Set a custom browser validation message
+          confirmPassword.setCustomValidity("Passwords do not match.");
+        } else {
+          // Clear the custom message so the field becomes valid
+          confirmPassword.setCustomValidity("");
+        }
+      };
+
+      // Perform live validation as the user types
+      password.addEventListener("input", validatePasswordsMatch);
+      confirmPassword.addEventListener("input", validatePasswordsMatch);
+
+      // Validate again when the form is submitted
+      form.addEventListener("submit", (e) => {
+        // Ensure passwords are checked one last time
+        validatePasswordsMatch();
+
+        // If any field fails HTML5 validation rules, prevent submission and show browser messages
+        if (!form.checkValidity()) {
+          e.preventDefault();
+          form.reportValidity();
+        }
+      });
+    })();
+  </script>
+
+</body>
+
+</html>

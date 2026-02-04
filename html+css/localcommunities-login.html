@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Community Login</title>
+    <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+    <header class="header" aria-label="Top bar"></header>
+
+    <header class="logo-bar" aria-label="TripWise branding">
+        <img src="../images/logo1.png" alt="TripWise logo" />
+        <span class="brand-title">TripWise</span>
+    </header>
+
+    <main class="container">
+        <section class="box" aria-labelledby="page-title">
+            <h1 id="page-title">Community Partner Login</h1>
+            <p class="subtitle">Log in to manage listings and view bookings.</p>
+
+            <form id="comLogin" action="#" method="post" novalidate>
+                <div class="field">
+                    <label for="c_email">Contact Email</label>
+                    <input id="c_email" name="email" type="email" required autocomplete="email" inputmode="email"
+                        placeholder="contact@example.com" />
+                </div>
+
+                <div class="field">
+                    <label for="c_password">Password</label>
+                    <input id="c_password" name="password" type="password" required autocomplete="current-password"
+                        placeholder="Your password" />
+                </div>
+
+                <p id="comError" class="error" role="alert" aria-live="polite">
+                    Incorrect email or password.
+                </p>
+
+                <div class="row">
+                    <a class="link" href="forgot-password.html">Forgot password?</a>
+                    <a class="link" href="localcommunities-register.html">Register as partner</a>
+                </div>
+
+                <button class="btn" type="submit">Log In</button>
+
+                <div class="row-actions">
+                    <a class="link" href="traveller-login.html">Traveller login</a>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer class="footer" aria-label="Footer">
+        <!-- Keep branding consistent in the footer without duplicating loose sections -->
+        <div class="logo-bar" aria-label="TripWise branding footer">
+            <img src="../images/logo1.png" alt="TripWise logo" />
+            <span class="brand-title">TripWise</span>
+        </div>
+    </footer>
+
+    <script>
+        (() => {
+            "use strict";
+
+            const form = document.getElementById("comLogin");
+            const email = document.getElementById("c_email");
+            const password = document.getElementById("c_password");
+            const errorBox = document.getElementById("comError");
+
+            // Ensure error starts hidden 
+            errorBox.style.display = "none";
+
+            // Clears error state when the user edits inputs
+            const clearError = () => {
+                errorBox.style.display = "none";
+                password.setCustomValidity("");
+            };
+
+            email.addEventListener("input", clearError);
+            password.addEventListener("input", clearError);
+
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+
+                // Let browser handle required/email format first
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                
+                const ok = password.value === "password123";
+
+                if (!ok) {
+                    errorBox.style.display = "block";
+                    password.setCustomValidity("Incorrect email or password.");
+                    form.reportValidity();
+                    return;
+                }
+
+                clearError();
+
+                // Placeholder success behaviour 
+                window.location.href = "community-dashboard.html";
+            });
+        })();
+    </script>
+</body>
+
+</html>

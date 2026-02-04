@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Booking History</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+  <header class="header" aria-label="Site header"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+
+    <nav class="actions" aria-label="Primary navigation">
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+      <a class="link" href="search-destination.html">Search</a>
+      <a class="link" href="learning-home.html">Learning Hub</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <section class="card" aria-labelledby="page-title">
+      <h2 id="page-title">Booking History</h2>
+      <p>View previous and upcoming bookings (prototype records).</p>
+
+      <div class="detail" style="margin-top: 12px">
+        <strong>Learning Module Status</strong>
+        <span id="learningStatus">Checking…</span>
+        <span class="tag ok" id="learningTag" style="display: none">Unlocked</span>
+      </div>
+
+      <div class="row" role="search">
+        <label class="sr-only" for="searchBookings">Search bookings</label>
+        <input id="searchBookings" type="text" placeholder="Search by destination… (demo)" />
+
+        <label class="sr-only" for="filterBookings">Filter bookings</label>
+        <select id="filterBookings">
+          <option value="all">All</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="past">Past</option>
+          <option value="confirmed">Confirmed</option>
+        </select>
+
+        <button class="btn btn-ghost" type="button" onclick="alert('Filter applied (placeholder)')">
+          Apply
+        </button>
+      </div>
+
+      <div class="list" aria-label="Bookings list">
+        <div class="item">
+          <div>
+            <strong>Kyoto, Japan — Eco Ryokan</strong>
+            <small>12 Mar – 31 Mar • Confirmation: TW-123456</small>
+          </div>
+          <div class="actions">
+            <span class="tag ok">Confirmed</span>
+            <a class="link" href="booking-details.html?booking=kyoto">View details</a>
+          </div>
+        </div>
+
+        <div class="item">
+          <div>
+            <strong>Rome, Italy — City Boutique Hotel</strong>
+            <small>20 Sept – 24 Sept • Confirmation: TW-778812</small>
+          </div>
+          <div class="actions">
+            <span class="tag ok">Confirmed</span>
+            <a class="link" href="booking-details.html?booking=rome">View details</a>
+          </div>
+        </div>
+
+        <div class="item">
+          <div>
+            <strong>Barcelona, Spain — Beachside Stay</strong>
+            <small>02 May – 16 May • Confirmation: TW-992014</small>
+          </div>
+          <div class="actions">
+            <span class="tag ok">Confirmed</span>
+            <a class="link" href="booking-details.html?booking=barcelona">View details</a>
+          </div>
+        </div>
+
+        <div class="item">
+          <div>
+            <strong>Siem Reap, Cambodia — Community Homestay</strong>
+            <small>02 Jan – 26 Jan • Confirmation: TW-458901</small>
+          </div>
+          <div class="actions">
+            <span class="tag up">Past</span>
+            <a class="link" href="booking-details.html?booking=siemreap">View details</a>
+          </div>
+        </div>
+
+        <div class="item">
+          <div>
+            <strong>Lisbon, Portugal — City Hotel</strong>
+            <small>10 Dec – 16 Dec • Confirmation: TW-332210</small>
+          </div>
+          <div class="actions">
+            <span class="tag up">Past</span>
+            <a class="link" href="booking-details.html?booking=lisbon">View details</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top: 14px">
+        <button class="btn btn-primary" type="button" onclick="window.location.href='search-destination.html'">
+          Make a new booking
+        </button>
+        <button class="btn btn-ghost" type="button" onclick="window.location.href='traveller-dashboard.html'">
+          Back
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" aria-label="Site footer"></footer>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // Prototype confirmed bookings count (swap for real stored bookings later)
+      const CONFIRMED_BOOKINGS = 3; 
+      const REQUIRED_FOR_UNLOCK = 3;
+
+      const statusEl = document.getElementById("learningStatus");
+      const tagEl = document.getElementById("learningTag");
+
+      // Simple unlock logic for Learning Hub access
+      if (CONFIRMED_BOOKINGS >= REQUIRED_FOR_UNLOCK) {
+        statusEl.textContent = `Unlocked — you have ${CONFIRMED_BOOKINGS} confirmed bookings.`;
+        tagEl.style.display = "inline-block";
+      } else {
+        const remaining = REQUIRED_FOR_UNLOCK - CONFIRMED_BOOKINGS;
+        statusEl.textContent = `Locked — you need ${remaining} more confirmed booking(s).`;
+        tagEl.style.display = "none";
+      }
+    })();
+  </script>
+</body>
+
+</html>

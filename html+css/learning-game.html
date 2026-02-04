@@ -1,0 +1,1316 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Learning Game</title>
+
+  <link rel="stylesheet" href="tripwise.css" />
+  <link rel="stylesheet" href="learning-game.css" />
+</head>
+
+<body>
+  <header class="header" aria-label="Top bar"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+
+    <nav class="row" aria-label="Learning game navigation" style="margin-top:0">
+      <a class="link" href="learning-home.html">← Hub</a>
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <section class="card" aria-label="Learning mission">
+      <h2 id="missionTitle">Mission</h2>
+      <p id="missionDesc">Answer fast to earn bonus XP. Keep your combo alive!</p>
+
+      <div class="hud" aria-label="Game stats">
+        <div class="pill">⭐ Points: <strong id="points">0</strong></div>
+        <div class="pill">🧠 Level: <strong id="level">1</strong></div>
+        <div class="pill">⚡ Combo: <strong id="combo">0</strong></div>
+        <div class="pill timer">⏱ Time: <strong id="time">20</strong>s</div>
+      </div>
+
+      <div class="progress" aria-label="Progress">
+        <div id="bar"></div>
+      </div>
+
+      <div class="qbox">
+        <div class="qtitle" id="qText">Question</div>
+        <div class="answers" id="answers"></div>
+        <div class="hint" id="hint"></div>
+
+        <div class="row">
+          <button class="btn btn-ghost" type="button" id="skipBtn">Skip</button>
+          <button class="btn btn-primary" type="button" id="nextBtn" disabled>Next</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" aria-label="Footer"></footer>
+
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const $ = (id) => document.getElementById(id);
+      const getNum = (k, d = 0) => Number(localStorage.getItem(k) ?? d);
+      const setNum = (k, v) => localStorage.setItem(k, String(v));
+      const calcLevel = (points) => Math.max(1, Math.floor(points / 300) + 1);
+
+      const beep = (freq = 520, dur = 0.08) => {
+        const soundOn = (localStorage.getItem("tw_sound") ?? "on") === "on";
+        if (!soundOn) return;
+
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.value = freq;
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.value = 0.05;
+
+        osc.start();
+        window.setTimeout(() => {
+          osc.stop();
+          ctx.close();
+        }, dur * 1000);
+      };
+
+      const shuffle = (arr) => {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      };
+
+      const pickRandomSubset = (arr, count) => shuffle(arr.slice()).slice(0, Math.min(count, arr.length));
+
+      const params = new URLSearchParams(window.location.search);
+      const missionKey = params.get("mission") || "kyoto-laws-etiquette";
+      const isDaily = params.get("daily") === "1";
+
+      const cityBackgrounds = {
+        "marrakech-laws-etiquette": "../images/bg-marrakech.jpg",
+        "kyoto-laws-etiquette": "../images/bg-kyoto.jpg",
+        "barcelona-laws-etiquette": "../images/bg-barcelona.jpg",
+        "newyork-laws-etiquette": "../images/bg-newyork.jpg",
+        "bangkok-laws-etiquette": "../images/bg-bangkok.jpg",
+        "reykjavik-laws-etiquette": "../images/bg-reykjavik.jpg",
+        "siemreap-laws-etiquette": "../images/bg-siemreap.jpg",
+        "paris-laws-etiquette": "../images/bg-paris.jpg",
+        "rome-laws-etiquette": "../images/bg-rome.jpg",
+        "tokyo-laws-etiquette": "../images/bg-tokyo.jpg",
+      };
+
+      document.documentElement.style.setProperty(
+        "--city-bg",
+        cityBackgrounds[missionKey] ? `url("${cityBackgrounds[missionKey]}")` : "none"
+      );
+
+      document.documentElement.style.setProperty("--qbox-bg-opacity", "0.22");
+
+   
+      const missions = {
+        "marrakech-laws-etiquette": {
+          title: "Marrakech: Laws + Etiquette Drill",
+          desc: "Local laws, cultural etiquette, dress, and Jemaa el-Fnaa street smarts.",
+          timePerQ: 18,
+          randomize: true,
+          questionsPerRun: 8,
+          questionBank: [
+            {
+              q: "True or False: It’s legal to drink alcohol openly in the streets of Marrakech.", a: ["True", "False"], correct: 1,
+              hint: "Public drinking is illegal. Keep alcohol consumption to licensed venues/private spaces."
+            },
+            {
+              q: "What is the legal expectation when photographing people in Marrakech?", a: ["It’s always allowed", "You should ask for permission first", "Only illegal in markets"], correct: 1,
+              hint: "Ask permission—especially for women, elders, and performers."
+            },
+            {
+              q: "Which of these items is illegal to bring into Morocco without special permission?", a: ["Drones", "Prescription medication", "Currency"], correct: 0,
+              hint: "Drones are strictly prohibited without special permission."
+            },
+            {
+              q: "True or False: Same-sex relationships are legally recognized in Morocco.", a: ["True", "False"], correct: 1,
+              hint: "Same-sex relationships are illegal under Moroccan law."
+            },
+            {
+              q: "What can happen if you insult the Moroccan king or royal family publicly?", a: ["A fine only", "Deportation", "Prison sentence"], correct: 2,
+              hint: "It’s treated very seriously and can lead to prison."
+            },
+            {
+              q: "What is the most polite way to greet someone in Marrakech?", a: ["A firm handshake and direct eye contact", "A light handshake using the right hand", "A hug"], correct: 1,
+              hint: "Right hand is standard; hugs depend on familiarity."
+            },
+            {
+              q: "True or False: It’s rude to eat with your left hand in Morocco.", a: ["True", "False"], correct: 0,
+              hint: "Traditionally the left hand is considered unclean—use the right hand when possible."
+            },
+            {
+              q: "If you’re invited into a local home, what should you do before entering?", a: ["Knock loudly", "Remove your shoes", "Ask for tea immediately"], correct: 1,
+              hint: "Removing shoes is customary in many homes."
+            },
+            {
+              q: "What does it usually mean if a shopkeeper offers you mint tea?", a: ["The item is free", "You must buy something", "A gesture of hospitality"], correct: 2,
+              hint: "It’s hospitality—polite and common, not automatically a sales trap."
+            },
+            {
+              q: "True or False: Bargaining in souks is considered rude.", a: ["True", "False"], correct: 1,
+              hint: "Bargaining is expected and part of the culture—do it politely."
+            },
+            {
+              q: "Which outfit is most appropriate for visiting Marrakech’s Medina?", a: ["Shorts and a tank top", "Long trousers and a short-sleeve top", "Swimwear"], correct: 1,
+              hint: "Modest dress is recommended—cover shoulders/knees where possible."
+            },
+            {
+              q: "True or False: Tourists can show public displays of affection without restrictions.", a: ["True", "False"], correct: 1,
+              hint: "Intimate public affection is frowned upon—keep it discreet."
+            },
+            {
+              q: "What should women be especially mindful of when dressing in Marrakech?", a: ["Wearing bright colors", "Covering shoulders and knees", "Wearing headscarves everywhere"], correct: 1,
+              hint: "Covering shoulders/knees is a safe baseline. Headscarves are optional."
+            },
+            {
+              q: "Why should you be cautious about taking photos in Jemaa el-Fnaa square?", a: ["It’s illegal after sunset", "Performers may demand payment", "Cameras are banned"], correct: 1,
+              hint: "Performers often expect a tip if you photograph them."
+            },
+            {
+              q: "True or False: Ignoring street vendors is considered rude and offensive.", a: ["True", "False"], correct: 1,
+              hint: "A polite but firm “no thank you” is normal."
+            }
+          ]
+        },
+        "barcelona-laws-etiquette": {
+          title: "Barcelona: City Rules + Street Smarts",
+          desc: "Public drinking bans, beach rules, late-night noise, and pickpocket awareness.",
+          timePerQ: 18,
+          randomize: true,
+          questionsPerRun: 9,
+          questionBank: [
+            {
+              q: "True or False: Drinking alcohol on the streets of Barcelona is legal.", a: ["True", "False"], correct: 1,
+              hint: "False — public drinking is banned and fined."
+            },
+
+            {
+              q: "Which action can result in an on-the-spot fine in Barcelona?", a: ["Sitting on the beach", "Walking shirtless in the city center", "Eating in public"], correct: 1,
+              hint: "Correct: B — being shirtless or in swimwear away from the beach is fined."
+            },
+
+            {
+              q: "True or False: Jaywalking is allowed in Barcelona if traffic is light.", a: ["True", "False"], correct: 1,
+              hint: "False — it can result in a fine."
+            },
+
+            {
+              q: "What is illegal on Barcelona’s beaches at night?", a: ["Swimming", "Sleeping", "Playing music"], correct: 1,
+              hint: "Correct: B — sleeping on the beach is prohibited."
+            },
+
+            {
+              q: "True or False: Pickpocketing is common, but ignoring police advice can lead to fines.", a: ["True", "False"], correct: 0,
+              hint: "True — police enforce preventive rules in tourist zones."
+            },
+
+            {
+              q: "What is the polite way to greet someone in Barcelona?", a: ["Immediate cheek kisses", "A simple “Hola” or “Bon dia”", "No greeting is needed"], correct: 1,
+              hint: "Correct: B — kisses are for familiar settings."
+            },
+
+            {
+              q: "True or False: Speaking only Spanish is always expected in Barcelona.", a: ["True", "False"], correct: 1,
+              hint: "False — Catalan is also an official language; effort is appreciated."
+            },
+
+            {
+              q: "What’s the best approach when interacting with service staff?", a: ["Be direct and loud", "Friendly and relaxed", "Very formal"], correct: 1,
+              hint: "Correct: B — friendly and relaxed is best."
+            },
+
+            {
+              q: "True or False: Tipping is mandatory in Barcelona restaurants.", a: ["True", "False"], correct: 1,
+              hint: "False — rounding up is appreciated but optional."
+            },
+
+            {
+              q: "Which outfit is inappropriate away from the beach?", a: ["Shorts and T-shirt", "Swimwear or no shirt", "Summer dress"], correct: 1,
+              hint: "Correct: B — swimwear/no shirt away from the beach can be fined."
+            },
+
+            {
+              q: "True or False: Loud behavior late at night in residential areas can result in fines.", a: ["True", "False"], correct: 0,
+              hint: "True — noise ordinances are enforced."
+            },
+
+            {
+              q: "What should you do when entering a small shop or café?", a: ["Sit down immediately", "Greet staff first", "Wait outside"], correct: 1,
+              hint: "Correct: B — greet staff first."
+            },
+
+            {
+              q: "True or False: Dinner typically starts earlier than in most countries.", a: ["True", "False"], correct: 1,
+              hint: "False — dinner often starts after 9pm."
+            },
+
+            {
+              q: "What does “pan con tomate” usually involve?", a: ["Tomato soup", "Bread rubbed with tomato and olive oil", "Tomato salad"], correct: 1,
+              hint: "Correct: B — bread rubbed with tomato and olive oil."
+            },
+
+            {
+              q: "If you order tapas, what’s the usual way to eat them?", a: ["One dish per person", "Shared among the table", "Only as starters"], correct: 1,
+              hint: "Correct: B — tapas are usually shared."
+            },
+
+            {
+              q: "True or False: Cycling is allowed everywhere in Barcelona.", a: ["True", "False"], correct: 1,
+              hint: "False — bikes are restricted in certain pedestrian areas."
+            },
+
+            {
+              q: "Why should you avoid signing petitions in busy tourist spots?", a: ["They are political", "They are often scams or pickpocket distractions", "They require ID"], correct: 1,
+              hint: "Correct: B — they’re often distraction scams."
+            },
+
+            {
+              q: "What’s the safest way to carry valuables in Barcelona?", a: ["Backpack on your back", "Loose pockets", "Cross-body bag worn in front"], correct: 2,
+              hint: "Correct: C — wear a cross-body bag in front."
+            },
+
+            {
+              q: "True or False: Sitting on monuments or historic statues is allowed if no sign forbids it.", a: ["True", "False"], correct: 1,
+              hint: "False — it can still result in fines."
+            }
+          ]
+        },
+
+        "newyork-laws-etiquette": {
+          title: "New York City: Street Rules + Subway Manners",
+          desc: "Open container laws, sidewalk flow, subway etiquette, and tipping culture.",
+          timePerQ: 18,
+          randomize: true,
+          questionsPerRun: 9,
+          questionBank: [
+            {
+              q: "True or False: It’s legal to drink alcohol openly on the streets of New York City.", a: ["True", "False"], correct: 1,
+              hint: "False — public drinking is illegal."
+            },
+
+            {
+              q: "Which action can result in a fine in NYC?", a: ["Standing still on a sidewalk", "Riding a bike without a helmet", "Jaywalking"], correct: 0,
+              hint: "Correct: A — obstructing pedestrian flow can be fined."
+            },
+
+            {
+              q: "True or False: Smoking is allowed in NYC parks.", a: ["True", "False"], correct: 1,
+              hint: "False — smoking is banned in parks, beaches, and plazas."
+            },
+
+            {
+              q: "What is required by law when hailing a yellow taxi?", a: ["Agreeing on a fare first", "Sitting in the front seat", "Paying the metered fare"], correct: 2,
+              hint: "Correct: C — yellow taxis must use the meter."
+            },
+
+            {
+              q: "True or False: It’s legal to carry an open container of alcohol in your car as a passenger.", a: ["True", "False"], correct: 1,
+              hint: "False — open container laws apply to everyone."
+            },
+
+            {
+              q: "What’s the correct behavior on NYC sidewalks?", a: ["Walk in groups and stop anywhere", "Keep moving and stay to the right", "Walk slowly and enjoy the view"], correct: 1,
+              hint: "Correct: B — stopping suddenly is a big no."
+            },
+
+            {
+              q: "True or False: Making small talk with strangers on public transport is expected.", a: ["True", "False"], correct: 1,
+              hint: "False — it happens, but silence is the norm."
+            },
+
+            {
+              q: "What should you do before entering a small store or deli?", a: ["Browse silently", "Greet staff with “Hi” or “Hello”", "Wait to be acknowledged"], correct: 1,
+              hint: "Correct: B — greet staff first."
+            },
+
+            {
+              q: "True or False: Eye contact without smiling can be interpreted as aggressive in NYC.", a: ["True", "False"], correct: 0,
+              hint: "True — neutral friendliness goes a long way."
+            },
+
+            {
+              q: "What should you do before boarding the subway?", a: ["Stand directly in front of the doors", "Let passengers exit first", "Push your way in"], correct: 1,
+              hint: "Correct: B — let passengers exit first."
+            },
+
+            {
+              q: "True or False: Eating hot food on the subway is acceptable.", a: ["True", "False"], correct: 1,
+              hint: "False — it’s widely frowned upon."
+            },
+
+            {
+              q: "Where should backpacks be placed on crowded trains?", a: ["Left on your back", "On the floor or held in front", "Hung from a pole"], correct: 1,
+              hint: "Correct: B — hold it in front or keep it low."
+            },
+
+            {
+              q: "True or False: Tipping 15–25% in restaurants with table service is standard in NYC.", a: ["True", "False"], correct: 0,
+              hint: "True — it’s expected."
+            },
+
+            {
+              q: "What does “to-go” mean when ordering food?", a: ["Eat quickly", "Takeaway", "Street food"], correct: 1,
+              hint: "Correct: B — takeaway."
+            },
+
+            {
+              q: "If a menu lists prices before tax, what should you expect?", a: ["The listed price is final", "Sales tax will be added", "A service charge will replace tax"], correct: 1,
+              hint: "Correct: B — sales tax is added."
+            },
+
+            {
+              q: "True or False: Pedicabs operate under the same pricing rules as taxis.", a: ["True", "False"], correct: 1,
+              hint: "False — prices vary; confirm upfront."
+            },
+
+            {
+              q: "Why should you avoid costumed characters in Times Square?", a: ["They are actors", "Photos are never allowed", "They aggressively demand tips"], correct: 2,
+              hint: "Correct: C — they often demand tips."
+            },
+
+            {
+              q: "What’s the best response to aggressive panhandlers or scammers?", a: ["Argue", "Ignore and keep walking", "Take photos"], correct: 1,
+              hint: "Correct: B — ignore and keep walking."
+            },
+
+            {
+              q: "True or False: Standing on the left side of an escalator is acceptable in NYC.", a: ["True", "False"], correct: 1,
+              hint: "False — stand right, walk left."
+            },
+
+            {
+              q: "What’s the fastest way to annoy a New Yorker?", a: ["Asking for directions", "Walking slowly in a group", "Wearing tourist clothing"], correct: 1,
+              hint: "Correct: B — keep pace and don’t block the path."
+            }
+          ]
+        },
+
+        "bangkok-laws-etiquette": {
+          title: "Bangkok: Respect + Temple Rules",
+          desc: "Royal laws, temple dress codes, transport scams, and social etiquette.",
+          timePerQ: 18,
+          randomize: true,
+          questionsPerRun: 9,
+          questionBank: [
+            {
+              q: "True or False: Insulting or disrespecting the Thai royal family is a serious crime.", a: ["True", "False"], correct: 0,
+              hint: "True — lèse-majesté laws carry severe penalties."
+            },
+
+            {
+              q: "Which action is illegal in Thailand?", a: ["Stepping on Thai currency", "Speaking loudly in public", "Bargaining in markets"], correct: 0,
+              hint: "Correct: A — currency bears the King’s image."
+            },
+
+            {
+              q: "True or False: Vaping devices and e-cigarettes are legal in Bangkok.", a: ["True", "False"], correct: 1,
+              hint: "False — they are illegal to import or use."
+            },
+
+            {
+              q: "What must you do when the national anthem plays in public places?", a: ["Keep walking", "Stand still", "Sing along"], correct: 1,
+              hint: "Correct: B — standing is expected."
+            },
+
+            {
+              q: "True or False: Public nudity or topless sunbathing is allowed in Bangkok.", a: ["True", "False"], correct: 1,
+              hint: "False — it’s illegal."
+            },
+
+            {
+              q: "What is the traditional polite greeting in Bangkok?", a: ["A handshake", "A wai (palms together with a slight bow)", "A hug"], correct: 1,
+              hint: "Correct: B — the wai is the traditional greeting."
+            },
+
+            {
+              q: "True or False: Touching someone’s head is acceptable if you’re friendly.", a: ["True", "False"], correct: 1,
+              hint: "False — the head is considered sacred."
+            },
+
+            {
+              q: "What should you avoid doing with your feet?", a: ["Crossing your legs", "Pointing them at people or Buddha images", "Taking off shoes"], correct: 1,
+              hint: "Correct: B — avoid pointing feet at people/sacred images."
+            },
+
+            {
+              q: "True or False: Raising your voice during disagreements is acceptable.", a: ["True", "False"], correct: 1,
+              hint: "False — calmness is valued."
+            },
+
+            {
+              q: "What is required to enter temples like Wat Phra Kaew or Wat Arun?", a: ["Formal wear", "Covered shoulders and knees", "Covered hair"], correct: 1,
+              hint: "Correct: B — cover shoulders and knees."
+            },
+
+            {
+              q: "True or False: Shoes must be removed before entering temple buildings.", a: ["True", "False"], correct: 0,
+              hint: "True — remove shoes before entering temple buildings."
+            },
+
+            {
+              q: "Which item may get you refused entry to a temple?", a: ["Long skirt", "Sleeveless top", "Sandals"], correct: 1,
+              hint: "Correct: B — sleeveless tops may be refused."
+            },
+
+            {
+              q: "True or False: Using a fork to put food directly into your mouth is normal in Thailand.", a: ["True", "False"], correct: 1,
+              hint: "False — the fork pushes food onto a spoon."
+            },
+
+            {
+              q: "When eating rice dishes, what utensil is mainly used?", a: ["Fork", "Spoon", "Chopsticks"], correct: 1,
+              hint: "Correct: B — spoon is the main utensil."
+            },
+
+            {
+              q: "True or False: Tipping is mandatory in Bangkok.", a: ["True", "False"], correct: 1,
+              hint: "False — small tips are appreciated but not required."
+            },
+
+            {
+              q: "What should you do before getting into a taxi in Bangkok?", a: ["Ask the driver where they’re from", "Make sure the meter is on", "Negotiate the fare loudly"], correct: 1,
+              hint: "Correct: B — ensure the meter is on."
+            },
+
+            {
+              q: "True or False: Tuk-tuk drivers always offer fair prices.", a: ["True", "False"], correct: 1,
+              hint: "False — prices are often inflated for tourists."
+            },
+
+            {
+              q: "Why should you be cautious if someone tells you a major attraction is “closed today”?", a: ["They are misinformed", "It’s often part of a scam", "It’s government policy"], correct: 1,
+              hint: "Correct: B — it’s a common scam tactic."
+            },
+
+            {
+              q: "What’s the respectful way to pass in front of someone seated or praying?", a: ["Walk normally", "Bow slightly while passing", "Clap hands"], correct: 1,
+              hint: "Correct: B — bow slightly as you pass."
+            },
+
+            {
+              q: "True or False: Laughing off cultural mistakes is usually better than arguing.", a: ["True", "False"], correct: 0,
+              hint: "True — saving face matters."
+            }
+          ]
+        },
+
+        "reykjavik-laws-etiquette": {
+          title: "Reykjavík: Nature Rules + Pool Etiquette",
+          desc: "Off-road laws, winter driving rules, hot spring hygiene, and quiet social norms.",
+          timePerQ: 20,
+          randomize: true,
+          questionsPerRun: 9,
+          questionBank: [
+            {
+              q: "True or False: Drinking alcohol in public is legal in Reykjavík.", a: ["True", "False"], correct: 1,
+              hint: "False — public drinking is generally prohibited."
+            },
+
+            {
+              q: "Which of these actions is illegal in Iceland?", a: ["Driving off marked roads", "Camping in designated campsites", "Hiking on marked trails"], correct: 0,
+              hint: "Correct: A — off-road driving is strictly illegal."
+            },
+
+            {
+              q: "True or False: You must have headlights on when driving in Iceland at all times.", a: ["True", "False"], correct: 0,
+              hint: "True — day or night, year-round."
+            },
+
+            {
+              q: "What is required by law when driving outside Reykjavík in winter?", a: ["Snow chains", "Studded winter tires (seasonally)", "A four-wheel-drive vehicle"], correct: 1,
+              hint: "Correct: B — winter tires are required seasonally."
+            },
+
+            {
+              q: "True or False: Ignoring road closures or weather warnings can lead to fines or rescue fees.", a: ["True", "False"], correct: 0,
+              hint: "True — and rescues can be very expensive."
+            },
+
+            {
+              q: "How do Icelanders usually greet each other?", a: ["Formal titles and surnames", "First names", "No greeting"], correct: 1,
+              hint: "Correct: B — first names are common even professionally."
+            },
+
+            {
+              q: "True or False: Icelanders value personal space and quiet conversation.", a: ["True", "False"], correct: 0,
+              hint: "True — personal space and calm conversation matter."
+            },
+
+            {
+              q: "What is considered rude behavior in public spaces?", a: ["Being direct", "Talking loudly", "Making eye contact"], correct: 1,
+              hint: "Correct: B — loud talking is considered rude."
+            },
+
+            {
+              q: "True or False: Tipping is expected in Reykjavík restaurants.", a: ["True", "False"], correct: 1,
+              hint: "False — service is included."
+            },
+
+            {
+              q: "What is mandatory before entering public pools or hot springs?", a: ["Wearing flip-flops", "Showering naked with soap", "Wearing a swimsuit under the shower"], correct: 1,
+              hint: "Correct: B — hygiene rules are strictly enforced."
+            },
+
+            {
+              q: "True or False: Wearing swimwear in the shower area is acceptable.", a: ["True", "False"], correct: 1,
+              hint: "False — you’re expected to shower properly before entering."
+            },
+
+            {
+              q: "Why do staff closely monitor pool showers?", a: ["Privacy laws", "Water conservation", "Public health standards"], correct: 2,
+              hint: "Correct: C — public health standards."
+            },
+
+            {
+              q: "True or False: Dressing for weather over fashion is socially acceptable in Reykjavík.", a: ["True", "False"], correct: 0,
+              hint: "True — practical layers win."
+            },
+
+            {
+              q: "What should you always stay on when hiking near Reykjavík?", a: ["The shortest route", "Marked paths", "Mossy areas"], correct: 1,
+              hint: "Correct: B — moss is fragile and protected."
+            },
+
+            {
+              q: "True or False: Picking moss or walking off trails is illegal.", a: ["True", "False"], correct: 0,
+              hint: "True — moss can take decades to recover."
+            },
+
+            {
+              q: "What’s the polite approach to restaurant service in Reykjavík?", a: ["Wave to get attention", "Wait calmly and make eye contact", "Call out loudly"], correct: 1,
+              hint: "Correct: B — calm eye contact and patience is the norm."
+            },
+
+            {
+              q: "True or False: Drinking tap water in Reykjavík is safe.", a: ["True", "False"], correct: 0,
+              hint: "True — it’s among the cleanest in the world."
+            },
+
+            {
+              q: "What’s a common Icelandic dining habit?", a: ["Long lingering meals", "Efficient but relaxed dining", "Strict dining times"], correct: 1,
+              hint: "Correct: B — efficient but relaxed."
+            },
+
+            {
+              q: "Why is stepping off paths in nature taken seriously?", a: ["Wildlife disturbance", "The landscape can take decades to recover", "It’s bad luck"], correct: 1,
+              hint: "Correct: B — the landscape can take decades to recover."
+            },
+
+            {
+              q: "True or False: Collecting rocks or natural souvenirs is allowed.", a: ["True", "False"], correct: 1,
+              hint: "False — removing natural materials is prohibited."
+            }
+          ]
+        },
+
+        "siemreap-laws-etiquette": {
+          title: "Siem Reap: Temple Rules + Respect",
+          desc: "Angkor dress rules, monk etiquette, market scams, and safe travel habits.",
+          timePerQ: 20,
+          randomize: true,
+          questionsPerRun: 9,
+          questionBank: [
+            {
+              q: "True or False: It’s legal to climb on temple ruins at Angkor Wat.", a: ["True", "False"], correct: 1,
+              hint: "False — climbing most temples is prohibited and can result in fines."
+            },
+
+            {
+              q: "Which action is illegal when visiting temples in Siem Reap?", a: ["Wearing shorts above the knee", "Taking photos without flash", "Talking quietly"], correct: 0,
+              hint: "Correct: A — modest dress is required."
+            },
+
+            {
+              q: "True or False: Littering in Siem Reap can result in fines.", a: ["True", "False"], correct: 0,
+              hint: "True — fines are enforced at tourist areas."
+            },
+
+            {
+              q: "What is prohibited when interacting with monks?", a: ["Giving them a smile", "Touching them, especially women", "Asking questions politely"], correct: 1,
+              hint: "Correct: B — physical contact is forbidden."
+            },
+
+            {
+              q: "True or False: It is legal to buy or sell counterfeit goods at markets.", a: ["True", "False"], correct: 1,
+              hint: "False — it’s illegal and could result in fines."
+            },
+
+            {
+              q: "What is the traditional Cambodian greeting?", a: ["Handshake", "Sampeah (palms together with a slight bow)", "Hug"], correct: 1,
+              hint: "Correct: B — Sampeah is the traditional greeting."
+            },
+
+            {
+              q: "True or False: Pointing your feet at people or religious objects is considered rude.", a: ["True", "False"], correct: 0,
+              hint: "True — avoid pointing feet at people or sacred objects."
+            },
+
+            {
+              q: "What should you do when entering someone’s home or a temple?", a: ["Leave shoes outside", "Walk straight in", "Sit immediately"], correct: 0,
+              hint: "Correct: A — leave shoes outside."
+            },
+
+            {
+              q: "True or False: Loud arguments in public are socially acceptable.", a: ["True", "False"], correct: 1,
+              hint: "False — calmness and respect are valued."
+            },
+
+            {
+              q: "Which of these is acceptable temple attire?", a: ["Shorts above the knee", "Long pants or long skirt", "Sleeveless tops"], correct: 1,
+              hint: "Correct: B — long pants/long skirt is acceptable."
+            },
+
+            {
+              q: "True or False: Hats should be worn inside temples.", a: ["True", "False"], correct: 1,
+              hint: "False — remove hats as a sign of respect."
+            },
+
+            {
+              q: "What should you avoid doing at temple altars?", a: ["Taking photos from a respectful distance", "Sitting or stepping on religious objects", "Observing quietly"], correct: 1,
+              hint: "Correct: B — do not sit/step on religious objects."
+            },
+
+            {
+              q: "True or False: Tipping is mandatory in restaurants in Siem Reap.", a: ["True", "False"], correct: 1,
+              hint: "False — small tips are appreciated, but not required."
+            },
+
+            {
+              q: "When eating in local homes, what is polite to do before starting?", a: ["Wait for the eldest to begin", "Start immediately", "Say “I’m hungry”"], correct: 0,
+              hint: "Correct: A — wait for the eldest to begin."
+            },
+
+            {
+              q: "What is a common way to eat Cambodian meals?", a: ["Using a fork to push food onto a spoon", "Using chopsticks only", "Using hands only"], correct: 0,
+              hint: "Correct: A — fork pushes food onto a spoon."
+            },
+
+            {
+              q: "True or False: Bargaining in markets is expected and normal.", a: ["True", "False"], correct: 0,
+              hint: "True — bargain politely."
+            },
+
+            {
+              q: "Why should you be cautious of tuk-tuk drivers offering “special” tours?", a: ["They might get lost", "They often overcharge tourists", "They don’t speak English"], correct: 1,
+              hint: "Correct: B — often overpriced or commission-based routes."
+            },
+
+            {
+              q: "True or False: It’s safe to swim in rivers without checking local guidance.", a: ["True", "False"], correct: 1,
+              hint: "False — currents/pollution can be dangerous."
+            },
+
+            {
+              q: "When visiting remote temples or ruins, what is recommended?", a: ["Go alone for adventure", "Hire a licensed guide", "Follow any path you like"], correct: 1,
+              hint: "Correct: B — guides help with safety and etiquette."
+            },
+
+            {
+              q: "True or False: Flash photography is allowed inside all temple interiors.", a: ["True", "False"], correct: 1,
+              hint: "False — flash is often prohibited to protect art and sacred objects."
+            }
+          ]
+        },
+        "paris-laws-etiquette": {
+          title: "Paris: Rules + Café Culture",
+          desc: "Street rules, Metro manners, café etiquette, and tourist awareness in Paris.",
+          timePerQ: 18,
+          randomize: true,
+          questionsPerRun: 9,
+          questionBank: [
+            {
+              q: "True or False: It’s legal to drink alcohol openly on the streets of Paris.", a: ["True", "False"], correct: 0,
+              hint: "True — unless a local prefectural ban is in place."
+            },
+            {
+              q: "Which behavior can result in an on-the-spot fine in Paris?", a: ["Crossing the street outside a crosswalk", "Eating on public transport", "Taking photos of police"], correct: 0,
+              hint: "Correct: A — jaywalking can be fined."
+            },
+            {
+              q: "True or False: You are required by law to carry official ID in France.", a: ["True", "False"], correct: 0,
+              hint: "True — police can request identification at any time."
+            },
+            {
+              q: "What is illegal in many Paris parks and along the Seine?", a: ["Picnicking", "Drinking wine", "Playing loud music"], correct: 2,
+              hint: "Correct: C — noise regulations can be enforced."
+            },
+            {
+              q: "True or False: Smoking is banned in all outdoor public spaces in Paris.", a: ["True", "False"], correct: 1,
+              hint: "False — but it’s banned in many parks, playgrounds, and indoor areas."
+            },
+
+            {
+              q: "What is considered polite when entering a shop or café in Paris?", a: ["Smiling only", "Saying “Bonjour” first", "Ordering immediately"], correct: 1,
+              hint: "Correct: B — skipping this is often considered rude."
+            },
+            {
+              q: "True or False: Speaking English without attempting French is usually well received.", a: ["True", "False"], correct: 1,
+              hint: "False — “Bonjour” + “Parlez-vous anglais ?” goes a long way."
+            },
+            {
+              q: "How should you get a waiter’s attention in a Paris café?", a: ["Wave your hand", "Call out loudly", "Make eye contact and wait"], correct: 2,
+              hint: "Correct: C — eye contact and patience is normal."
+            },
+            {
+              q: "What does it usually mean if a Parisian server seems distant?", a: ["They dislike tourists", "They are being professional", "Service is bad"], correct: 1,
+              hint: "Correct: B — professionalism first; friendliness comes later."
+            },
+            {
+              q: "True or False: Tipping is mandatory in Paris restaurants.", a: ["True", "False"], correct: 1,
+              hint: "False — service is included; rounding up is optional."
+            },
+
+            {
+              q: "Which outfit is least likely to attract unwanted attention in Paris?", a: ["Athletic wear all day", "Smart casual with neutral colors", "Beachwear in the city"], correct: 1,
+              hint: "Correct: B — smart casual is the safest baseline."
+            },
+            {
+              q: "True or False: Eating or drinking on the Paris Metro is encouraged.", a: ["True", "False"], correct: 1,
+              hint: "False — it’s frowned upon and sometimes prohibited."
+            },
+            {
+              q: "What’s the polite volume level for conversations on public transport?", a: ["Loud and expressive", "Moderate", "Quiet"], correct: 2,
+              hint: "Correct: C — keep it quiet."
+            },
+
+            {
+              q: "True or False: Sitting at a café table guarantees immediate service.", a: ["True", "False"], correct: 1,
+              hint: "False — service is unhurried; you’re expected to relax."
+            },
+            {
+              q: "What does asking for “l’addition” mean?", a: ["Ordering another drink", "Asking for the bill", "Complaining about the price"], correct: 1,
+              hint: "Correct: B — it means you want the bill."
+            },
+            {
+              q: "If you order just a coffee, how long are you allowed to sit at a café table?", a: ["15 minutes", "Until asked to leave", "As long as you like"], correct: 2,
+              hint: "Correct: C — lingering is normal (especially if it’s not busy)."
+            },
+
+            {
+              q: "True or False: It’s legal to sell souvenirs near major monuments without a permit.", a: ["True", "False"], correct: 1,
+              hint: "False — unlicensed selling is illegal."
+            },
+            {
+              q: "Why should you be cautious signing petitions near tourist areas?", a: ["They are political", "They are often distraction scams", "They require ID"], correct: 1,
+              hint: "Correct: B — it can be a distraction scam."
+            },
+            {
+              q: "What is the most appropriate response to aggressive street scammers?", a: ["Argue with them", "Ignore and keep walking", "Film them closely"], correct: 1,
+              hint: "Ignore and keep walking is usually the safest choice."
+            }
+          ]
+        },
+        "rome-laws-etiquette": {
+          title: "Rome: Monuments + Manners",
+          desc: "Historic-site rules, church dress code, dining etiquette, and street smarts in Rome.",
+          timePerQ: 18,
+          randomize: true,
+          questionsPerRun: 9,
+          questionBank: [
+            {
+              q: "True or False: It’s legal to sit on the Spanish Steps at any time.", a: ["True", "False"], correct: 1,
+              hint: "False — sitting on them can result in a fine."
+            },
+            {
+              q: "Which action is illegal at Rome’s major fountains (like Trevi)?", a: ["Taking photos", "Touching the water", "Throwing coins"], correct: 1,
+              hint: "Correct: B — touching/bathing is prohibited."
+            },
+            {
+              q: "True or False: Eating near major monuments like the Colosseum can result in a fine.", a: ["True", "False"], correct: 0,
+              hint: "True — some areas restrict eating in historic zones."
+            },
+            {
+              q: "What happens if you’re caught damaging or carving into ancient ruins?", a: ["A warning", "A small fine", "Heavy fines and possible prison time"], correct: 2,
+              hint: "Correct: C — it’s treated very seriously."
+            },
+            {
+              q: "True or False: It’s legal to drink alcohol in public anywhere in Rome.", a: ["True", "False"], correct: 1,
+              hint: "False — some areas restrict public drinking, especially at night."
+            },
+
+            {
+              q: "What’s the usual greeting etiquette in Rome?", a: ["A bow", "A handshake or cheek kisses (if familiar)", "No greeting is needed"], correct: 1,
+              hint: "Correct: B — handshake is common; cheek kisses for familiar settings."
+            },
+            {
+              q: "True or False: Italians consider loud conversations in public rude.", a: ["True", "False"], correct: 1,
+              hint: "False — animated conversation is normal."
+            },
+            {
+              q: "What should you always say when entering a small shop or café?", a: ["“Scusa”", "“Permesso”", "“Buongiorno” or “Buonasera”"], correct: 2,
+              hint: "Correct: C — a greeting is expected."
+            },
+            {
+              q: "If a shop closes in the afternoon, what’s the most likely reason?", a: ["National holiday", "Siesta / riposo hours", "Staff shortage"], correct: 1,
+              hint: "Correct: B — many places close for riposo."
+            },
+
+            {
+              q: "What is required to enter churches like St. Peter’s Basilica?", a: ["Formal attire", "Covered shoulders and knees", "Covered hair"], correct: 1,
+              hint: "Correct: B — cover shoulders and knees."
+            },
+            {
+              q: "True or False: Wearing a hat inside a church is acceptable.", a: ["True", "False"], correct: 1,
+              hint: "False — hats should be removed."
+            },
+            {
+              q: "Which item might get you denied entry to a church?", a: ["Sneakers", "Sleeveless tops", "Jeans"], correct: 1,
+              hint: "Correct: B — sleeveless tops can be refused."
+            },
+
+            {
+              q: "True or False: Asking for parmesan on seafood pasta is normal in Rome.", a: ["True", "False"], correct: 1,
+              hint: "False — usually not done (culinary crime 😅)."
+            },
+            {
+              q: "When is cappuccino typically acceptable in Rome?", a: ["Any time of day", "Only after dinner", "In the morning"], correct: 2,
+              hint: "Correct: C — typically a morning drink."
+            },
+            {
+              q: "What does “coperto” on your bill refer to?", a: ["Tip", "Bread and table charge", "Dessert"], correct: 1,
+              hint: "Correct: B — a cover/table charge."
+            },
+            {
+              q: "True or False: Splitting the bill evenly is always expected.", a: ["True", "False"], correct: 1,
+              hint: "False — many people pay exactly what they ordered."
+            },
+
+            {
+              q: "Why should you be cautious of “free” bracelets or roses near attractions?", a: ["They are low quality", "They are part of a scam", "They are religious items"], correct: 1,
+              hint: "Correct: B — it’s often a scam/pressure tactic."
+            },
+            {
+              q: "True or False: Dressing up as a Roman gladiator for photos near the Colosseum is legal.", a: ["True", "False"], correct: 1,
+              hint: "False — unlicensed performers can be fined."
+            },
+            {
+              q: "What’s the best response to aggressive street vendors?", a: ["Argue", "Ignore and keep walking", "Take photos"], correct: 1,
+              hint: "Correct: B — ignore and keep walking."
+            }
+          ]
+        },
+        "tokyo-laws-etiquette": {
+          title: "Tokyo: Clean + Calm Challenge",
+          desc: "Public rules, passports, trains, chopsticks, and escalator etiquette in Tokyo.",
+          timePerQ: 18,
+          randomize: true,
+          questionsPerRun: 9,
+          questionBank: [
+            {
+              q: "True or False: It’s legal to drink alcohol in public spaces in Tokyo.", a: ["True", "False"], correct: 0,
+              hint: "True — public drinking is legal, but keep behaviour respectful."
+            },
+            {
+              q: "Which item is illegal to carry in Tokyo without special permission?", a: ["Pepper spray", "Pocket knives", "Both A and B"], correct: 2,
+              hint: "Correct: C — strict weapons laws apply."
+            },
+            {
+              q: "True or False: Jaywalking is legal in Tokyo if no cars are coming.", a: ["True", "False"], correct: 1,
+              hint: "False — crossing outside signals can result in a fine."
+            },
+            {
+              q: "What happens if you cycle on the sidewalk where it’s prohibited?", a: ["Nothing", "A verbal warning", "A fine"], correct: 2,
+              hint: "Correct: C — enforcement does occur."
+            },
+            {
+              q: "True or False: You must carry your passport with you at all times in Japan.", a: ["True", "False"], correct: 0,
+              hint: "True — police can legally request it."
+            },
+
+            {
+              q: "How should you greet someone politely in Tokyo?", a: ["A hug", "A bow", "A handshake with strong eye contact"], correct: 1,
+              hint: "Correct: B — bowing is standard."
+            },
+            {
+              q: "True or False: Talking on the phone on trains in Tokyo is acceptable.", a: ["True", "False"], correct: 1,
+              hint: "False — calls are discouraged."
+            },
+            {
+              q: "What is the polite way to give or receive money or cards?", a: ["With one hand", "Tossing it on the counter", "Using both hands"], correct: 2,
+              hint: "Correct: C — use both hands."
+            },
+            {
+              q: "What does it usually mean if someone avoids direct eye contact?", a: ["They are being rude", "They are shy", "They are being respectful"], correct: 2,
+              hint: "Correct: C — it can be a sign of respect."
+            },
+
+            {
+              q: "True or False: It’s acceptable to wear shoes inside Japanese homes and some restaurants.", a: ["True", "False"], correct: 1,
+              hint: "False — shoes should be removed."
+            },
+            {
+              q: "When using indoor slippers, what should you do before entering a tatami room?", a: ["Keep slippers on", "Remove slippers", "Switch to outdoor shoes"], correct: 1,
+              hint: "Correct: B — remove slippers before tatami."
+            },
+            {
+              q: "True or False: Blowing your nose loudly in public is considered polite.", a: ["True", "False"], correct: 1,
+              hint: "False — it’s considered impolite."
+            },
+            {
+              q: "What is the correct way to dispose of trash in Tokyo?", a: ["Throw it in public bins", "Leave it neatly beside bins", "Carry it until you find the correct bin"], correct: 2,
+              hint: "Correct: C — bins are limited; carry it to the right place."
+            },
+
+            {
+              q: "True or False: Slurping ramen in Tokyo is considered rude.", a: ["True", "False"], correct: 1,
+              hint: "False — it’s normal and shows enjoyment."
+            },
+            {
+              q: "Which chopstick behavior is inappropriate?", a: ["Resting them on a chopstick holder", "Pointing with chopsticks", "Picking up food"], correct: 1,
+              hint: "Correct: B — pointing is impolite."
+            },
+            {
+              q: "What should you do before eating a meal?", a: ["Say “Arigatō”", "Say “Itadakimasu”", "Remain silent"], correct: 1,
+              hint: "Correct: B — “Itadakimasu” is the standard phrase."
+            },
+            {
+              q: "True or False: Tipping restaurant staff in Tokyo is expected.", a: ["True", "False"], correct: 1,
+              hint: "False — tipping is not customary."
+            },
+
+            {
+              q: "What’s the expected behavior when standing on an escalator in Tokyo?", a: ["Stand on the right, walk on the left", "Stand on the left, walk on the right", "Stand anywhere"], correct: 1,
+              hint: "Correct: B — Tokyo standard is stand left, walk right."
+            },
+            {
+              q: "True or False: Eating while walking in Tokyo is widely acceptable.", a: ["True", "False"], correct: 1,
+              hint: "False — it’s generally discouraged."
+            },
+            {
+              q: "What’s the best response to accidentally bumping into someone?", a: ["Ignore it", "Bow slightly and apologize", "Laugh"], correct: 1,
+              hint: "Correct: B — a quick “Sumimasen” works."
+            }
+          ]
+        },
+
+        "kyoto-laws-etiquette": {
+          title: "Kyoto: Rules + Respect Challenge",
+          desc: "Smoking zones, Gion etiquette, temple rules, dining manners, and quiet transport.",
+          timePerQ: 18,
+          randomize: true,
+          questionsPerRun: 9,   // pick 9 random questions per run (change as you like)
+          questionBank: [
+            // Local Laws & Rules
+            {
+              q: "True or False: It’s legal to smoke while walking on the streets of Kyoto.",
+              a: ["True", "False"], correct: 1,
+              hint: "False — smoking is generally only allowed in designated smoking areas."
+            },
+            {
+              q: "Which behavior can result in a fine in popular areas like Gion?",
+              a: ["Taking photos of buildings", "Photographing geisha or maiko without permission", "Wearing kimono incorrectly"],
+              correct: 1,
+              hint: "Correct: B — photography of geisha/maiko is restricted; respect local rules and signage."
+            },
+            {
+              q: "True or False: Littering in Kyoto is socially unacceptable but not illegal.",
+              a: ["True", "False"], correct: 1,
+              hint: "False — littering can result in fines, especially in tourist areas."
+            },
+            {
+              q: "What should you do with your trash when sightseeing in Kyoto?",
+              a: ["Leave it beside vending machines", "Carry it with you until you find a bin", "Hand it to shop staff"],
+              correct: 1,
+              hint: "Correct: B — public bins can be rare, so carrying rubbish is common."
+            },
+            {
+              q: "Which item is restricted or prohibited on some public transport?",
+              a: ["Large suitcases during rush hour", "Food and drink", "Cameras"],
+              correct: 0,
+              hint: "Correct: A — oversized luggage is discouraged; keep space clear in busy periods."
+            },
+
+            // Cultural Etiquette
+            {
+              q: "How should you greet someone politely in Kyoto?",
+              a: ["A hug", "A bow", "A handshake with both hands"],
+              correct: 1,
+              hint: "Correct: B — bowing is standard in Japan."
+            },
+            {
+              q: "True or False: Speaking loudly on public transport in Kyoto is acceptable.",
+              a: ["True", "False"], correct: 1,
+              hint: "False — trains and buses are typically very quiet."
+            },
+            {
+              q: "If you receive something from a local, what is the polite way to accept it?",
+              a: ["With one hand", "With both hands", "With your left hand only"],
+              correct: 1,
+              hint: "Correct: B — using both hands shows respect."
+            },
+            {
+              q: "What does it usually mean if a shop staff says “Itterasshaimase” as you leave?",
+              a: ["Thank you", "Please come again / have a good day", "Goodbye forever"],
+              correct: 1,
+              hint: "Correct: B — it’s a friendly send-off like “take care / please come again.”"
+            },
+            {
+              q: "True or False: It’s polite to tip service staff in Kyoto.",
+              a: ["True", "False"], correct: 1,
+              hint: "False — tipping is not customary and can cause confusion."
+            },
+
+            // Dress, Temples & Traditional Spaces
+            {
+              q: "What is required when entering many temples, ryokan, or traditional homes?",
+              a: ["Bowing three times", "Removing your shoes", "Covering your head"],
+              correct: 1,
+              hint: "Correct: B — remove shoes where required; look for signs and shoe racks."
+            },
+            {
+              q: "True or False: Tattoos must always be covered in Kyoto.",
+              a: ["True", "False"], correct: 1,
+              hint: "False — but tattoos may need covering in some onsen/sento."
+            },
+            {
+              q: "What is the correct behavior at a Shinto shrine before approaching the altar?",
+              a: ["Wash hands and mouth at the purification fountain", "Clap continuously", "Bow and walk straight up the center path"],
+              correct: 0,
+              hint: "Correct: A — purify at the fountain, and avoid walking up the center path."
+            },
+
+            // Food & Dining Etiquette
+            {
+              q: "True or False: Slurping noodles in Kyoto is considered rude.",
+              a: ["True", "False"], correct: 1,
+              hint: "False — it’s normal and can show appreciation."
+            },
+            {
+              q: "What should you avoid doing with chopsticks?",
+              a: ["Passing food directly from chopsticks to chopsticks", "Resting them on a holder", "Using them to pick up food"],
+              correct: 0,
+              hint: "Correct: A — it resembles funeral rituals, so it’s avoided."
+            },
+            {
+              q: "When eating while walking in Kyoto’s historic districts, what is the polite approach?",
+              a: ["Eat anywhere casually", "Eat near the shop where you bought the food", "Only eat inside restaurants"],
+              correct: 1,
+              hint: "Correct: B — many areas prefer you eat near the shop and avoid mess in busy streets."
+            },
+
+            // Gion, Geisha & Tourist Awareness
+            {
+              q: "True or False: Geisha are tourist performers available for photos on demand.",
+              a: ["True", "False"], correct: 1,
+              hint: "False — they are professional artists with strict schedules and privacy expectations."
+            },
+            {
+              q: "Why is touching a maiko’s kimono or hair considered inappropriate?",
+              a: ["It’s unlucky", "It can damage expensive attire", "It’s illegal nationwide"],
+              correct: 1,
+              hint: "Correct: B — the clothing and styling are delicate and costly."
+            },
+            {
+              q: "What’s the most respectful way to observe geisha in Kyoto?",
+              a: ["Follow them for photos", "Observe quietly from a distance", "Call out to them"],
+              correct: 1,
+              hint: "Correct: B — don’t chase or block them; keep distance and be quiet."
+            }
+          ]
+        }
+      };
+
+      
+      const baseMission = missions[missionKey] || missions["kyoto-laws-etiquette"];
+      const mission =
+        baseMission?.questionBank && baseMission.randomize
+          ? {
+            ...baseMission,
+            questions: pickRandomSubset(
+              baseMission.questionBank,
+              baseMission.questionsPerRun || baseMission.questionBank.length
+            ),
+          }
+          : { ...baseMission };
+
+      if (!mission.questions) mission.questions = mission.questionBank || [];
+
+      const titleEl = $("missionTitle");
+      const descEl = $("missionDesc");
+      const qTextEl = $("qText");
+      const answersEl = $("answers");
+      const hintEl = $("hint");
+      const nextBtn = $("nextBtn");
+      const skipBtn = $("skipBtn");
+
+      const pointsEl = $("points");
+      const levelEl = $("level");
+      const comboEl = $("combo");
+      const timeEl = $("time");
+      const barEl = $("bar");
+
+      let idx = 0;
+      let answered = false;
+      let combo = 0;
+
+      let points = getNum("tw_points", 0);
+      let earnedThisRun = 0;
+
+      let timeLeft = mission.timePerQ;
+      let timerId = null;
+
+      titleEl.textContent = isDaily ? `${mission.title} (Daily)` : mission.title;
+      descEl.textContent = mission.desc;
+
+      const updateHUD = () => {
+        pointsEl.textContent = String(points);
+        levelEl.textContent = String(calcLevel(points));
+        comboEl.textContent = String(combo);
+        barEl.style.width = `${Math.round((idx / mission.questions.length) * 100)}%`;
+        timeEl.textContent = String(timeLeft);
+      };
+
+      const stopTimer = () => {
+        if (!timerId) return;
+        clearInterval(timerId);
+        timerId = null;
+      };
+
+      const startTimer = () => {
+        stopTimer();
+        timeLeft = mission.timePerQ;
+        updateHUD();
+
+        timerId = setInterval(() => {
+          timeLeft -= 1;
+          timeEl.textContent = String(timeLeft);
+
+          if (timeLeft <= 0) {
+            stopTimer();
+            onTimeout();
+          }
+        }, 1000);
+      };
+
+      const renderQuestion = () => {
+        answered = false;
+        nextBtn.disabled = true;
+
+        hintEl.style.display = "none";
+        hintEl.textContent = "";
+
+        const item = mission.questions[idx];
+        qTextEl.textContent = `Q${idx + 1}/${mission.questions.length}: ${item.q}`;
+        answersEl.innerHTML = "";
+
+        item.a.forEach((text, i) => {
+          const btn = document.createElement("button");
+          btn.className = "ans";
+          btn.type = "button";
+          btn.textContent = text;
+          btn.addEventListener("click", () => chooseAnswer(i, btn));
+          answersEl.appendChild(btn);
+        });
+
+        startTimer();
+        updateHUD();
+      };
+
+      const revealCorrect = (correctIdx) => {
+        document.querySelectorAll(".ans").forEach((b, j) => {
+          if (j === correctIdx) b.classList.add("correct");
+        });
+      };
+
+      const chooseAnswer = (choiceIdx, btnEl) => {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+
+        const item = mission.questions[idx];
+        revealCorrect(item.correct);
+
+        if (choiceIdx === item.correct) {
+          combo += 1;
+          const speedBonus = Math.max(0, timeLeft);
+          const gained = 60 + combo * 15 + Math.floor(speedBonus / 3);
+          points += gained;
+          earnedThisRun += gained;
+          beep(720, 0.07);
+        } else {
+          combo = 0;
+          btnEl.classList.add("wrong");
+          hintEl.textContent = item.hint || "Nice try — read the tip and continue.";
+          hintEl.style.display = "block";
+          beep(220, 0.1);
+        }
+
+        nextBtn.disabled = false;
+        updateHUD();
+      };
+
+      const onTimeout = () => {
+        if (answered) return;
+        answered = true;
+        combo = 0;
+
+        const item = mission.questions[idx];
+        revealCorrect(item.correct);
+
+        hintEl.textContent = "Time’s up! Try to answer faster for bonus points.";
+        hintEl.style.display = "block";
+
+        nextBtn.disabled = false;
+        beep(180, 0.12);
+        updateHUD();
+      };
+
+      const skipQuestion = () => {
+        if (answered) return;
+        stopTimer();
+        answered = true;
+        combo = 0;
+
+        hintEl.textContent = "Skipped. Tip: Answer quickly to earn speed bonus and keep your combo!";
+        hintEl.style.display = "block";
+
+        nextBtn.disabled = false;
+        beep(320, 0.06);
+        updateHUD();
+      };
+
+      const finishGame = () => {
+        setNum("tw_points", points);
+        alert("Finished (prototype).");
+      };
+
+      const nextQuestion = () => {
+        if (idx < mission.questions.length - 1) {
+          idx += 1;
+          renderQuestion();
+          return;
+        }
+        finishGame();
+      };
+
+      skipBtn.addEventListener("click", skipQuestion);
+      nextBtn.addEventListener("click", nextQuestion);
+
+      renderQuestion();
+    })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Feedback</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+  <header class="header" aria-label="Site header"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+
+    <nav class="actions" aria-label="Page links">
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+      <a class="link" href="booking-history.html">Booking history</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <section class="card" aria-labelledby="page-title">
+      <h2 id="page-title">Leave Feedback</h2>
+      <p>Your feedback helps improve TripWise and supports responsible tourism.</p>
+
+      <form id="feedbackForm" action="#" method="post" novalidate>
+        <div class="field">
+          <label for="trip">Which trip is this about?</label>
+          <select id="trip" name="trip" required>
+            <option value="">Select…</option>
+            <option value="kyoto-eco-ryokan">Kyoto, Japan — Eco Ryokan</option>
+            <option value="siemreap-community-homestay">Siem Reap, Cambodia — Community Homestay</option>
+            <option value="lisbon-city-hotel">Lisbon, Portugal — City Hotel</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <span class="label">Rating</span>
+
+          <div class="stars" role="radiogroup" aria-label="Rating out of 5">
+            <button class="star" type="button" data-v="1" aria-label="1 star">★</button>
+            <button class="star" type="button" data-v="2" aria-label="2 stars">★</button>
+            <button class="star" type="button" data-v="3" aria-label="3 stars">★</button>
+            <button class="star" type="button" data-v="4" aria-label="4 stars">★</button>
+            <button class="star" type="button" data-v="5" aria-label="5 stars">★</button>
+          </div>
+
+          <!-- Stores the rating value for form validation -->
+          <input id="rating" name="rating" type="hidden" value="0" />
+        </div>
+
+        <div class="field">
+          <label for="comments">Comments (optional)</label>
+          <textarea id="comments" name="comments" rows="4"
+            placeholder="What worked well? What could be improved?"></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">Submit feedback</button>
+          <button class="btn btn-ghost" type="button" onclick="window.location.href='traveller-dashboard.html'">
+            Cancel
+          </button>
+        </div>
+
+        <p id="success" class="success" role="status" aria-live="polite" hidden>
+          Thank you! Your feedback has been submitted (prototype).
+        </p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer" aria-label="Site footer"></footer>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const form = document.getElementById("feedbackForm");
+      const tripSelect = document.getElementById("trip");
+      const starButtons = document.querySelectorAll(".star");
+      const ratingInput = document.getElementById("rating");
+      const successMsg = document.getElementById("success");
+
+      const setRating = (value) => {
+        ratingInput.value = String(value);
+
+        // Toggle active class up to the chosen rating
+        starButtons.forEach((btn) => {
+          const v = Number(btn.dataset.v);
+          btn.classList.toggle("active", v <= value);
+          btn.setAttribute("aria-checked", String(v === value)); 
+        });
+      };
+
+      // Click handlers for star buttons
+      starButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          successMsg.hidden = true; 
+          setRating(Number(btn.dataset.v));
+        });
+      });
+
+      // Hide success message when the trip changes
+      tripSelect.addEventListener("change", () => {
+        successMsg.hidden = true;
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault(); 
+
+        // Let the browser validate required fields
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        // Manual validation for rating (stored in hidden input)
+        if (Number(ratingInput.value) === 0) {
+          alert("Please select a rating.");
+          return;
+        }
+
+        // Success feedback (prototype)
+        successMsg.hidden = false;
+
+        
+      });
+    })();
+  </script>
+</body>
+
+</html>

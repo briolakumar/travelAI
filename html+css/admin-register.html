@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Admin Register</title>
+    <link rel="stylesheet" href="tripwise.css" />
+
+    <script defer>
+      (() => {
+        "use strict";
+
+        document.addEventListener("DOMContentLoaded", () => {
+          const form = document.getElementById("adminRegister");
+          const passwordEl = document.getElementById("a_password");
+          const confirmEl = document.getElementById("a_confirm");
+
+          form.addEventListener("submit", (e) => {
+            const password = passwordEl.value;
+            const confirmPassword = confirmEl.value;
+
+            if (password !== confirmPassword) {
+              e.preventDefault();
+              alert("Passwords do not match.");
+              confirmEl.focus();
+            }
+          });
+        });
+      })();
+    </script>
+  </head>
+
+  <body>
+    <header class="header" aria-label="Site header"></header>
+
+    <div class="logo-bar">
+      <img src="../images/logo1.png" alt="TripWise Logo" />
+      <div class="brand-title">TripWise</div>
+    </div>
+
+    <main class="container">
+      <section class="box" aria-labelledby="page-title">
+        <h2 id="page-title">Admin Registration</h2>
+        <p class="subtitle">Admins require an access code provided by the organisation.</p>
+
+        <form id="adminRegister" action="#" method="post" novalidate>
+          <label for="a_name">Full Name</label>
+          <input
+            id="a_name"
+            name="fullname"
+            type="text"
+            required
+            autocomplete="name"
+            placeholder="e.g., Sam Admin"
+          />
+
+          <label for="a_email">Work Email</label>
+          <input
+            id="a_email"
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="admin@tripwise.com"
+          />
+
+          <label for="a_code">Admin Access Code</label>
+          <input
+            id="a_code"
+            name="accessCode"
+            type="password"
+            required
+            autocomplete="one-time-code"
+            placeholder="Provided by TripWise"
+          />
+          <div class="hint">This prevents public admin sign-ups.</div>
+
+          <label for="a_password">Password</label>
+          <input
+            id="a_password"
+            name="password"
+            type="password"
+            minlength="8"
+            required
+            autocomplete="new-password"
+            placeholder="Minimum 8 characters"
+          />
+
+          <label for="a_confirm">Confirm Password</label>
+          <input
+            id="a_confirm"
+            name="confirmPassword"
+            type="password"
+            minlength="8"
+            required
+            autocomplete="new-password"
+            placeholder="Re-enter password"
+          />
+
+          <button class="btn" type="submit">Create Admin Account</button>
+
+          <div class="row-actions">
+            <a class="link" href="admin-login.html">Already an admin? Log in</a>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <div class="logo-bar">
+      <img src="../images/logo1.png" alt="TripWise Logo" />
+      <div class="brand-title">TripWise</div>
+    </div>
+
+    <footer class="footer" aria-label="Site footer"></footer>
+  </body>
+</html>

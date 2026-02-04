@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Booking Form</title>
+    <link rel="stylesheet" href="tripwise.css" />
+
+    <!-- Destination helpers (must load before our init script below) -->
+    <script src="../nodejs/destinations.js" defer></script>
+
+    <script defer>
+        (() => {
+            "use strict";
+
+            // Wait until DOM is ready (because we're using defer)
+            document.addEventListener("DOMContentLoaded", () => {
+                // Populate the destination dropdown (from destinations.js)
+                // Second param = include "Any" option? (keep your existing behaviour)
+                if (typeof populateDestinationSelect === "function") {
+                    populateDestinationSelect("destinationSelect", false);
+                }
+
+                // ----- Cache DOM nodes once -----
+                const form = document.getElementById("bookingForm");
+                const destinationInput = document.getElementById("destination");
+                const destinationSelect = document.getElementById("destinationSelect");
+
+                const stayType = document.getElementById("stayType");
+                const checkin = document.getElementById("checkin");
+                const checkout = document.getElementById("checkout");
+                const guests = document.getElementById("guests");
+
+                const sumStay = document.getElementById("sumStay");
+                const sumPrice = document.getElementById("sumPrice");
+                const sumNights = document.getElementById("sumNights");
+                const sumGuests = document.getElementById("sumGuests");
+                const sumTotal = document.getElementById("sumTotal");
+
+                // Nightly rates (prototype)
+                const PRICES_GBP = {
+                    "Eco Ryokan": 120,
+                    "Traditional Guesthouse": 85,
+                    "City Hotel": 95
+                };
+
+                // Convert YYYY-MM-DD -> Date (safe for date inputs)
+                const parseDate = (value) => (value ? new Date(`${value}T00:00:00`) : null);
+
+                // Calculate nights between two dates
+                const nightsBetween = (start, end) => {
+                    const ms = end.getTime() - start.getTime();
+                    return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)));
+                };
+
+                // Keep summary in sync with form selections
+                const updateSummary = () => {
+                    const selectedStay = stayType.value;
+                    const nightly = PRICES_GBP[selectedStay] ?? 0;
+
+                    sumStay.textContent = selectedStay;
+                    sumPrice.textContent = `£${nightly}/night`;
+                    sumGuests.textContent = guests.value;
+
+                    const inDate = parseDate(checkin.value);
+                    const outDate = parseDate(checkout.value);
+
+                    if (inDate && outDate && outDate > inDate) {
+                        const nights = nightsBetween(inDate, outDate);
+                        sumNights.textContent = String(nights);
+                        sumTotal.textContent = `£${nights * nightly}`;
+                    } else {
+                        sumNights.textContent = "—";
+                        sumTotal.textContent = "—";
+                    }
+                };
+
+                // Optional UX: selecting a destination updates the readonly input
+                destinationSelect?.addEventListener("change", () => {
+                    destinationInput.value = destinationSelect.value || "Kyoto, Japan";
+                });
+
+                // Update summary when inputs change
+                [stayType, checkin, checkout, guests].forEach((el) => el.addEventListener("change", updateSummary));
+                updateSummary(); // initial render
+
+                // Guard: prevent checkout <= checkin (prototype client-side validation)
+                form.addEventListener("submit", (e) => {
+                    const inDate = parseDate(checkin.value);
+                    const outDate = parseDate(checkout.value);
+                    if (!inDate || !outDate) return; // browser will handle required fields
+
+                    if (outDate <= inDate) {
+                        e.preventDefault();
+                        alert("Check-out date must be after check-in date.");
+                    }
+                });
+            });
+        })();
+    </script>
+</head>
+
+<body>
+    <header class="header" aria-label="Site header"></header>
+
+    <div class="top" role="banner">
+        <div class="brand">
+            <img src="../images/logo1.png" alt="TripWise logo" />
+            <h1>TripWise</h1>
+        </div>
+
+        <nav class="row" aria-label="Secondary navigation">
+            <a class="link" href="destination-details.html">← Back to destination</a>
+            <a class="link" href="traveller-dashboard.html">Dashboard</a>
+        </nav>
+    </div>
+
+    <main class="container">
+        <div class="grid">
+            <!-- Booking form -->
+            <section class="card span-7" aria-labelledby="booking-title">
+                <h2 id="booking-title">Complete Your Booking</h2>
+                <p>Choose your stay and confirm your trip details (prototype booking simulation).</p>
+
+                <form id="bookingForm" action="booking-confirmation.html" method="get" novalidate>
+                    <label for="destinationSelect">Destination</label>
+                    <select id="destinationSelect" class="input" aria-label="Destination select">
+                    </select>
+
+                    <label class="sr-only" for="destination">Destination value</label>
+                    <input id="destination" name="destination" type="text" value="Kyoto, Japan" readonly />
+
+                    <label for="stayType">Select Accommodation</label>
+                    <select id="stayType" name="stayType" required>
+                        <option value="Eco Ryokan">Eco Ryokan (£120/night)</option>
+                        <option value="Traditional Guesthouse">Traditional Guesthouse (£85/night)</option>
+                        <option value="City Hotel">City Hotel (£95/night)</option>
+                    </select>
+
+                    <div class="row">
+                        <div style="flex: 1; min-width: 220px">
+                            <label for="checkin">Check-in</label>
+                            <input id="checkin" name="checkin" type="date" required />
+                        </div>
+
+                        <div style="flex: 1; min-width: 220px">
+                            <label for="checkout">Check-out</label>
+                            <input id="checkout" name="checkout" type="date" required />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div style="flex: 1; min-width: 220px">
+                            <label for="guests">Guests</label>
+                            <select id="guests" name="guests">
+                                <option value="1">1 guest</option>
+                                <option value="2" selected>2 guests</option>
+                                <option value="3">3 guests</option>
+                                <option value="4">4 guests</option>
+                                <option value="5">5+ guests</option>
+                            </select>
+                        </div>
+
+                        <div style="flex: 1; min-width: 220px">
+                            <label for="special">Special Requests (optional)</label>
+                            <input id="special" name="special" type="text" placeholder="e.g., late check-in" />
+                        </div>
+                    </div>
+
+                    <div class="checks">
+                        <label for="updates">
+                            <input id="updates" type="checkbox" name="updates" checked />
+                            Send me booking reminders and responsible travel updates
+                        </label>
+                    </div>
+
+                    <p class="note">
+                        After booking, TripWise will provide destination-specific cultural, legal, and etiquette
+                        guidance.
+                    </p>
+
+                    <div style="margin-top: 14px">
+                        <button class="btn btn-primary" type="submit">Confirm Booking</button>
+                    </div>
+                </form>
+            </section>
+
+            <aside class="card span-5" aria-labelledby="summary-title">
+                <h2 id="summary-title">Booking Summary</h2>
+                <p>Example summary (updates automatically with selections).</p>
+
+                <div class="stay">
+                    <div>
+                        <strong id="sumStay">Eco Ryokan</strong>
+                        <div style="color: var(--muted); font-size: 13px; margin-top: 3px">Kyoto, Japan</div>
+                        <div class="tag">Responsible option</div>
+                    </div>
+                    <div class="price" id="sumPrice">£120/night</div>
+                </div>
+
+                <div class="summary">
+                    <div class="summary-row"><span>Nights</span><strong id="sumNights">—</strong></div>
+                    <div class="summary-row"><span>Guests</span><strong id="sumGuests">2</strong></div>
+                    <div class="summary-row">
+                        <span>Estimated total</span>
+                        <strong class="total" id="sumTotal">—</strong>
+                    </div>
+                </div>
+
+                <div style="margin-top: 12px">
+                    <button class="btn btn-ghost" type="button" onclick="window.location.href='search-results.html'">
+                        Continue browsing
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="footer" aria-label="Site footer"></footer>
+</body>
+
+</html>

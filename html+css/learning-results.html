@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Results</title>
+    <link rel="stylesheet" href="tripwise.css" />
+  </head>
+
+  <body>
+    <header class="header" aria-label="Top bar"></header>
+
+    <div class="top" role="banner">
+      <div class="brand">
+        <img src="../images/logo1.png" alt="TripWise logo" />
+        <h1>TripWise</h1>
+      </div>
+
+      <nav class="row" aria-label="Results navigation" style="margin-top: 0">
+        <a class="link" href="learning-home.html">← Hub</a>
+        <a class="link" href="traveller-dashboard.html">Dashboard</a>
+      </nav>
+    </div>
+
+    <main class="container">
+      <section class="card" aria-labelledby="page-title">
+        <h2 id="page-title">Mission Complete 🎉</h2>
+        <p>You’ve just learned important etiquette and law basics. That’s responsible travel in action.</p>
+
+        <div class="big" aria-label="Points summary">
+          Points earned: <span id="run">0</span> • Total points: <span id="total">0</span>
+        </div>
+
+        <span class="pill" id="dailyPill" style="display: none">⚡ Daily Challenge streak updated!</span>
+
+        <div class="panel" id="badgeBox" style="display: none">
+          🏅 <strong>Badge Unlocked!</strong> Great performance — you earned a new badge.
+        </div>
+
+        <div class="row">
+          <button class="btn btn-primary" type="button" id="replayBtn">Play again</button>
+          <a class="btn btn-ghost" href="learning-home.html">Choose another mission</a>
+          <a class="btn btn-ghost" href="ai-guidance.html">Ask TripWise AI</a>
+        </div>
+
+        <div class="row">
+          <a class="btn btn-ghost" href="booking-details.html">Back to booking</a>
+          <a class="btn btn-ghost" href="traveller-dashboard.html">Back to dashboard</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer" aria-label="Footer"></footer>
+
+    <script>
+      (() => {
+        "use strict";
+        // Read URL parameters to populate the results screen 
+
+        const params = new URLSearchParams(window.location.search);
+
+        const mission = params.get("mission") ?? "kyoto-etiquette";
+        const run = params.get("run") ?? "0";
+        const total = params.get("total") ?? "0";
+        const earned = params.get("earned") === "1";
+        const daily = params.get("daily") === "1";
+
+        // Populate scores
+        document.getElementById("run").textContent = run;
+        document.getElementById("total").textContent = total;
+
+        if (earned) document.getElementById("badgeBox").style.display = "block";
+        if (daily) document.getElementById("dailyPill").style.display = "inline-block";
+
+        // Replay uses the same mission, and preserves daily mode if enabled
+        document.getElementById("replayBtn").addEventListener("click", () => {
+          const dailyParam = daily ? "&daily=1" : "";
+          window.location.href = `learning-game.html?mission=${encodeURIComponent(mission)}${dailyParam}`;
+        });
+      })();
+    </script>
+  </body>
+</html>
