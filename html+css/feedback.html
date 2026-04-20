@@ -16,7 +16,6 @@
       <img src="../images/logo1.png" alt="TripWise logo" />
       <h1>TripWise</h1>
     </div>
-
     <nav class="actions" aria-label="Page links">
       <a class="link" href="traveller-dashboard.html">Dashboard</a>
       <a class="link" href="booking-history.html">Booking history</a>
@@ -29,28 +28,36 @@
       <p>Your feedback helps improve TripWise and supports responsible tourism.</p>
 
       <form id="feedbackForm" action="#" method="post" novalidate>
+
         <div class="field">
           <label for="trip">Which trip is this about?</label>
           <select id="trip" name="trip" required>
-            <option value="">Select…</option>
-            <option value="kyoto-eco-ryokan">Kyoto, Japan — Eco Ryokan</option>
-            <option value="siemreap-community-homestay">Siem Reap, Cambodia — Community Homestay</option>
-            <option value="lisbon-city-hotel">Lisbon, Portugal — City Hotel</option>
+            <option value="">Loading your bookings…</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="topic">Topic</label>
+          <select id="topic" name="topic">
+            <option value="general">General feedback</option>
+            <option value="destination">Destination information</option>
+            <option value="cultural_guidance">Cultural guidance</option>
+            <option value="booking">Booking experience</option>
+            <option value="chatbot">Chatbot</option>
+            <option value="learning_hub">Learning Hub</option>
           </select>
         </div>
 
         <div class="field">
           <span class="label">Rating</span>
-
-          <div class="stars" role="radiogroup" aria-label="Rating out of 5">
-            <button class="star" type="button" data-v="1" aria-label="1 star">★</button>
-            <button class="star" type="button" data-v="2" aria-label="2 stars">★</button>
-            <button class="star" type="button" data-v="3" aria-label="3 stars">★</button>
-            <button class="star" type="button" data-v="4" aria-label="4 stars">★</button>
-            <button class="star" type="button" data-v="5" aria-label="5 stars">★</button>
-          </div>
-
-          <!-- Stores the rating value for form validation -->
+         <div class="stars" role="group" aria-labelledby="rating-label">
+  <span id="rating-label" class="sr-only">Star rating out of 5</span>
+  <button class="star" type="button" data-v="1" aria-label="1 star" aria-pressed="false">★</button>
+  <button class="star" type="button" data-v="2" aria-label="2 stars" aria-pressed="false">★</button>
+  <button class="star" type="button" data-v="3" aria-label="3 stars" aria-pressed="false">★</button>
+  <button class="star" type="button" data-v="4" aria-label="4 stars" aria-pressed="false">★</button>
+  <button class="star" type="button" data-v="5" aria-label="5 stars" aria-pressed="false">★</button>
+</div>
           <input id="rating" name="rating" type="hidden" value="0" />
         </div>
 
@@ -61,75 +68,148 @@
         </div>
 
         <div class="actions">
-          <button class="btn btn-primary" type="submit">Submit feedback</button>
-          <button class="btn btn-ghost" type="button" onclick="window.location.href='traveller-dashboard.html'">
-            Cancel
-          </button>
+          <button class="btn btn-primary" id="submitBtn" type="submit">Submit feedback</button>
+          <button class="btn btn-ghost" type="button"
+            onclick="window.location.href='traveller-dashboard.html'">Cancel</button>
         </div>
 
+        <div id="errorMsg" class="error" role="alert" aria-live="assertive"></div>
+
         <p id="success" class="success" role="status" aria-live="polite" hidden>
-          Thank you! Your feedback has been submitted (prototype).
+          Thank you! Your feedback has been submitted.
         </p>
+
       </form>
     </section>
   </main>
 
   <footer class="footer" aria-label="Site footer"></footer>
 
+  <script src="api/api.js"></script>
   <script>
     (() => {
       "use strict";
 
-      const form = document.getElementById("feedbackForm");
+      /* Auth guard */
+      if (!localStorage.getItem("tripwise_token_traveller") && !localStorage.getItem("tripwise_token")) {
+        window.location.href = "traveller-login.html";
+      }
+
+      const form       = document.getElementById("feedbackForm");
       const tripSelect = document.getElementById("trip");
-      const starButtons = document.querySelectorAll(".star");
-      const ratingInput = document.getElementById("rating");
+      const starBtns   = document.querySelectorAll(".star");
+      const ratingInput= document.getElementById("rating");
+      const submitBtn  = document.getElementById("submitBtn");
+      const errorMsg   = document.getElementById("errorMsg");
       const successMsg = document.getElementById("success");
 
-      const setRating = (value) => {
-        ratingInput.value = String(value);
+      /* Helpers */
+      const showError  = msg => { errorMsg.textContent = msg; errorMsg.style.display = "block"; successMsg.hidden = true; };
+      const clearError = ()  => { errorMsg.style.display = "none"; errorMsg.textContent = ""; };
+      const setLoading = on  => { submitBtn.disabled = on; submitBtn.textContent = on ? "Submitting…" : "Submit feedback"; };
 
-        // Toggle active class up to the chosen rating
-        starButtons.forEach((btn) => {
+      /* Star rating */
+      const setRating = value => {
+        ratingInput.value = String(value);
+        starBtns.forEach(btn => {
           const v = Number(btn.dataset.v);
           btn.classList.toggle("active", v <= value);
-          btn.setAttribute("aria-checked", String(v === value)); 
+btn.setAttribute("aria-pressed", String(v <= value));
         });
       };
 
-      // Click handlers for star buttons
-      starButtons.forEach((btn) => {
+      starBtns.forEach(btn => {
         btn.addEventListener("click", () => {
-          successMsg.hidden = true; 
+          clearError();
+          successMsg.hidden = true;
           setRating(Number(btn.dataset.v));
         });
       });
 
-      // Hide success message when the trip changes
-      tripSelect.addEventListener("change", () => {
+      /* Load real bookings into the dropdown */
+      const loadBookings = async () => {
+        try {
+          const bookings = await apiFetch("/api/bookings/me");
+
+          if (!bookings || bookings.length === 0) {
+            tripSelect.innerHTML = `<option value="">No bookings found</option>`;
+            tripSelect.disabled = true;
+            return;
+          }
+
+          tripSelect.innerHTML = `<option value="">Select a trip…</option>` +
+            bookings.map(b => {
+              const label = b.destination_name
+                ? `${b.destination_name}${b.check_in ? " — " + b.check_in : ""}`
+                : `Booking #${b.id}`;
+              return `<option value="${b.id}">${label}</option>`;
+            }).join("");
+
+        } catch (err) {
+          console.error("Could not load bookings:", err.message);
+          /* Fall back to a general option so the user can still submit */
+          tripSelect.innerHTML = `<option value="">General feedback (no specific trip)</option>`;
+        }
+      };
+
+      loadBookings();
+
+      /* Form submission */
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearError();
         successMsg.hidden = true;
-      });
 
-      form.addEventListener("submit", (e) => {
-        e.preventDefault(); 
-
-        // Let the browser validate required fields
         if (!form.checkValidity()) {
           form.reportValidity();
           return;
         }
 
-        // Manual validation for rating (stored in hidden input)
         if (Number(ratingInput.value) === 0) {
-          alert("Please select a rating.");
+          showError("Please select a star rating before submitting.");
           return;
         }
 
-        // Success feedback (prototype)
-        successMsg.hidden = false;
+        const bookingId = tripSelect.value ? Number(tripSelect.value) : null;
+        const rating    = Number(ratingInput.value);
+        const topic     = document.getElementById("topic").value;
+        const comments  = document.getElementById("comments").value.trim() || null;
 
-        
+        setLoading(true);
+
+        try {
+          await apiFetch("/api/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ booking_id: bookingId, rating, topic, comments }),
+          });
+
+          successMsg.hidden = false;
+          form.reset();
+          setRating(0);
+
+          /* Scroll success message into view */
+          successMsg.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+        } catch (err) {
+          if (err.message && err.message.includes("400")) {
+            showError("Invalid rating. Please select between 1 and 5 stars.");
+          } else if (err.message && err.message.includes("401")) {
+            window.location.href = "traveller-login.html";
+          } else {
+            showError("Something went wrong. Please try again.");
+          }
+        } finally {
+          setLoading(false);
+        }
       });
+
+      /* Hide messages when user changes the trip */
+      tripSelect.addEventListener("change", () => {
+        clearError();
+        successMsg.hidden = true;
+      });
+
     })();
   </script>
 </body>

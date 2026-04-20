@@ -1,86 +1,90 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TripWise — Admin Login</title>
-    <link rel="stylesheet" href="tripwise.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Admin Login</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
 
-    <script defer>
-      (() => {
-        "use strict";
+<body class="auth-page">
+  <header class="header" aria-label="Site header"></header>
 
-        document.addEventListener("DOMContentLoaded", () => {
-          const form = document.getElementById("adminLogin");
-          const passwordEl = document.getElementById("a_password");
-          const errorEl = document.getElementById("adminError");
+  <div class="logo-bar"></div>
 
-          form.addEventListener("submit", (e) => {
-            e.preventDefault(); 
+  <main class="container">
+    <section class="box" aria-labelledby="page-title">
+      <h2 id="page-title">Admin Login</h2>
+      <p class="subtitle">Log in to access moderation and management tools.</p>
 
-            const ok = passwordEl.value === "password123";
+      <p id="message" style="display:none; color:white; background:#d32f2f; padding:10px; border-radius:4px; text-align:center; margin-bottom:15px; font-weight:bold;"></p>
 
-            errorEl.style.display = ok ? "none" : "block";
-            if (ok) alert("Admin login success (placeholder).");
+      <form id="adminLogin" novalidate>
+        <label for="a_email">Work Email</label>
+        <input id="a_email" name="email" type="email" required
+               autocomplete="email" placeholder="admin@tripwise.com" />
+
+        <label for="a_password">Password</label>
+        <input id="a_password" name="password" type="password" required
+               autocomplete="current-password" placeholder="Your password" />
+
+        <div class="row">
+          <a class="link" href="forgot-password.html">Forgot password?</a>
+        </div>
+
+        <button class="btn" type="submit">Log In</button>
+        <a class="link" href="admin-register.html">Don't have an account? Register</a>
+      </form>
+    </section>
+  </main>
+
+  <div class="logo-bar"></div>
+  <footer class="footer" aria-label="Site footer"></footer>
+
+  <script src="api/api.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form    = document.getElementById("adminLogin");
+      const emailEl = document.getElementById("a_email");
+      const passEl  = document.getElementById("a_password");
+      const msg     = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msg.textContent   = "";
+        msg.style.display = "none";
+
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        try {
+          const data = await apiFetch("/api/auth/login", {
+            method: "POST",
+            body: JSON.stringify({
+              email:    emailEl.value.trim().toLowerCase(),
+              password: passEl.value
+            })
           });
-        });
-      })();
-    </script>
-  </head>
 
-  <body>
-    <header class="header" aria-label="Site header"></header>
+          if (data.role !== "admin") {
+            msg.textContent   = "This account is not an admin account.";
+            msg.style.display = "block";
+            return;
+          }
 
-    <div class="logo-bar">
-      <img src="../images/logo1.png" alt="TripWise Logo" />
-      <div class="brand-title">TripWise</div>
-    </div>
+          // Role-specific token key
+          localStorage.setItem("tripwise_token_admin", data.token);
+          localStorage.setItem("tripwise_token", data.token);
+          localStorage.setItem("tripwise_role", data.role);
+          localStorage.setItem("tripwise_name", data.full_name || "");
 
-    <main class="container">
-      <section class="box" aria-labelledby="page-title">
-        <h2 id="page-title">Admin Login</h2>
-        <p class="subtitle">Log in to access moderation and management tools.</p>
+          window.location.href = "admin-dashboard.html";
 
-        <form id="adminLogin" action="#" method="post" novalidate>
-          <label for="a_email">Work Email</label>
-          <input
-            id="a_email"
-            name="email"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="admin@tripwise.com"
-          />
-
-          <label for="a_password">Password</label>
-          <input
-            id="a_password"
-            name="password"
-            type="password"
-            required
-            autocomplete="current-password"
-            placeholder="Your password"
-          />
-
-          <div id="adminError" class="error" style="display: none">
-            Incorrect email or password.
-          </div>
-
-          <div class="row">
-            <a class="link" href="forgot-password.html">Forgot password?</a>
-            <a class="link" href="traveller-login.html">Traveller login</a>
-          </div>
-
-          <button class="btn" type="submit">Log In</button>
-        </form>
-      </section>
-    </main>
-
-    <div class="logo-bar">
-      <img src="../images/logo1.png" alt="TripWise Logo" />
-      <div class="brand-title">TripWise</div>
-    </div>
-
-    <footer class="footer" aria-label="Site footer"></footer>
-  </body>
+        } catch (err) {
+          msg.textContent   = err.message || "Invalid email or password.";
+          msg.style.display = "block";
+        }
+      });
+    });
+  </script>
+</body>
 </html>

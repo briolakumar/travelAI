@@ -1,149 +1,270 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TripWise — Learning Home</title>
+  <title>TripWise — Learning Hub</title>
   <link rel="stylesheet" href="tripwise.css" />
+  <link rel="stylesheet" href="learning-home.css" />
 </head>
-
 <body>
-  <header class="header" aria-label="Top bar"></header>
+  <header class="header"></header>
 
   <div class="top" role="banner">
     <div class="brand">
       <img src="../images/logo1.png" alt="TripWise logo" />
       <h1>TripWise</h1>
     </div>
-
-    <nav aria-label="Learning hub navigation" style="display:flex;gap:10px;flex-wrap:wrap">
+    <nav class="row" style="margin-top:0">
       <a class="link" href="traveller-dashboard.html">Dashboard</a>
-      <a class="link" href="booking-details.html">Booking details</a>
+      <a class="link" href="chatbot-guidance.html">🤖 Chatbot</a>
     </nav>
   </div>
 
   <main class="container">
-    <section class="hero" aria-label="Learning hub overview">
+
+    <section class="hub-hero" aria-label="Learning Hub overview">
       <div>
         <h2>Learning Hub 🎮</h2>
-        <p>Play quick missions to master local laws & etiquette. Earn points, level up, and collect badges.</p>
-
-        <div class="stats" aria-label="Learning stats">
-          <div class="pill"><span class="dot" aria-hidden="true"></span> Streak: <strong id="streak">0</strong> days</div>
+        <p>Master local laws and etiquette for every destination you've booked.<br>Earn points, badges, and level up.</p>
+        <div class="hub-stats">
+          <div class="pill">🔥 Streak: <strong id="streak">0</strong> days</div>
           <div class="pill">⭐ Points: <strong id="points">0</strong></div>
-          <div class="pill">🏅 Badges: <strong id="badges">0</strong></div>
+          <div class="pill">🏅 Badges: <strong id="badgeCount">0</strong></div>
           <div class="pill">🧠 Level: <strong id="level">1</strong></div>
+          <div class="pill">✅ Done: <strong id="missionsComplete">0</strong></div>
         </div>
-
-        <!-- Points progress bar -->
-        <div class="levelbar" title="XP progress" aria-label="XP progress">
-          <div id="xpBar"></div>
-        </div>
+        <div class="hub-levelbar"><div id="xpBar"></div></div>
       </div>
-
-      <div class="hero-actions">
-        <button class="btn btn-primary" type="button" id="dailyBtn">⚡ Daily Challenge</button>
-        <button class="btn btn-ghost" type="button" id="leaderboardBtn">🏆 Leaderboard</button>
-        <a class="btn btn-ghost" href="ai-guidance.html">🤖 Ask AI</a>
+      <div class="hub-hero-actions">
+        <button class="btn btn-primary" id="dailyBtn">⚡ Daily Challenge</button>
+        <button class="btn btn-ghost"   id="resetBtn">🔄 Reset Progress</button>
       </div>
     </section>
 
-    <section class="grid learning-tiles" aria-label="Missions">
-      <a class="learn-tile tile-kyoto" href="learning-game.html?mission=kyoto-laws-etiquette" aria-label="Kyoto mission">
-        <img src="../images/bg-kyoto.jpg" alt="Kyoto" />
-        <div class="learn-overlay">
-          <h3>Kyoto</h3>
-          <p>Rules + Respect</p>
-        </div>
-      </a>
+    <p class="diff-label-text">Difficulty:</p>
+    <div class="diff-row" id="diffRow">
+      <button class="diff-btn" data-diff="easy">🟢 Easy (10s)</button>
+      <button class="diff-btn" data-diff="medium">🟡 Medium (20s)</button>
+      <button class="diff-btn" data-diff="hard">🔴 Hard (30s)</button>
+    </div>
 
-      <a class="learn-tile tile-rome" href="learning-game.html?mission=rome-laws-etiquette" aria-label="Rome mission">
-        <img src="../images/bg-rome.jpg" alt="Rome" />
-        <div class="learn-overlay">
-          <h3>Rome</h3>
-          <p>Monuments + Manners</p>
-        </div>
-      </a>
+    <div class="card badges-card">
+      <h3>🏅 Badges</h3>
+      <div class="badge-grid" id="badgeGrid"></div>
+    </div>
 
-      <a class="learn-tile tile-barcelona" href="learning-game.html?mission=barcelona-laws-etiquette" aria-label="Barcelona mission">
-        <img src="../images/bg-barcelona.jpg" alt="Barcelona" />
-        <div class="learn-overlay">
-          <h3>Barcelona</h3>
-          <p>City Rules + Street Smarts</p>
-        </div>
-      </a>
-    </section>
+    <p class="section-label">Your Missions</p>
+    <p class="section-sub">
+      A mission unlocks for every destination you book. Book more destinations to unlock more missions.
+    </p>
+    <div class="learning-tiles" id="tilesGrid">
+      <div class="empty-state">
+        <h3>Loading missions…</h3>
+        <p>Please wait while we fetch your bookings.</p>
+      </div>
+    </div>
+
   </main>
 
-  <footer class="footer" aria-label="Footer"></footer>
+  <footer class="footer"></footer>
 
+  <script src="api/api.js"></script>
   <script>
-    (() => {
-      "use strict";
+  (() => {
+    "use strict";
 
-    
-      const bgMap = {
-        kyoto: "../images/bg-kyoto.jpg",
-        rome: "../images/bg-rome.jpg",
-        barcelona: "../images/bg-barcelona.jpg"
-      };
+    /* Auth guard */
+    if (!localStorage.getItem("tripwise_token_traveller") && !localStorage.getItem("tripwise_token")) {
+      window.location.href = "traveller-login.html";
+    }
 
-      function setBg(src) {
-        document.documentElement.style.setProperty("--city-bg", `url("${src}")`);
+    /* Storage helpers */
+    const getNum = k => Number(localStorage.getItem(k) ?? 0);
+    const setNum = (k, v) => localStorage.setItem(k, String(v));
+    const getObj = k => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
+
+    const calcLevel = p => Math.max(1, Math.floor(p / 300) + 1);
+    const calcXp    = p => { const b = Math.floor(p / 300) * 300; return Math.min(100, Math.round(((p - b) / 300) * 100)); };
+
+    /* Slug: mission key map */
+    const SLUG_TO_MISSION = {
+      kyoto:     "kyoto-laws-etiquette",
+      tokyo:     "tokyo-laws-etiquette",
+      paris:     "paris-laws-etiquette",
+      rome:      "rome-laws-etiquette",
+      barcelona: "barcelona-laws-etiquette",
+      newyork:   "newyork-laws-etiquette",
+      marrakech: "marrakech-laws-etiquette",
+      bangkok:   "bangkok-laws-etiquette",
+      reykjavik: "reykjavik-laws-etiquette",
+      siemreap:  "siemreap-laws-etiquette",
+    };
+
+    const MISSION_SUB = {
+      kyoto:     "Rules + Respect",
+      tokyo:     "Clean + Calm Challenge",
+      paris:     "Rules + Café Culture",
+      rome:      "Monuments + Manners",
+      barcelona: "City Rules + Street Smarts",
+      newyork:   "Street Rules + Subway",
+      marrakech: "Laws + Etiquette Drill",
+      bangkok:   "Respect + Temple Rules",
+      reykjavik: "Nature Rules + Pool Rules",
+      siemreap:  "Temple Rules + Respect",
+    };
+
+    /* Badge definitions */
+    const BADGES = [
+      { id: "first_mission",   label: "First Mission",   icon: "🎯", check: (sc, st) => Object.keys(sc).length >= 1 },
+      { id: "perfect",         label: "Perfect Score",   icon: "💯", check: (sc, st) => Object.values(sc).some(s => s.accuracy === 100) },
+      { id: "speed_demon",     label: "Speed Demon",     icon: "⚡", check: (sc, st) => st.maxCombo >= 5 },
+      { id: "globetrotter",    label: "Globetrotter",    icon: "🌍", check: (sc, st) => Object.keys(sc).length >= 5 },
+      { id: "world_traveller", label: "World Traveller", icon: "🏆", check: (sc, st) => Object.keys(sc).length >= 10 },
+      { id: "scholar",         label: "Scholar",         icon: "📚", check: (sc, st) => st.totalPoints >= 2000 },
+      { id: "hard_mode_hero",  label: "Hard Mode Hero",  icon: "🔴", check: (sc, st) => Object.values(sc).some(s => s.difficulty === "hard") },
+    ];
+
+    let selectedDiff = localStorage.getItem("tw_diff") || "easy";
+
+    const renderHUD = () => {
+      const pts    = getNum("tw_points");
+      const streak = getNum("tw_streak");
+      const scores = getObj("tw_scores");
+      const done   = Object.keys(scores).length;
+      const stats  = { maxCombo: getNum("tw_maxCombo"), totalPoints: pts };
+
+      document.getElementById("points").textContent           = pts;
+      document.getElementById("streak").textContent           = streak;
+      document.getElementById("level").textContent            = calcLevel(pts);
+      document.getElementById("missionsComplete").textContent = done;
+      document.getElementById("xpBar").style.width            = `${calcXp(pts)}%`;
+
+      const earned = BADGES.filter(b => b.check(scores, stats));
+      setNum("tw_badges", earned.length);
+      document.getElementById("badgeCount").textContent = earned.length;
+
+      document.getElementById("badgeGrid").innerHTML = BADGES.map(b => {
+        const ok = earned.find(e => e.id === b.id);
+        return `<span class="badge-pill ${ok ? "badge-earned" : "badge-locked"}">${b.icon} ${b.label}</span>`;
+      }).join("");
+    };
+
+    /* Render tiles from bookings */
+    const renderTiles = (bookings) => {
+      const scores = getObj("tw_scores");
+      const grid   = document.getElementById("tilesGrid");
+
+      if (!bookings || bookings.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <h3>No missions yet</h3>
+            <p>You haven't booked any destinations yet.<br>
+               Book a destination and your learning mission will appear here.</p>
+            <a class="btn btn-primary" href="search-destination.html">Browse Destinations</a>
+          </div>`;
+        return;
       }
 
-      // Default background when page loads
-      setBg(bgMap.kyoto);
-
-      const kyotoTile = document.querySelector(".tile-kyoto");
-      const romeTile = document.querySelector(".tile-rome");
-      const barcaTile = document.querySelector(".tile-barcelona");
-
-      kyotoTile.addEventListener("mouseenter", () => setBg(bgMap.kyoto));
-      romeTile.addEventListener("mouseenter", () => setBg(bgMap.rome));
-      barcaTile.addEventListener("mouseenter", () => setBg(bgMap.barcelona));
-
-      const tileSection = document.querySelector(".learning-tiles");
-      tileSection.addEventListener("mouseleave", () => setBg(bgMap.kyoto));
-
-    
-      const getNum = (key, fallback = 0) => Number(localStorage.getItem(key) ?? fallback);
-
-      const calcLevel = (points) => Math.max(1, Math.floor(points / 300) + 1);
-
-      const calcXpProgress = (points) => {
-        const base = Math.floor(points / 300) * 300;
-        const within = points - base;
-        return Math.max(0, Math.min(100, Math.round((within / 300) * 100)));
-      };
-
-      const points = getNum("tw_points", 0);
-      const streak = getNum("tw_streak", 0);
-      const badges = getNum("tw_badges", 0);
-      const level = calcLevel(points);
-
-      document.getElementById("points").textContent = String(points);
-      document.getElementById("streak").textContent = String(streak);
-      document.getElementById("badges").textContent = String(badges);
-      document.getElementById("level").textContent = String(level);
-      document.getElementById("xpBar").style.width = `${calcXpProgress(points)}%`;
-
-      
-      const missionList = ["kyoto-laws-etiquette", "rome-laws-etiquette", "barcelona-laws-etiquette"];
-
-      const startDaily = () => {
-        const day = new Date().getDate();
-        const pick = missionList[day % missionList.length];
-        window.location.href = `learning-game.html?mission=${encodeURIComponent(pick)}&daily=1`;
-      };
-
-      document.getElementById("dailyBtn").addEventListener("click", startDaily);
-      document.getElementById("leaderboardBtn").addEventListener("click", () => {
-        alert("Leaderboard (optional)");
+      const seen   = new Set();
+      const unique = bookings.filter(b => {
+        if (seen.has(b.destination_slug)) return false;
+        seen.add(b.destination_slug);
+        return true;
       });
-    })();
+
+      grid.innerHTML = unique.map(b => {
+        const slug   = b.destination_slug;
+        const mKey   = SLUG_TO_MISSION[slug];
+        const imgSrc = b.image_url
+          ? (b.image_url.startsWith("/") ? `..${b.image_url}` : `../${b.image_url}`)
+          : `../images/${slug}.png`;
+        const sub    = MISSION_SUB[slug] || "Laws + Etiquette";
+        const s      = mKey ? scores[mKey] : null;
+        const done   = !!s;
+
+        if (!mKey) return "";
+
+        return `
+          <a class="learn-tile" href="learning-game.html?mission=${mKey}&diff=${selectedDiff}">
+            <img src="${imgSrc}" alt="${b.destination_name}"
+                 onerror="this.onerror=null;this.src='../images/logo1.png'" />
+            <div class="learn-overlay">
+              <h3>${b.destination_name}</h3>
+              <p>${sub}</p>
+            </div>
+            ${done ? `<span class="tile-badge">✓ Done</span>` : ""}
+            ${done ? `<span class="tile-score">⭐ ${s.score}pts · ${s.accuracy}%</span>` : ""}
+          </a>`;
+      }).join("");
+    };
+
+    /* Load bookings */
+    const init = async () => {
+      let bookings = [];
+      try {
+        bookings = await apiFetch("/api/bookings/me");
+      } catch (err) {
+        console.error("Could not load bookings:", err.message);
+        if (err.message && err.message.includes("401")) {
+          window.location.href = "traveller-login.html";
+          return;
+        }
+      }
+      renderTiles(bookings);
+
+      /* Daily challenge */
+      document.getElementById("dailyBtn").addEventListener("click", () => {
+        if (!bookings || bookings.length === 0) {
+          alert("You need at least one booking to start the daily challenge.");
+          return;
+        }
+        const valid = bookings.filter(b => SLUG_TO_MISSION[b.destination_slug]);
+        if (!valid.length) {
+          alert("No missions available for your booked destinations.");
+          return;
+        }
+        const day  = new Date().getDate();
+        const pick = valid[day % valid.length];
+        window.location.href = `learning-game.html?mission=${SLUG_TO_MISSION[pick.destination_slug]}&daily=1&diff=${selectedDiff}`;
+      });
+    };
+
+    /* Difficulty buttons */
+    document.getElementById("diffRow").addEventListener("click", e => {
+      const btn = e.target.closest(".diff-btn");
+      if (!btn) return;
+      selectedDiff = btn.dataset.diff;
+      localStorage.setItem("tw_diff", selectedDiff);
+      document.querySelectorAll(".diff-btn").forEach(b =>
+        b.classList.toggle("active", b.dataset.diff === selectedDiff));
+    });
+    document.querySelectorAll(".diff-btn").forEach(b =>
+      b.classList.toggle("active", b.dataset.diff === selectedDiff));
+
+    /* Reset */
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (!confirm("Reset all learning progress? This cannot be undone.")) return;
+      ["tw_points", "tw_streak", "tw_badges", "tw_maxCombo", "tw_scores", "tw_diff", "tw_lastPlay"]
+        .forEach(k => localStorage.removeItem(k));
+      selectedDiff = "easy";
+      document.querySelectorAll(".diff-btn").forEach(b =>
+        b.classList.toggle("active", b.dataset.diff === "easy"));
+      renderHUD();
+      init();
+    });
+
+    /* Streak check on load */
+    const today    = new Date().toDateString();
+    const lastPlay = localStorage.getItem("tw_lastPlay");
+    if (lastPlay && lastPlay !== today) {
+      const yesterday = new Date(Date.now() - 864e5).toDateString();
+      if (lastPlay !== yesterday) setNum("tw_streak", 0);
+    }
+
+    renderHUD();
+    init();
+  })();
   </script>
 </body>
-
 </html>

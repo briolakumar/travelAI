@@ -56,12 +56,10 @@
       </div>
 
       <div class="actions">
-        <!-- Use data-action to avoid inline onclick -->
         <button class="btn btn-primary" type="button" data-action="mark-read">
           Mark all as read
         </button>
 
-        <!-- Use a link for navigation -->
         <a class="btn btn-ghost" href="traveller-dashboard.html">Back</a>
       </div>
     </section>
@@ -72,11 +70,9 @@
   <script>
     (() => {
       "use strict";
-      // Keep behaviour in JS, not inline HTML attributes
-
+      
       const markReadBtn = document.querySelector('[data-action="mark-read"]');
 
-      // Prototype behaviour: replace with real state/API later
       markReadBtn.addEventListener("click", () => {
         alert("Marked all as read (placeholder)");
       });

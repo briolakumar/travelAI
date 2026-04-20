@@ -1,201 +1,122 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Search Results</title>
   <link rel="stylesheet" href="tripwise.css" />
+  
 </head>
 
 <body>
-  <header class="header" aria-label="Top bar"></header>
-
   <div class="top" role="banner">
     <div class="brand">
       <img src="../images/logo1.png" alt="TripWise logo" />
       <h1>TripWise</h1>
     </div>
-
-    <nav class="row" aria-label="Results navigation">
+    <nav class="actions">
       <a class="link" href="search-destination.html">← New search</a>
       <a class="link" href="traveller-dashboard.html">Dashboard</a>
     </nav>
   </div>
 
   <main class="container">
-    <div class="grid">
-      <aside class="card span-4" aria-label="Filters">
-        <h2>Filters</h2>
-        <p>Refine results to match budget and responsible tourism preferences.</p>
+    <h2 style="margin-bottom:6px">Search Results</h2>
+    <p style="color:#666;font-size:14px;margin-bottom:16px">
+      Browse destinations and click to view details, cultural guidance, and book your stay.
+    </p>
 
-        <form id="filtersForm">
-          <label for="sort">Sort</label>
-          <select id="sort" name="sort">
-            <option value="recommended">Recommended</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="responsible">Most Responsible</option>
-          </select>
-
-          <label for="budget">Budget</label>
-          <select id="budget" name="budget">
-            <option value="any">Any</option>
-            <option value="low">Low</option>
-            <option value="mid">Mid</option>
-            <option value="high">High</option>
-          </select>
-
-          <label for="stay">Stay Type</label>
-          <select id="stay" name="stay">
-            <option value="any">Any</option>
-            <option value="hotel">Hotel</option>
-            <option value="homestay">Homestay</option>
-            <option value="eco-lodge">Eco lodge</option>
-            <option value="hostel">Hostel</option>
-          </select>
-
-          <label for="responsible">Responsible Preference</label>
-          <select id="responsible" name="responsible">
-            <option value="none">No preference</option>
-            <option value="local">Locally owned</option>
-            <option value="eco">Eco-certified</option>
-            <option value="community">Community-run</option>
-          </select>
-
-          <div class="row" style="margin-top: 14px">
-            <button class="btn btn-primary" type="submit">Apply</button>
-            <button class="btn btn-ghost" type="reset">Clear</button>
-          </div>
-        </form>
-      </aside>
-
-      <section class="card span-8" aria-label="Search results">
-        <h2>Results</h2>
-
-        <div class="results-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px">
-          <article class="result">
-            <div class="thumb" aria-hidden="true">Photo</div>
-            <div class="meta">
-              <strong>Eco Ryokan • Kyoto</strong>
-              <small>Locally owned • Quiet area • Cultural guidance available</small>
-              <span class="tag">Eco-certified</span>
-            </div>
-            <div class="price">£120/night</div>
-          </article>
-
-          <article class="result">
-            <div class="thumb" aria-hidden="true">Photo</div>
-            <div class="meta">
-              <strong>Community Homestay • Siem Reap</strong>
-              <small>Community-run • Cultural immersion • Supports local families</small>
-              <span class="tag">Community-run</span>
-            </div>
-            <div class="price">£45/night</div>
-          </article>
-
-          <article class="result">
-            <div class="thumb" aria-hidden="true">Photo</div>
-            <div class="meta">
-              <strong>City Hotel • Tokyo</strong>
-              <small>Central location • High rating • Responsible tips included</small>
-              <span class="tag">Recommended</span>
-            </div>
-            <div class="price">£95/night</div>
-          </article>
-        </div>
-
-        <div class="pagination" aria-label="Pagination">
-          <button class="btn btn-ghost" type="button" disabled>← Previous</button>
-          <div style="color: var(--muted); font-size: 13px">Page 1 of 3</div>
-          <button class="btn btn-ghost" type="button" id="nextPageBtn">Next →</button>
-        </div>
-
-        <div style="margin-top: 14px">
-          <a class="link" href="destination-details.html">Open destination details example →</a>
-        </div>
-      </section>
-
-      <section class="card span-12" aria-label="Dynamic results">
-        <h2>More destinations</h2>
-        <div id="resultsGrid" class="grid" style="margin-top: 12px"></div>
-      </section>
+    <div id="filterBar">
+      <input id="filterInput" type="text" placeholder="Filter by destination or country…" />
     </div>
+
+    <p class="result-count" id="resultCount"></p>
+
+    <div class="grid" id="resultsGrid"></div>
   </main>
 
-  <footer class="footer" aria-label="Footer"></footer>
-
-  <script src="../nodejs/destinations.js"></script>
-
+  <script src="api/api.js"></script>
   <script>
-    (() => {
-      "use strict";
+    (async () => {
+      const grid        = document.getElementById("resultsGrid");
+      const filterInput = document.getElementById("filterInput");
+      const resultCount = document.getElementById("resultCount");
 
-      const grid = document.getElementById("resultsGrid");
-      const form = document.getElementById("filtersForm");
-      const nextPageBtn = document.getElementById("nextPageBtn");
+      /* Pre-fill filter from URL ?q= */
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("q")) filterInput.value = params.get("q");
 
-      if (!Array.isArray(window.TRIPWISE_DESTINATIONS)) {
-        grid.textContent = "Error: destinations dataset not loaded.";
-        return;
-      }
+      let allDestinations = [];
 
-      // Only show destinations that are not hidden
-      const visibleDestinations = window.TRIPWISE_DESTINATIONS.filter(d => d.visible !== false);
+      const renderCards = (destinations) => {
+        resultCount.textContent = `${destinations.length} destination${destinations.length !== 1 ? "s" : ""} found`;
 
-      /**
-       * Uses your existing .card style, but adds a flexible inner layout.
-       */
-      const renderDestinations = (destinations) => {
-        grid.innerHTML = "";
+        if (!destinations.length) {
+          grid.innerHTML = `
+            <div class="no-results">
+              <p>No destinations match your search.</p>
+              <a class="btn btn-primary" href="search-destination.html" style="margin-top:12px;display:inline-block">
+                Try a new search
+              </a>
+            </div>`;
+          return;
+        }
 
-        destinations.forEach((d) => {
-          const card = document.createElement("article");
-          card.className = "card span-12"; 
+        grid.innerHTML = destinations.map(d => {
+          const imgSrc = d.image_url
+            ? (d.image_url.startsWith("/") ? `..${d.image_url}` : `../${d.image_url}`)
+            : `../images/${d.slug}.png`;
 
-          const imgSrc = d.image || "../images/placeholder.jpg";
-
-          card.innerHTML = `
-            <div style="display:flex; gap:14px; align-items:center;">
+          return `
+            <div class="card span-6">
               <img
+                class="dest-img"
                 src="${imgSrc}"
                 alt="${d.name}"
-                style="width:160px; height:110px; object-fit:cover; border-radius:14px; border:1px solid rgba(0,0,0,.08); flex:0 0 auto;"
+                onerror="this.onerror=null;this.src='../images/logo1.png'"
               />
-
-              <div style="flex:1; min-width:0;">
-                <h3 style="margin:0 0 6px;">${d.name}</h3>
-                <p class="subtitle" style="text-align:left; margin:0 0 10px;">
-                  ${d.tags.join(" • ")}
-                </p>
-                <a class="btn btn-primary" href="destination-details.html?dest=${encodeURIComponent(d.id)}">
-                  View details
-                </a>
+              <h3 style="margin-bottom:4px">${d.name}</h3>
+              <p style="font-size:13px;color:#666;margin-bottom:4px">${d.country_name}</p>
+              <p style="font-size:13px;color:#444;margin-bottom:12px;line-height:1.45">
+                ${d.description || ""}
+              </p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+                <span class="pill" style="font-size:12px">🌤 ${d.best_time || "Year-round"}</span>
+                <span class="pill" style="font-size:12px">🗣 ${d.language_tips || "—"}</span>
               </div>
-            </div>
-          `;
-
-          grid.appendChild(card);
-        });
+              <a class="btn btn-primary" href="destination-details.html?dest=${d.slug}">
+                View &amp; Book
+              </a>
+            </div>`;
+        }).join("");
       };
 
-      renderDestinations(visibleDestinations);
+      const applyFilter = () => {
+        const q = filterInput.value.trim().toLowerCase();
+        if (!q) {
+          renderCards(allDestinations);
+          return;
+        }
+        const filtered = allDestinations.filter(d =>
+          d.name.toLowerCase().includes(q) ||
+          (d.country_name || "").toLowerCase().includes(q) ||
+          (d.description  || "").toLowerCase().includes(q)
+        );
+        renderCards(filtered);
+      };
 
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        alert("Filter applied (placeholder)");
-      });
+      /* Load destinations */
+      try {
+        grid.innerHTML = `<div class="no-results"><p>Loading destinations…</p></div>`;
+        allDestinations = await apiFetch("/api/destinations");
+        applyFilter();
+      } catch (err) {
+        grid.innerHTML = `<div class="no-results"><p>Could not load destinations. Please try again.</p></div>`;
+        console.error(err);
+      }
 
-      form.addEventListener("reset", () => {
-        renderDestinations(visibleDestinations);
-        alert("Filters cleared (placeholder)");
-      });
-
-      nextPageBtn.addEventListener("click", () => {
-        alert("Next page (placeholder)");
-      });
+      filterInput.addEventListener("input", applyFilter);
     })();
   </script>
 </body>
-
 </html>

@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -27,7 +26,7 @@
   <main class="container">
     <section class="card" aria-labelledby="page-title">
       <h2 id="page-title">Booking History</h2>
-      <p>View previous and upcoming bookings (prototype records).</p>
+      <p>View your real previous and upcoming bookings.</p>
 
       <div class="detail" style="margin-top: 12px">
         <strong>Learning Module Status</strong>
@@ -37,7 +36,7 @@
 
       <div class="row" role="search">
         <label class="sr-only" for="searchBookings">Search bookings</label>
-        <input id="searchBookings" type="text" placeholder="Search by destination… (demo)" />
+        <input id="searchBookings" type="text" placeholder="Search by destination…" />
 
         <label class="sr-only" for="filterBookings">Filter bookings</label>
         <select id="filterBookings">
@@ -45,69 +44,19 @@
           <option value="upcoming">Upcoming</option>
           <option value="past">Past</option>
           <option value="confirmed">Confirmed</option>
+          <option value="cancelled">Cancelled</option>
         </select>
 
-        <button class="btn btn-ghost" type="button" onclick="alert('Filter applied (placeholder)')">
+        <button class="btn btn-ghost" type="button" id="applyFilterBtn">
           Apply
         </button>
       </div>
 
-      <div class="list" aria-label="Bookings list">
-        <div class="item">
-          <div>
-            <strong>Kyoto, Japan — Eco Ryokan</strong>
-            <small>12 Mar – 31 Mar • Confirmation: TW-123456</small>
-          </div>
-          <div class="actions">
-            <span class="tag ok">Confirmed</span>
-            <a class="link" href="booking-details.html?booking=kyoto">View details</a>
-          </div>
-        </div>
-
-        <div class="item">
-          <div>
-            <strong>Rome, Italy — City Boutique Hotel</strong>
-            <small>20 Sept – 24 Sept • Confirmation: TW-778812</small>
-          </div>
-          <div class="actions">
-            <span class="tag ok">Confirmed</span>
-            <a class="link" href="booking-details.html?booking=rome">View details</a>
-          </div>
-        </div>
-
-        <div class="item">
-          <div>
-            <strong>Barcelona, Spain — Beachside Stay</strong>
-            <small>02 May – 16 May • Confirmation: TW-992014</small>
-          </div>
-          <div class="actions">
-            <span class="tag ok">Confirmed</span>
-            <a class="link" href="booking-details.html?booking=barcelona">View details</a>
-          </div>
-        </div>
-
-        <div class="item">
-          <div>
-            <strong>Siem Reap, Cambodia — Community Homestay</strong>
-            <small>02 Jan – 26 Jan • Confirmation: TW-458901</small>
-          </div>
-          <div class="actions">
-            <span class="tag up">Past</span>
-            <a class="link" href="booking-details.html?booking=siemreap">View details</a>
-          </div>
-        </div>
-
-        <div class="item">
-          <div>
-            <strong>Lisbon, Portugal — City Hotel</strong>
-            <small>10 Dec – 16 Dec • Confirmation: TW-332210</small>
-          </div>
-          <div class="actions">
-            <span class="tag up">Past</span>
-            <a class="link" href="booking-details.html?booking=lisbon">View details</a>
-          </div>
-        </div>
+      <div class="list" id="bookingHistoryList" aria-label="Bookings list">
+        <div class="item"><div><strong>Loading…</strong></div></div>
       </div>
+
+      <p id="historyMsg" style="margin-top: 12px;"></p>
 
       <div class="row" style="margin-top: 14px">
         <button class="btn btn-primary" type="button" onclick="window.location.href='search-destination.html'">
@@ -122,28 +71,136 @@
 
   <footer class="footer" aria-label="Site footer"></footer>
 
+  <script src="api/api.js"></script>
   <script>
-    (() => {
-      "use strict";
+    if (!localStorage.getItem("tripwise_token")) {
+      window.location.href = "traveller-login.html";
+    }
 
-      // Prototype confirmed bookings count (swap for real stored bookings later)
-      const CONFIRMED_BOOKINGS = 3; 
-      const REQUIRED_FOR_UNLOCK = 3;
+    let allBookings = [];
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "N/A";
+      const date = new Date(dateStr);
+      if (Number.isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function getBookingState(booking) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const start = new Date(booking.check_in);
+      const end = new Date(booking.check_out);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      if ((booking.status || "").toLowerCase() === "cancelled") return "cancelled";
+      if (end < today) return "past";
+      if (start >= today) return "upcoming";
+      return "confirmed";
+    }
+
+    function renderLearningStatus(bookings) {
+      const confirmedCount = bookings.filter(
+        (b) => (b.status || "").toLowerCase() === "confirmed"
+      ).length;
 
       const statusEl = document.getElementById("learningStatus");
       const tagEl = document.getElementById("learningTag");
 
-      // Simple unlock logic for Learning Hub access
-      if (CONFIRMED_BOOKINGS >= REQUIRED_FOR_UNLOCK) {
-        statusEl.textContent = `Unlocked — you have ${CONFIRMED_BOOKINGS} confirmed bookings.`;
+      if (confirmedCount >= 1) {
+        statusEl.textContent = `Unlocked — you have ${confirmedCount} confirmed booking(s).`;
         tagEl.style.display = "inline-block";
       } else {
-        const remaining = REQUIRED_FOR_UNLOCK - CONFIRMED_BOOKINGS;
-        statusEl.textContent = `Locked — you need ${remaining} more confirmed booking(s).`;
+        statusEl.textContent = "Locked — create a confirmed booking to unlock travel learning content.";
         tagEl.style.display = "none";
       }
-    })();
+    }
+
+    function renderBookings(bookings) {
+      const list = document.getElementById("bookingHistoryList");
+      const msg = document.getElementById("historyMsg");
+
+      if (!Array.isArray(bookings) || bookings.length === 0) {
+        list.innerHTML = `<div class="item"><div><strong>No bookings found.</strong></div></div>`;
+        msg.textContent = "";
+        return;
+      }
+
+      list.innerHTML = "";
+      msg.textContent = "";
+
+      bookings.forEach((b) => {
+        const state = getBookingState(b);
+        const tagClass =
+          state === "upcoming" || state === "confirmed" ? "ok" :
+          state === "past" ? "up" : "info";
+
+        const stateLabel =
+          state === "upcoming" ? "Upcoming" :
+          state === "past" ? "Past" :
+          state === "cancelled" ? "Cancelled" :
+          "Confirmed";
+
+        const item = document.createElement("div");
+        item.className = "item";
+        item.innerHTML = `
+          <div>
+            <strong>${b.destination_name}, ${b.country_name}</strong>
+            <small>${formatDate(b.check_in)} – ${formatDate(b.check_out)} • ${b.accommodation_title || "Accommodation not selected"}</small>
+          </div>
+          <div class="actions">
+            <span class="tag ${tagClass}">${stateLabel}</span>
+            <a class="link" href="booking-details.html?booking_id=${b.id}">View details</a>
+            <a class="link" href="chatbot-guidance.html?booking_id=${b.id}">Open chatbot</a>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function applyFilters() {
+      const search = document.getElementById("searchBookings").value.trim().toLowerCase();
+      const filter = document.getElementById("filterBookings").value;
+
+      let filtered = [...allBookings];
+
+      if (search) {
+        filtered = filtered.filter((b) =>
+          `${b.destination_name} ${b.country_name || ""} ${b.accommodation_title || ""}`
+            .toLowerCase()
+            .includes(search)
+        );
+      }
+
+      if (filter !== "all") {
+        filtered = filtered.filter((b) => getBookingState(b) === filter);
+      }
+
+      renderBookings(filtered);
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        allBookings = await apiFetch("/api/bookings/me");
+        renderLearningStatus(allBookings);
+        renderBookings(allBookings);
+
+        document.getElementById("applyFilterBtn").addEventListener("click", applyFilters);
+        document.getElementById("searchBookings").addEventListener("input", applyFilters);
+        document.getElementById("filterBookings").addEventListener("change", applyFilters);
+      } catch (err) {
+        console.error("Booking history error:", err);
+        document.getElementById("bookingHistoryList").innerHTML =
+          `<div class="item"><div><strong>Error:</strong> ${err.message}</div></div>`;
+        document.getElementById("historyMsg").textContent = "Could not load booking history.";
+      }
+    });
   </script>
 </body>
-
 </html>

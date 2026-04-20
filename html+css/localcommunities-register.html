@@ -1,118 +1,200 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TripWise — Community Registration</title>
-    <link rel="stylesheet" href="tripwise.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Community Registration</title>
+  <link rel="stylesheet" href="tripwise.css" />
 </head>
 
-<body>
-    <header class="header" aria-label="Top bar"></header>
+<body class="auth-page">
+  <header class="header" aria-label="Site header"></header>
 
-    <header class="logo-bar" aria-label="TripWise branding">
-        <img src="../images/logo1.png" alt="TripWise logo" />
-        <span class="brand-title">TripWise</span>
-    </header>
+  <main class="container">
+    <section class="box" aria-labelledby="page-title">
+      <h2 id="page-title">Community Partner Registration</h2>
+      <p class="subtitle">Create an account to submit local insights for your destination.</p>
 
-    <main class="container">
-        <section class="box mid" aria-labelledby="page-title">
-            <h1 id="page-title">Community Partner Registration</h1>
-            <p class="subtitle">Create a community account to list local experiences and receive bookings.</p>
 
-            <form id="comRegister" action="#" method="post" novalidate>
-                <div class="field">
-                    <label for="c_org">Community / Organisation Name</label>
-                    <input id="c_org" name="orgName" type="text" required autocomplete="organization"
-                        placeholder="e.g., Siem Reap Craft Cooperative" />
-                </div>
+      <p id="message" style="display:none; color:white; background:#d32f2f; padding:10px; border-radius:4px; text-align:center; margin-bottom:15px; font-weight:bold;"></p>
 
-                <div class="field">
-                    <label for="c_location">Location (Town/Region)</label>
-                    <input id="c_location" name="location" type="text" required autocomplete="address-level2"
-                        placeholder="e.g., Siem Reap, Cambodia" />
-                </div>
+      <form id="comRegister" novalidate>
+        <label for="c_name">Full Name</label>
+        <input id="c_name" name="full_name" type="text" required
+          autocomplete="name" placeholder="e.g., Yuki Tanaka" />
 
-                <div class="field">
-                    <label for="c_email">Contact Email</label>
-                    <input id="c_email" name="email" type="email" required autocomplete="email" inputmode="email"
-                        placeholder="contact@example.com" />
-                </div>
+        <label for="c_destination">Your Country</label>
+        <select id="c_destination" name="destination_id" required>
+          <option value="">Loading destinations…</option>
+        </select>
 
-                <div class="field">
-                    <label for="c_password">Password</label>
-                    <input id="c_password" name="password" type="password" minlength="8" required
-                        autocomplete="new-password" placeholder="Minimum 8 characters" aria-describedby="pw-hint" />
-                    <p class="hint" id="pw-hint">Use at least 8 characters.</p>
-                </div>
+        <label for="c_email">Contact Email</label>
+        <input id="c_email" name="email" type="email" required
+          autocomplete="email" placeholder="name@tripwisecommunity.com"
+          aria-describedby="c_email_hint" />
+        <p id="c_email_hint" class="pw-hint">Must end in @tripwisecommunity.com</p>
 
-                <div class="field">
-                    <label for="c_confirm">Confirm Password</label>
-                    <input id="c_confirm" name="confirmPassword" type="password" minlength="8" required
-                        autocomplete="new-password" placeholder="Re-enter password" />
-                </div>
+        <label for="c_password">Password</label>
+        <input id="c_password" name="password" type="password" minlength="8" required
+          autocomplete="new-password" placeholder="Minimum 8 characters"
+          aria-describedby="c_pw_hint" />
+        <p id="c_pw_hint" class="pw-hint">Use at least 8 characters.</p>
 
-                <div class="checks">
-                    <label for="partner-terms">
-                        <input id="partner-terms" type="checkbox" required />
-                        I agree to the Partner Terms and Conditions
-                    </label>
-                </div>
+        <label for="c_confirm">Confirm Password</label>
+        <input id="c_confirm" name="confirmPassword" type="password" minlength="8" required
+          autocomplete="new-password" placeholder="Re-enter password" />
 
-                <button class="btn mt-14" type="submit">Create Community Account</button>
+        <button class="btn" type="submit">Create Community Account</button>
 
-                <div class="row-actions">
-                    <a class="link" href="localcommunities-login.html">Already a partner? Log in</a>
-                </div>
-            </form>
-        </section>
-    </main>
-
-    <footer class="footer" aria-label="Footer">
-        <div class="logo-bar" aria-label="TripWise branding footer">
-            <img src="../images/logo1.png" alt="TripWise logo" />
-            <span class="brand-title">TripWise</span>
+        <div class="row-actions">
+          <a class="link" href="localcommunities-login.html">Already a partner? Log in</a>
         </div>
-    </footer>
+      </form>
+    </section>
+  </main>
 
-    <script>
-        (() => {
-            "use strict";
-            // Keep validation logic out of HTML attributes 
+  <footer class="footer" aria-label="Site footer"></footer>
 
-            const form = document.getElementById("comRegister");
-            const password = document.getElementById("c_password");
-            const confirmPassword = document.getElementById("c_confirm");
+  <script src="api/api.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const form       = document.getElementById("comRegister");
+      const nameEl     = document.getElementById("c_name");
+      const destEl     = document.getElementById("c_destination");
+      const emailEl    = document.getElementById("c_email");
+      const emailHint  = document.getElementById("c_email_hint");
+      const passwordEl = document.getElementById("c_password");
+      const pwHint     = document.getElementById("c_pw_hint");
+      const confirmEl  = document.getElementById("c_confirm");
+      const msg        = document.getElementById("message");
 
-            /**
-             * Ensures both password fields match.
-             * Uses HTML5 validation so the browser displays consistent messages.
-             */
-            const validatePasswordsMatch = () => {
-                if (password.value !== confirmPassword.value) {
-                    confirmPassword.setCustomValidity("Passwords do not match.");
-                } else {
-                    confirmPassword.setCustomValidity("");
-                }
-            };
+      const showMsg = (text, isSuccess = false) => {
+        msg.textContent = text;
+        msg.style.display = "block";
+        msg.style.backgroundColor = isSuccess ? "#2e7d32" : "#d32f2f";
+      };
 
-            // Live validation as the user types
-            password.addEventListener("input", validatePasswordsMatch);
-            confirmPassword.addEventListener("input", validatePasswordsMatch);
+      /* Load destinations */
+      try {
+        const destinations = await apiFetch("/api/knowledge-base/destinations/public");
 
-            form.addEventListener("submit", (e) => {
-                // Validate matching before checking overall form validity
-                validatePasswordsMatch();
+        const grouped = {};
+        destinations.forEach(d => {
+          if (!grouped[d.country_name]) grouped[d.country_name] = [];
+          grouped[d.country_name].push(d);
+        });
 
-                // Stop submission and show built-in browser messages if invalid
-                if (!form.checkValidity()) {
-                    e.preventDefault();
-                    form.reportValidity();
-                }
-            });
-        })();
-    </script>
+        destEl.innerHTML = `<option value="">Select your country</option>` +
+          Object.entries(grouped).map(([country, dests]) =>
+            `<optgroup label="${country}">` +
+            dests.map(d => `<option value="${d.id}">${d.name}</option>`).join("") +
+            `</optgroup>`
+          ).join("");
+
+      } catch (err) {
+        destEl.innerHTML = `<option value="">Could not load destinations</option>`;
+        console.error("Failed to load destinations:", err.message);
+      }
+
+      /* Live domain check */
+      emailEl.addEventListener("input", () => {
+        const val = emailEl.value.trim().toLowerCase();
+        if (!val) {
+          emailHint.textContent = "Must end in @tripwisecommunity.com";
+          emailHint.style.color = "#666";
+        } else if (!val.endsWith("@tripwisecommunity.com")) {
+          emailHint.textContent = "✗ Must end in @tripwisecommunity.com";
+          emailHint.style.color = "#c62828";
+          emailEl.setCustomValidity("Community accounts must use a @tripwisecommunity.com email address.");
+        } else {
+          emailHint.textContent = "✓ Valid community email.";
+          emailHint.style.color = "#2e7d32";
+          emailEl.setCustomValidity("");
+        }
+      });
+
+      /* Live password length hint */
+      passwordEl.addEventListener("input", () => {
+        const len = passwordEl.value.length;
+        if (len === 0) {
+          pwHint.textContent = "Use at least 8 characters.";
+          pwHint.style.color = "#666";
+        } else if (len < 8) {
+          pwHint.textContent = `${8 - len} more character${8 - len === 1 ? "" : "s"} needed.`;
+          pwHint.style.color = "#c62828";
+        } else {
+          pwHint.textContent = "✓ Password length is good.";
+          pwHint.style.color = "#2e7d32";
+        }
+        if (confirmEl.value) validateMatch();
+      });
+
+      /* Live confirm match */
+      const validateMatch = () => {
+        if (confirmEl.value && passwordEl.value !== confirmEl.value) {
+          confirmEl.setCustomValidity("Passwords do not match.");
+        } else {
+          confirmEl.setCustomValidity("");
+        }
+      };
+      confirmEl.addEventListener("input", validateMatch);
+
+      /* Submit */
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msg.style.display = "none";
+
+        const email = emailEl.value.trim().toLowerCase();
+
+        if (!destEl.value) {
+          showMsg("Please select your destination.");
+          destEl.focus();
+          return;
+        }
+
+        if (!email.endsWith("@tripwisecommunity.com")) {
+          showMsg("Community accounts must use a @tripwisecommunity.com email address.");
+          emailEl.focus();
+          return;
+        }
+
+        if (passwordEl.value.length < 8) {
+          showMsg("Password must be at least 8 characters.");
+          passwordEl.focus();
+          return;
+        }
+
+        if (passwordEl.value !== confirmEl.value) {
+          showMsg("Passwords do not match.");
+          confirmEl.focus();
+          return;
+        }
+
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        try {
+          await apiFetch("/api/auth/register", {
+            method: "POST",
+            body: JSON.stringify({
+              role:           "community",
+              full_name:      nameEl.value.trim(),
+              email:          email,
+              password:       passwordEl.value,
+              destination_id: Number(destEl.value),
+            }),
+          });
+
+          showMsg("Registration successful! Redirecting to login…", true);
+          setTimeout(() => { window.location.href = "localcommunities-login.html"; }, 2000);
+
+        } catch (err) {
+          showMsg(err.message || "Registration failed. Please try again.");
+        }
+      });
+    });
+  </script>
 </body>
-
 </html>

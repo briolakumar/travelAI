@@ -1,223 +1,260 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TripWise — Booking Form</title>
-    <link rel="stylesheet" href="tripwise.css" />
-
-    <!-- Destination helpers (must load before our init script below) -->
-    <script src="../nodejs/destinations.js" defer></script>
-
-    <script defer>
-        (() => {
-            "use strict";
-
-            // Wait until DOM is ready (because we're using defer)
-            document.addEventListener("DOMContentLoaded", () => {
-                // Populate the destination dropdown (from destinations.js)
-                // Second param = include "Any" option? (keep your existing behaviour)
-                if (typeof populateDestinationSelect === "function") {
-                    populateDestinationSelect("destinationSelect", false);
-                }
-
-                // ----- Cache DOM nodes once -----
-                const form = document.getElementById("bookingForm");
-                const destinationInput = document.getElementById("destination");
-                const destinationSelect = document.getElementById("destinationSelect");
-
-                const stayType = document.getElementById("stayType");
-                const checkin = document.getElementById("checkin");
-                const checkout = document.getElementById("checkout");
-                const guests = document.getElementById("guests");
-
-                const sumStay = document.getElementById("sumStay");
-                const sumPrice = document.getElementById("sumPrice");
-                const sumNights = document.getElementById("sumNights");
-                const sumGuests = document.getElementById("sumGuests");
-                const sumTotal = document.getElementById("sumTotal");
-
-                // Nightly rates (prototype)
-                const PRICES_GBP = {
-                    "Eco Ryokan": 120,
-                    "Traditional Guesthouse": 85,
-                    "City Hotel": 95
-                };
-
-                // Convert YYYY-MM-DD -> Date (safe for date inputs)
-                const parseDate = (value) => (value ? new Date(`${value}T00:00:00`) : null);
-
-                // Calculate nights between two dates
-                const nightsBetween = (start, end) => {
-                    const ms = end.getTime() - start.getTime();
-                    return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)));
-                };
-
-                // Keep summary in sync with form selections
-                const updateSummary = () => {
-                    const selectedStay = stayType.value;
-                    const nightly = PRICES_GBP[selectedStay] ?? 0;
-
-                    sumStay.textContent = selectedStay;
-                    sumPrice.textContent = `£${nightly}/night`;
-                    sumGuests.textContent = guests.value;
-
-                    const inDate = parseDate(checkin.value);
-                    const outDate = parseDate(checkout.value);
-
-                    if (inDate && outDate && outDate > inDate) {
-                        const nights = nightsBetween(inDate, outDate);
-                        sumNights.textContent = String(nights);
-                        sumTotal.textContent = `£${nights * nightly}`;
-                    } else {
-                        sumNights.textContent = "—";
-                        sumTotal.textContent = "—";
-                    }
-                };
-
-                // Optional UX: selecting a destination updates the readonly input
-                destinationSelect?.addEventListener("change", () => {
-                    destinationInput.value = destinationSelect.value || "Kyoto, Japan";
-                });
-
-                // Update summary when inputs change
-                [stayType, checkin, checkout, guests].forEach((el) => el.addEventListener("change", updateSummary));
-                updateSummary(); // initial render
-
-                // Guard: prevent checkout <= checkin (prototype client-side validation)
-                form.addEventListener("submit", (e) => {
-                    const inDate = parseDate(checkin.value);
-                    const outDate = parseDate(checkout.value);
-                    if (!inDate || !outDate) return; // browser will handle required fields
-
-                    if (outDate <= inDate) {
-                        e.preventDefault();
-                        alert("Check-out date must be after check-in date.");
-                    }
-                });
-            });
-        })();
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Booking Form</title>
+  <link rel="stylesheet" href="tripwise.css" />
 </head>
 
 <body>
-    <header class="header" aria-label="Site header"></header>
-
-    <div class="top" role="banner">
-        <div class="brand">
-            <img src="../images/logo1.png" alt="TripWise logo" />
-            <h1>TripWise</h1>
-        </div>
-
-        <nav class="row" aria-label="Secondary navigation">
-            <a class="link" href="destination-details.html">← Back to destination</a>
-            <a class="link" href="traveller-dashboard.html">Dashboard</a>
-        </nav>
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
     </div>
+    <nav class="row">
+      <a class="link" href="search-results.html">← Back to results</a>
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+    </nav>
+  </div>
 
-    <main class="container">
-        <div class="grid">
-            <!-- Booking form -->
-            <section class="card span-7" aria-labelledby="booking-title">
-                <h2 id="booking-title">Complete Your Booking</h2>
-                <p>Choose your stay and confirm your trip details (prototype booking simulation).</p>
+  <main class="container">
+    <div class="grid">
+      <section class="card span-7">
+        <h2>Complete Your Booking</h2>
 
-                <form id="bookingForm" action="booking-confirmation.html" method="get" novalidate>
-                    <label for="destinationSelect">Destination</label>
-                    <select id="destinationSelect" class="input" aria-label="Destination select">
-                    </select>
+        <form id="bookingForm" novalidate>
+          <label for="destinationSelect">Destination</label>
+          <select id="destinationSelect" required>
+            <option value="">Loading destinations…</option>
+          </select>
 
-                    <label class="sr-only" for="destination">Destination value</label>
-                    <input id="destination" name="destination" type="text" value="Kyoto, Japan" readonly />
+          <label for="stayType">Select Accommodation</label>
+          <select id="stayType" name="stayType" required>
+            <option value="">Select a destination first</option>
+          </select>
 
-                    <label for="stayType">Select Accommodation</label>
-                    <select id="stayType" name="stayType" required>
-                        <option value="Eco Ryokan">Eco Ryokan (£120/night)</option>
-                        <option value="Traditional Guesthouse">Traditional Guesthouse (£85/night)</option>
-                        <option value="City Hotel">City Hotel (£95/night)</option>
-                    </select>
+          <div class="row">
+            <div style="flex:1">
+              <label for="checkin">Check-in</label>
+              <input id="checkin" type="date" required />
+            </div>
+            <div style="flex:1">
+              <label for="checkout">Check-out</label>
+              <input id="checkout" type="date" required />
+            </div>
+          </div>
 
-                    <div class="row">
-                        <div style="flex: 1; min-width: 220px">
-                            <label for="checkin">Check-in</label>
-                            <input id="checkin" name="checkin" type="date" required />
-                        </div>
+          <label for="guests">Guests</label>
+          <select id="guests">
+            <option value="1">1 guest</option>
+            <option value="2" selected>2 guests</option>
+            <option value="3">3 guests</option>
+            <option value="4">4 guests</option>
+            <option value="5">5 guests</option>
+          </select>
 
-                        <div style="flex: 1; min-width: 220px">
-                            <label for="checkout">Check-out</label>
-                            <input id="checkout" name="checkout" type="date" required />
-                        </div>
-                    </div>
+          <p id="message" style="margin-top:12px;color:#b00020;font-weight:bold;"></p>
 
-                    <div class="row">
-                        <div style="flex: 1; min-width: 220px">
-                            <label for="guests">Guests</label>
-                            <select id="guests" name="guests">
-                                <option value="1">1 guest</option>
-                                <option value="2" selected>2 guests</option>
-                                <option value="3">3 guests</option>
-                                <option value="4">4 guests</option>
-                                <option value="5">5+ guests</option>
-                            </select>
-                        </div>
+          <button id="confirmBooking" class="btn btn-primary" type="submit" style="margin-top:14px">
+            Confirm Booking
+          </button>
+        </form>
+      </section>
 
-                        <div style="flex: 1; min-width: 220px">
-                            <label for="special">Special Requests (optional)</label>
-                            <input id="special" name="special" type="text" placeholder="e.g., late check-in" />
-                        </div>
-                    </div>
-
-                    <div class="checks">
-                        <label for="updates">
-                            <input id="updates" type="checkbox" name="updates" checked />
-                            Send me booking reminders and responsible travel updates
-                        </label>
-                    </div>
-
-                    <p class="note">
-                        After booking, TripWise will provide destination-specific cultural, legal, and etiquette
-                        guidance.
-                    </p>
-
-                    <div style="margin-top: 14px">
-                        <button class="btn btn-primary" type="submit">Confirm Booking</button>
-                    </div>
-                </form>
-            </section>
-
-            <aside class="card span-5" aria-labelledby="summary-title">
-                <h2 id="summary-title">Booking Summary</h2>
-                <p>Example summary (updates automatically with selections).</p>
-
-                <div class="stay">
-                    <div>
-                        <strong id="sumStay">Eco Ryokan</strong>
-                        <div style="color: var(--muted); font-size: 13px; margin-top: 3px">Kyoto, Japan</div>
-                        <div class="tag">Responsible option</div>
-                    </div>
-                    <div class="price" id="sumPrice">£120/night</div>
-                </div>
-
-                <div class="summary">
-                    <div class="summary-row"><span>Nights</span><strong id="sumNights">—</strong></div>
-                    <div class="summary-row"><span>Guests</span><strong id="sumGuests">2</strong></div>
-                    <div class="summary-row">
-                        <span>Estimated total</span>
-                        <strong class="total" id="sumTotal">—</strong>
-                    </div>
-                </div>
-
-                <div style="margin-top: 12px">
-                    <button class="btn btn-ghost" type="button" onclick="window.location.href='search-results.html'">
-                        Continue browsing
-                    </button>
-                </div>
-            </aside>
+      <aside class="card span-5">
+        <h2>Booking Summary</h2>
+        <div class="stay">
+          <strong id="sumStay">—</strong>
+          <div id="sumDestination" style="color:grey;font-size:13px;">—</div>
+          <div id="sumPrice">—</div>
         </div>
-    </main>
+        <hr>
+        <div class="summary">
+          <div class="summary-row"><span>Nights</span><strong id="sumNights">—</strong></div>
+          <div class="summary-row"><span>Price per night</span><strong id="sumPerNight">—</strong></div>
+          <div class="summary-row"><span>Total</span><strong id="sumTotal">—</strong></div>
+        </div>
+      </aside>
+    </div>
+  </main>
 
-    <footer class="footer" aria-label="Site footer"></footer>
+  <script src="api/api.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const form        = document.getElementById("bookingForm");
+      const destSelect  = document.getElementById("destinationSelect");
+      const stayType    = document.getElementById("stayType");
+      const checkin     = document.getElementById("checkin");
+      const checkout    = document.getElementById("checkout");
+      const guests      = document.getElementById("guests");
+      const msg         = document.getElementById("message");
+
+      const today = new Date().toISOString().split("T")[0];
+      checkin.setAttribute("min", today);
+      checkout.setAttribute("min", today);
+
+      const parseDate = val => val ? new Date(val + "T00:00:00") : null;
+
+      /* Summary */
+
+      function updateSummary() {
+        const stayOpt  = stayType.options[stayType.selectedIndex];
+        const destOpt  = destSelect.options[destSelect.selectedIndex];
+        const nightly  = Number(stayOpt?.dataset.price || 0);
+        const inDate   = parseDate(checkin.value);
+        const outDate  = parseDate(checkout.value);
+
+        document.getElementById("sumStay").textContent =
+          stayOpt?.value ? stayOpt.textContent.split(" — ")[0] : "—";
+        document.getElementById("sumDestination").textContent =
+          destOpt?.value ? destOpt.textContent : "—";
+        document.getElementById("sumPrice").textContent =
+          nightly ? `£${nightly}/night` : "—";
+        document.getElementById("sumPerNight").textContent =
+          nightly ? `£${nightly}` : "—";
+
+        msg.textContent = "";
+
+        if (inDate && outDate && outDate <= inDate) {
+          msg.textContent = "Check-out must be after check-in.";
+          document.getElementById("sumNights").textContent = "—";
+          document.getElementById("sumTotal").textContent  = "—";
+          return;
+        }
+
+        if (inDate && outDate) {
+          const nights = Math.round((outDate - inDate) / (1000 * 60 * 60 * 24));
+          document.getElementById("sumNights").textContent = nights;
+          document.getElementById("sumTotal").textContent  = nightly ? `£${nights * nightly}` : "—";
+        } else {
+          document.getElementById("sumNights").textContent = "—";
+          document.getElementById("sumTotal").textContent  = "—";
+        }
+      }
+
+      /* Load accommodations for a destination */
+
+      async function loadAccommodations(destinationId) {
+        stayType.innerHTML = `<option value="">Loading…</option>`;
+        stayType.disabled  = true;
+
+        try {
+const accommodations = await apiFetch(`/api/destinations/${destinationId}/accommodations`);
+          if (!accommodations || !accommodations.length) {
+            stayType.innerHTML = `<option value="">No accommodation found</option>`;
+            stayType.disabled  = false;
+            updateSummary();
+            return;
+          }
+
+          stayType.innerHTML = accommodations.map(a => `
+            <option value="${a.id}" data-price="${a.price_per_night}">
+              ${a.title} — £${a.price_per_night}/night ★${a.rating}
+            </option>
+          `).join("");
+
+          stayType.disabled = false;
+          updateSummary();
+
+        } catch (err) {
+          stayType.innerHTML = `<option value="">Could not load accommodation</option>`;
+          stayType.disabled  = false;
+          console.error("Accommodation load error:", err.message);
+        }
+      }
+
+      /* Load destinations */
+
+      try {
+        const destinations = await apiFetch("/api/destinations");
+
+        if (!destinations || !destinations.length) {
+          destSelect.innerHTML = `<option value="">No destinations found</option>`;
+          msg.textContent = "Could not load destinations.";
+          return;
+        }
+
+        destSelect.innerHTML =
+          `<option value="">Select destination</option>` +
+          destinations.map(d =>
+            `<option value="${d.id}" data-slug="${d.slug}">
+               ${d.name} (${d.country_name})
+             </option>`
+          ).join("");
+
+        const slug = new URLSearchParams(window.location.search).get("dest");
+        if (slug) {
+          const match = destinations.find(d => d.slug === slug);
+          if (match) {
+            destSelect.value = String(match.id);
+            await loadAccommodations(match.id);
+          }
+        }
+
+        updateSummary();
+
+      } catch (err) {
+        msg.textContent = "Could not load destinations from server.";
+        destSelect.innerHTML = `<option value="">Error loading destinations</option>`;
+        console.error(err);
+      }
+
+      /* Events */
+      destSelect.addEventListener("change", async () => {
+        const id = destSelect.value;
+        if (!id) {
+          stayType.innerHTML = `<option value="">Select a destination first</option>`;
+          updateSummary();
+          return;
+        }
+        await loadAccommodations(id);
+      });
+
+      [stayType, checkin, checkout, guests].forEach(el => {
+        el.addEventListener("change", updateSummary);
+      });
+
+      /* Submit */
+
+      form.addEventListener("submit", async e => {
+        e.preventDefault();
+        msg.textContent = "";
+
+        const destinationId   = destSelect.value;
+        const accommodationId = stayType.value;
+
+        if (!destinationId)   { msg.textContent = "Please select a destination."; return; }
+        if (!accommodationId) { msg.textContent = "Please select an accommodation."; return; }
+        if (!checkin.value || !checkout.value) {
+          msg.textContent = "Please select check-in and check-out dates."; return;
+        }
+        if (parseDate(checkout.value) <= parseDate(checkin.value)) {
+          msg.textContent = "Check-out must be after check-in."; return;
+        }
+
+        try {
+          await apiFetch("/api/bookings", {
+            method: "POST",
+            body: JSON.stringify({
+              destination_id:   Number(destinationId),
+              accommodation_id: Number(accommodationId),
+              check_in:         checkin.value,
+              check_out:        checkout.value,
+              guests:           Number(guests.value),
+              status:           "confirmed"
+            })
+          });
+
+          alert("Booking confirmed!");
+          window.location.href = "traveller-dashboard.html";
+
+        } catch (err) {
+          msg.textContent = "Booking failed: " + err.message;
+        }
+      });
+    });
+  </script>
 </body>
-
 </html>

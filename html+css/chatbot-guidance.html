@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Chatbot</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
+
+<body>
+  <div class="top">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise Logo" />
+      <h1>TripWise</h1>
+    </div>
+    <div class="chips nav-chips" style="margin-top:0">
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+      <a class="link" href="booking-history.html">Booking history</a>
+      <a class="link" href="learning-home.html">Learning Hub</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid ai-grid">
+      <section class="card trip-context-card span-4" aria-label="Trip context">
+        <h2>Trip Context</h2>
+
+        <div class="destination-hero" id="destinationHero">
+          <img id="destinationImage" src="../images/logo1.png" alt="Destination image" />
+          <div class="hero-overlay">
+            <h3 id="destinationTitle">Destination</h3>
+            <span id="destinationCountry" class="hero-badge">Country</span>
+          </div>
+        </div>
+
+        <label for="destination">Booked destination</label>
+        <select id="destination"></select>
+<section class="card trip-context-card span-4" style="overflow: visible;" aria-label="Trip context"></section>
+        <label for="tripType">Trip type (optional)</label>
+        <select id="tripType">
+          <option value="">Select…</option>
+          <option>Solo</option>
+          <option>Couple</option>
+          <option>Family</option>
+          <option>Friends</option>
+          <option>Business</option>
+        </select>
+
+        <label for="interests">Interests (optional)</label>
+        <input id="interests" placeholder="e.g., temples, culture, food" />
+
+        <div class="note section-note"><strong>Quick prompts</strong></div>
+        <div class="chips quick-prompt-chips">
+          <div class="chip" data-q="What etiquette should I follow here?">Etiquette</div>
+          <div class="chip" data-q="What local laws do tourists often miss?">Local laws</div>
+          <div class="chip" data-q="Can I take photos everywhere?">Photography</div>
+          <div class="chip" data-q="How should I use public transport here?">Transport</div>
+          <div class="chip" data-q="What common mistakes should I avoid?">Common mistakes</div>
+          <div class="chip" data-q="What food advice should I know before I go?">Food tips</div>
+          <div class="chip" data-q="What is the best time to visit?">When to go</div>
+          <div class="chip" data-q="Is this destination safe for tourists?">Stay safe</div>
+        </div>
+
+        <div class="trip-summary" id="tripSummary">Select a booking to see trip context.</div>
+      </section>
+
+      <!-- RIGHT: Chatbot -->
+      <section class="card ai-guidance-card span-8" aria-label="Chatbot guidance">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+          <div>
+            <h2 style="margin-bottom:6px;">TripWise Chatbot</h2>
+            <p class="ai-subtitle">Ask about etiquette, laws, transport, food, safety, and respectful behaviour.</p>
+          </div>
+          <div id="chatbotStatus" class="small-meta" style="margin-top:6px;">Booking-aware guidance enabled</div>
+        </div>
+
+        <div id="culturalBanner" role="alert" aria-live="polite">
+          <strong>⚠️ Key cultural note for your destination:</strong>
+          <span id="culturalBannerText"></span>
+        </div>
+
+        <div id="sessionSummaryPanel" role="status" aria-live="polite"></div>
+
+        <div class="chat" id="chat">
+          <div class="msg ai">
+🌍 Welcome to TripWise!
+
+I'm your destination-aware travel assistant.
+
+I can help with:
+• local etiquette and customs
+• laws tourists often miss
+• transport advice
+• food and dining tips
+• safety guidance
+• photography rules
+• common tourist mistakes
+
+Choose one of your bookings and ask me something specific for the best answer.
+          </div>
+        </div>
+
+        <div class="composer">
+          <input id="q" type="text" placeholder="Type your question…" />
+          <button type="button" id="askBtn">Ask</button>
+          <button type="button" class="btn-ghost" id="clearBtn">Clear</button>
+          <button type="button" class="btn-ghost" id="exportBtn" title="Save conversation as text file">💾 Save chat</button>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <span id="charCount" class="small-meta"></span>
+          <span id="message" style="color:#b91c1c;font-size:13px;"></span>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="api/api.js"></script>
+  <script>
+
+    /* Auth guard */
+    if (!localStorage.getItem("tripwise_token_traveller") && !localStorage.getItem("tripwise_token")) {
+      window.location.href = "traveller-login.html";
+    }
+
+    /* Helpers */
+
+    function qp(name) { return new URL(window.location.href).searchParams.get(name); }
+
+    function getImagePath(imageUrl, slug) {
+      if (imageUrl && String(imageUrl).trim()) {
+        return imageUrl.startsWith("/") ? imageUrl : `../${imageUrl}`;
+      }
+      return slug ? `../images/${slug}.png` : "../images/logo1.png";
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "N/A";
+      const date = new Date(dateStr);
+      if (Number.isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString(undefined, { day:"2-digit", month:"short", year:"numeric" });
+    }
+
+    function prettifyIntent(intent = "") {
+      if (!intent) return "General";
+      return intent.replace(/_/g," ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function confidenceText(score) {
+      const pct = Math.round((score || 0) * 100);
+      if (pct >= 80) return `High confidence • ${pct}% grounded match`;
+      if (pct >= 60) return `Medium confidence • ${pct}% grounded match`;
+      return `Low confidence • ${pct}% grounded match`;
+    }
+
+    /* Cultural warning banner */
+
+    async function loadCulturalWarning(destinationId) {
+      try {
+        const res = await apiFetch(`/api/chatbot/cultural-warning/${destinationId}`);
+        const banner = document.getElementById("culturalBanner");
+        const bannerText = document.getElementById("culturalBannerText");
+
+        if (res.warning) {
+          bannerText.textContent = `${res.warning.title}: ${res.warning.content}`;
+          banner.style.display = "block";
+        } else {
+          banner.style.display = "none";
+        }
+      } catch (err) {
+        document.getElementById("culturalBanner").style.display = "none";
+      }
+    }
+
+    /* Session summary */
+
+    async function showSessionSummary(bookingId) {
+      try {
+        const res = await apiFetch(`/api/chatbot/session-summary/${bookingId}`);
+        const panel = document.getElementById("sessionSummaryPanel");
+
+        if (res.summary) {
+          panel.textContent  = res.summary;
+          panel.style.display = "block";
+          setTimeout(() => { panel.style.display = "none"; }, 8000);
+        }
+      } catch (err) {
+      }
+    }
+
+    /* Destination hero */
+
+    function updateDestinationHero(booking = null) {
+      const imageEl   = document.getElementById("destinationImage");
+      const titleEl   = document.getElementById("destinationTitle");
+      const countryEl = document.getElementById("destinationCountry");
+
+      if (!booking) {
+        titleEl.textContent   = "Destination";
+        countryEl.textContent = "Country";
+        imageEl.src           = "../images/logo1.png";
+        return;
+      }
+
+      titleEl.textContent   = booking.destination_name || "Destination";
+      countryEl.textContent = booking.country_name     || "Country";
+      imageEl.src           = getImagePath(booking.image_url, booking.destination_slug);
+      imageEl.alt           = booking.destination_name || "Destination image";
+    }
+
+    /* Trip summary */
+
+    function renderTripSummary(booking) {
+      const summary   = document.getElementById("tripSummary");
+      const tripType  = document.getElementById("tripType").value  || "Not set";
+      const interests = document.getElementById("interests").value.trim() || "Not set";
+
+      if (!booking) { summary.textContent = "No booking loaded."; return; }
+
+      summary.textContent =
+        `📍 Destination: ${booking.destination_name}, ${booking.country_name}
+📅 Check-in: ${formatDate(booking.check_in)}
+📅 Check-out: ${formatDate(booking.check_out)}
+👥 Guests: ${booking.guests}
+🏨 Accommodation: ${booking.accommodation_title || "Not selected"}
+✈️ Trip type: ${tripType}
+🎯 Interests: ${interests}
+🌤 Best time: ${booking.best_time || "N/A"}
+🎉 Occasions: ${booking.occasions || "N/A"}
+🗣 Language tip: ${booking.language_tips || "N/A"}`;
+    }
+
+    /* Chat message rendering */
+
+    function addMsg(chatEl, content, who = "ai", meta = null) {
+      const wrapper = document.createElement("div");
+      const div     = document.createElement("div");
+      div.className   = `msg ${who}`;
+      div.textContent = content;
+      wrapper.appendChild(div);
+
+      if (meta) {
+        const metaDiv = document.createElement("div");
+        metaDiv.className   = "small-meta";
+        metaDiv.textContent = meta;
+        wrapper.appendChild(metaDiv);
+      }
+
+      chatEl.appendChild(wrapper);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      return wrapper;
+    }
+
+    function createSuggestionRow(suggestions = [], chatEl, qInput) {
+      if (!Array.isArray(suggestions) || !suggestions.length) return null;
+
+      const row = document.createElement("div");
+      row.className       = "chips";
+      row.style.marginTop = "8px";
+
+      suggestions.slice(0, 3).forEach(text => {
+        const chip = document.createElement("button");
+        chip.type        = "button";
+        chip.className   = "chip";
+        chip.textContent = text;
+        chip.addEventListener("click", () => { qInput.value = text; qInput.focus(); });
+        row.appendChild(chip);
+      });
+
+      chatEl.appendChild(row);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      return row;
+    }
+
+    async function submitFeedback(messageId, rating, btnA, btnB, reason = "") {
+      try {
+        await apiFetch("/api/chatbot/feedback", {
+          method: "POST",
+          body: JSON.stringify({
+            message_id: messageId,
+            booking_id: qp("booking_id") ? Number(qp("booking_id")) : null,
+            rating,
+            reason
+          })
+        });
+        btnA.disabled = true;
+        btnB.disabled = true;
+        btnA.textContent = rating ===  1 ? "✓ Saved" : btnA.textContent;
+        btnB.textContent = rating === -1 ? "✓ Saved" : btnB.textContent;
+      } catch (err) { alert(err.message); }
+    }
+
+    function addAssistantMessageWithFeedback(
+      chatEl, content, assistantMessageId = null,
+      confidence = null, intent = null, suggestedFollowups = [], qInput = null
+    ) {
+      const wrapper = document.createElement("div");
+
+      const div = document.createElement("div");
+      div.className   = "msg ai";
+      div.textContent = content;
+      wrapper.appendChild(div);
+
+      const metaParts = [];
+      if (intent)          metaParts.push(`Intent: ${prettifyIntent(intent)}`);
+      if (confidence != null) metaParts.push(confidenceText(confidence));
+
+      if (metaParts.length) {
+        const meta = document.createElement("div");
+        meta.className   = "small-meta";
+        meta.textContent = metaParts.join(" • ");
+        wrapper.appendChild(meta);
+      }
+
+      if (assistantMessageId) {
+        const feedbackRow = document.createElement("div");
+        feedbackRow.className = "feedback-row";
+
+        const helpfulBtn    = document.createElement("button");
+        helpfulBtn.className   = "feedback-btn";
+        helpfulBtn.textContent = "👍 Helpful";
+
+        const notHelpfulBtn    = document.createElement("button");
+        notHelpfulBtn.className   = "feedback-btn";
+        notHelpfulBtn.textContent = "👎 Not helpful";
+
+        helpfulBtn.addEventListener("click", async () => {
+          await submitFeedback(assistantMessageId, 1, helpfulBtn, notHelpfulBtn);
+        });
+        notHelpfulBtn.addEventListener("click", async () => {
+          const reason = prompt("What was missing or unhelpful?") || "";
+          await submitFeedback(assistantMessageId, -1, helpfulBtn, notHelpfulBtn, reason);
+        });
+
+        feedbackRow.appendChild(helpfulBtn);
+        feedbackRow.appendChild(notHelpfulBtn);
+        wrapper.appendChild(feedbackRow);
+      }
+
+      chatEl.appendChild(wrapper);
+      if (qInput) createSuggestionRow(suggestedFollowups, chatEl, qInput);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      return wrapper;
+    }
+
+    /* History */
+
+    async function loadChatHistory(bookingId, chatEl, qInput) {
+      const history = await apiFetch(`/api/chatbot/history/${bookingId}`);
+      if (!history || !history.messages || !history.messages.length) return false;
+
+      chatEl.innerHTML = "";
+      history.messages.forEach(msg => {
+        if (msg.sender === "user") {
+          addMsg(chatEl, msg.message_text, "user");
+        } else if (msg.sender === "assistant") {
+          addAssistantMessageWithFeedback(chatEl, msg.message_text, msg.id,
+            msg.confidence, msg.intent, [], qInput);
+        }
+      });
+      return true;
+    }
+
+    /* Load booking into UI */
+    async function loadBookingIntoUI(booking, chatEl, destSelect, messageEl, qInput) {
+      if (!booking) { messageEl.textContent = "Booking not found."; return; }
+
+      renderTripSummary(booking);
+      updateDestinationHero(booking);
+      destSelect.value = String(booking.id);
+      document.getElementById("chatbotStatus").textContent =
+        `Linked to booking: ${booking.destination_name} • ${formatDate(booking.check_in)} → ${formatDate(booking.check_out)}`;
+
+      /* Load cultural warning banner for this destination */
+      await loadCulturalWarning(booking.destination_id);
+
+      const hasHistory = await loadChatHistory(Number(booking.id), chatEl, qInput);
+
+      if (!hasHistory) {
+        const intro = await apiFetch("/api/chatbot/generate", {
+          method: "POST",
+          body: JSON.stringify({ booking_id: Number(booking.id) })
+        });
+
+        chatEl.innerHTML = "";
+        addAssistantMessageWithFeedback(chatEl, intro.response, null, 1.0, "general",
+          ["What etiquette should I follow here?",
+           "What local laws do tourists often miss?",
+           "How should I use public transport here?"], qInput);
+      }
+    }
+
+    /* Export chat */
+
+    function exportChat(currentBooking) {
+      const messages = Array.from(document.querySelectorAll("#chat .msg"))
+        .map(m => {
+          const role = m.classList.contains("user") ? "You" : "TripWise";
+          return `${role}:\n${m.textContent.trim()}`;
+        })
+        .join("\n\n---\n\n");
+
+      const header = currentBooking
+        ? `TripWise Chat Export\nDestination: ${currentBooking.destination_name}, ${currentBooking.country_name}\nDates: ${formatDate(currentBooking.check_in)} – ${formatDate(currentBooking.check_out)}\n\n`
+        : "TripWise Chat Export\n\n";
+
+      const blob = new Blob([header + messages], { type: "text/plain" });
+      const a    = document.createElement("a");
+      a.href     = URL.createObjectURL(blob);
+      a.download = `tripwise-chat-${currentBooking?.destination_name || "session"}.txt`;
+      a.click();
+    }
+
+    /* Main */
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const booking_id = qp("booking_id");
+      const chat       = document.getElementById("chat");
+      const qInput     = document.getElementById("q");
+      const askBtn     = document.getElementById("askBtn");
+      const clearBtn   = document.getElementById("clearBtn");
+      const exportBtn  = document.getElementById("exportBtn");
+      const messageEl  = document.getElementById("message");
+      const charCount  = document.getElementById("charCount");
+      const destSelect = document.getElementById("destination");
+      const chips      = Array.from(document.querySelectorAll(".chip"));
+      const tripType   = document.getElementById("tripType");
+      const interests  = document.getElementById("interests");
+
+      let userBookings   = [];
+      let currentBooking = null;
+
+      /* Character counter */
+      qInput.addEventListener("input", () => {
+        const len = qInput.value.length;
+        charCount.textContent = len > 0 ? `${len} chars` : "";
+      });
+
+      /* Load bookings */
+      try {
+        userBookings = await apiFetch("/api/bookings/me");
+
+        if (!Array.isArray(userBookings) || !userBookings.length) {
+          destSelect.innerHTML  = `<option value="">No booked destinations</option>`;
+          destSelect.disabled   = true;
+          qInput.disabled       = true;
+          askBtn.disabled       = true;
+          updateDestinationHero(null);
+          document.getElementById("tripSummary").textContent =
+            "You need at least one booking before using the chatbot.";
+          document.getElementById("chatbotStatus").textContent = "No active bookings linked";
+          messageEl.textContent = "No bookings found for this account.";
+          return;
+        }
+
+        destSelect.innerHTML = "";
+        userBookings.forEach(b => {
+          const opt       = document.createElement("option");
+          opt.value       = b.id;
+          opt.textContent = `${b.destination_name} (${formatDate(b.check_in)} → ${formatDate(b.check_out)})`;
+          destSelect.appendChild(opt);
+        });
+
+        if (booking_id) {
+          currentBooking = userBookings.find(b => String(b.id) === String(booking_id));
+          if (!currentBooking) {
+            messageEl.textContent = "This booking does not belong to the current user.";
+            qInput.disabled = true;
+            askBtn.disabled = true;
+            renderTripSummary(null);
+            updateDestinationHero(null);
+            document.getElementById("chatbotStatus").textContent = "Booking validation failed";
+            return;
+          }
+          await loadBookingIntoUI(currentBooking, chat, destSelect, messageEl, qInput);
+        } else {
+          currentBooking = userBookings[0];
+          window.history.replaceState({}, "", `${window.location.pathname}?booking_id=${currentBooking.id}`);
+          await loadBookingIntoUI(currentBooking, chat, destSelect, messageEl, qInput);
+        }
+
+      } catch (err) {
+        console.error("Chatbot page error:", err);
+        messageEl.textContent = err.message;
+        document.getElementById("chatbotStatus").textContent = "Failed to load booking context";
+        return;
+      }
+
+      /* Send message */
+      async function sendMessage() {
+        const text = qInput.value.trim();
+        if (!text) return;
+
+        messageEl.textContent = "";
+        charCount.textContent = "";
+
+        if (!currentBooking) {
+          messageEl.textContent = "Please select one of your booked destinations.";
+          return;
+        }
+
+        addMsg(chat, text, "user");
+        qInput.value = "";
+
+        const typing = document.createElement("div");
+        typing.innerHTML = `
+          <div class="msg ai">
+            <span class="typing-bubble">
+              <span>TripWise is thinking</span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+            </span>
+          </div>`;
+        chat.appendChild(typing);
+        chat.scrollTop = chat.scrollHeight;
+
+        try {
+          const res = await apiFetch("/api/chatbot/chat", {
+            method: "POST",
+            body: JSON.stringify({
+              booking_id: Number(currentBooking.id),
+              message:    text,
+              trip_type:  tripType.value        || null,
+              interests:  interests.value.trim() || null
+            })
+          });
+
+          typing.remove();
+          addAssistantMessageWithFeedback(chat, res.reply, res.assistant_message_id,
+            res.confidence, res.intent, res.suggested_followups || [], qInput);
+
+        } catch (err) {
+          typing.remove();
+          messageEl.textContent = err.message;
+        }
+      }
+
+      askBtn.addEventListener("click", sendMessage);
+      qInput.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+
+      /* Clear: show session summary first, then clear */
+      clearBtn.addEventListener("click", async () => {
+        if (currentBooking) {
+          await showSessionSummary(currentBooking.id);
+        }
+        chat.innerHTML = `<div class="msg ai">🧹 Chat cleared. You can ask a new question about your trip.</div>`;
+      });
+
+      exportBtn.addEventListener("click", () => exportChat(currentBooking));
+
+      chips.forEach(chip => {
+        chip.addEventListener("click", () => {
+          qInput.value = chip.dataset.q || "";
+          qInput.focus();
+        });
+      });
+
+      tripType.addEventListener("change",  () => { if (currentBooking) renderTripSummary(currentBooking); });
+      interests.addEventListener("input",  () => { if (currentBooking) renderTripSummary(currentBooking); });
+
+      /* Booking switch — show session summary before switching */
+      destSelect.addEventListener("change", async () => {
+        messageEl.textContent = "";
+
+        if (currentBooking) {
+          await showSessionSummary(currentBooking.id);
+        }
+
+        const selectedId = Number(destSelect.value);
+        currentBooking   = userBookings.find(b => Number(b.id) === selectedId);
+
+        if (!currentBooking) {
+          messageEl.textContent = "Selected destination is not linked to your bookings.";
+          return;
+        }
+
+        window.history.replaceState({}, "", `${window.location.pathname}?booking_id=${currentBooking.id}`);
+        await loadBookingIntoUI(currentBooking, chat, destSelect, messageEl, qInput);
+      });
+    });
+
+  </script>
+</body>
+</html>

@@ -1,285 +1,488 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TripWise — Admin Dashboard</title>
-    <link rel="stylesheet" href="tripwise.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TripWise — Admin Dashboard</title>
+  <link rel="stylesheet" href="tripwise.css"/>
+  
+</head>
 
-    <script defer>
-      (() => {
-        "use strict";
+<body>
 
-      
-        const $ = (id) => document.getElementById(id);
-        const show = (el) => (el.style.display = "block");
-        const hide = (el) => (el.style.display = "none");
+<header class="header"></header>
 
-        
-        const STORAGE_KEY = "tw_kb";
-        const BASE_KB_COUNT = 42; 
-        const REQUIRED_CITIES = ["Kyoto", "Rome", "Barcelona"]; 
+<div class="top">
+  <div class="brand">
+    <img src="../images/logo1.png" alt="TripWise Logo"/>
+    <h1>TripWise</h1>
+  </div>
 
-        
-        const openKbModal = () => show($("kbModal"));
-        const closeKbModal = () => hide($("kbModal"));
+  <nav class="actions">
+    <a href="notifications.html">Notifications</a>
+    <a href="traveller-dashboard.html">Traveller View</a>
+    <a href="#" id="logoutBtn">Logout</a>
+  </nav>
+</div>
 
-       
-        const readKb = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        const writeKb = (kb) => localStorage.setItem(STORAGE_KEY, JSON.stringify(kb));
+<main class="container">
 
-        const truncate = (text, max = 60) =>
-          text.length > max ? `${text.slice(0, max)}…` : text;
+  <section class="hero">
+    <div>
+      <h2 id="adminWelcome">Admin Dashboard 🛠️</h2>
+      <p>Manage TripWise content and monitor platform activity.</p>
 
-        const updateKbStats = (kb) => {
-          $("kbCount").textContent = String(BASE_KB_COUNT + kb.length);
-
-          if (kb.length > 0) {
-            const latest = kb[0];
-            $("kbRecent").textContent = `${latest.city} • ${truncate(latest.text)}`;
-          }
-        };
-
-        const saveKb = () => {
-          const city = $("kbCity").value;
-          const type = $("kbType").value;
-          const text = $("kbText").value.trim();
-
-          if (!text) {
-            alert("Please write an entry.");
-            return;
-          }
-
-          const kb = readKb();
-          kb.unshift({ city, type, text, ts: Date.now() }); 
-          writeKb(kb);
-
-          updateKbStats(kb);
-          $("kbText").value = ""; 
-          closeKbModal();
-          alert("KB entry saved (prototype).");
-        };
-
-      
-        const warnings = { minor: 2, critical: 0 };
-
-        const renderWarnings = () => {
-          $("warnLine").textContent = `${warnings.critical} critical • ${warnings.minor} minor`;
-          $("sysStatus").textContent = warnings.critical > 0 ? "Attention" : "OK";
-        };
-
-        const addMockWarning = () => {
-          Math.random() > 0.8 ? (warnings.critical += 1) : (warnings.minor += 1);
-          renderWarnings();
-        };
-
-        const clearMockWarnings = () => {
-          warnings.minor = 0;
-          warnings.critical = 0;
-          renderWarnings();
-        };
-
-        
-        document.addEventListener("DOMContentLoaded", () => {
-          updateKbStats(readKb());
-          renderWarnings();
-
-          $("openKbBtn").addEventListener("click", openKbModal);
-          $("openKbBtn2").addEventListener("click", openKbModal);
-          $("saveKbBtn").addEventListener("click", saveKb);
-          $("cancelKbBtn").addEventListener("click", closeKbModal);
-
-          $("warnBtn").addEventListener("click", addMockWarning);
-          $("warnClearBtn").addEventListener("click", clearMockWarnings);
-
-          $("kbModal").addEventListener("click", (e) => {
-            if (e.target === $("kbModal")) closeKbModal();
-          });
-        });
-      })();
-    </script>
-  </head>
-
-  <body>
-    <header class="header" aria-label="Site header"></header>
-
-    <div class="top" role="banner">
-      <div class="brand">
-        <img src="../images/logo1.png" alt="TripWise Logo" />
-        <h1>TripWise</h1>
-      </div>
-
-      <nav class="actions" aria-label="Primary navigation" style="display: flex; gap: 10px; flex-wrap: wrap">
-        <a class="link" href="admin-login.html">Logout</a>
-        <a class="link" href="notifications.html">Notifications</a>
-        <a class="link" href="traveller-dashboard.html">Traveller View</a>
-      </nav>
-    </div>
-
-    <main class="container">
-      <section class="hero" aria-label="Admin summary">
-        <div>
-          <h2>Admin Dashboard 🛠️</h2>
-          <p>Manage Knowledge Base content, monitor activity, and review bookings (prototype data).</p>
-
-          <div class="stats" aria-label="Key stats">
-            <div class="pill">📚 KB Entries: <strong id="kbCount">42</strong></div>
-            <div class="pill">🧾 Bookings (confirmed): <strong id="bkCount">3</strong></div>
-            <div class="pill">💬 AI Guidance sessions: <strong id="aiCount">18</strong></div>
-            <div class="pill">🟢 System status: <strong id="sysStatus">OK</strong></div>
-          </div>
-        </div>
-
-        <div class="hero-actions">
-          <button class="btn btn-primary" type="button" id="openKbBtn">➕ Add KB Entry</button>
-          <button class="btn btn-ghost" type="button" onclick="alert('Prototype: run AI re-index / update')">
-            🔄 Update AI Knowledge
-          </button>
-          <button class="btn btn-ghost" type="button" onclick="alert('Prototype: export logs')">📤 Export Activity</button>
-        </div>
-      </section>
-
-      <div class="grid">
-        <section class="card span-7" aria-label="Knowledge base management">
-          <h3>Knowledge Base Management</h3>
-          <p>Add/edit cultural etiquette, local laws, and learning content for each destination.</p>
-
-          <div class="detail">
-            <strong>Recent update</strong>
-            <span id="kbRecent">Rome • “Spanish Steps: sitting restrictions + fines”</span>
-            <span class="tag">Saved</span>
-          </div>
-
-          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap">
-            <button class="btn btn-primary" type="button" id="openKbBtn2">Add entry</button>
-            <button class="btn btn-ghost" type="button" onclick="alert('Prototype: open KB table view')">
-              Manage entries
-            </button>
-          </div>
-
-          <div style="height: 12px"></div>
-
-          <div class="detail">
-            <strong>Active destination set</strong>
-            <span>
-              Kyoto • Rome • Barcelona
-            </span>
-          </div>
-        </section>
-
-        <section class="card span-5" aria-label="System activity monitor">
-          <h3>System Activity Monitor</h3>
-          <p>Quick status view (prototype). In a real build, this reads from logs.</p>
-
-          <div class="detail">
-            <strong>Last 24h</strong>
-            <span>Login: 21 • Search: 46 • Bookings: 3 • Learning: 15</span>
-          </div>
-
-          <div class="detail">
-            <strong>Warnings</strong>
-            <span id="warnLine">0 critical • 2 minor</span>
-            <span class="tag">Stable</span>
-          </div>
-
-          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap">
-            <button class="btn btn-primary" type="button" id="warnBtn">Simulate warning</button>
-            <button class="btn btn-ghost" type="button" id="warnClearBtn">Clear</button>
-          </div>
-        </section>
-
-        <!-- Booking overview -->
-        <section class="card span-12" aria-label="Confirmed bookings overview">
-          <h3>Confirmed Bookings (Prototype)</h3>
-          <p>This mirrors what your traveller booking pages show: Kyoto, Rome, Barcelona.</p>
-
-          <div class="grid" style="margin-top: 12px">
-            <div class="card span-4" style="margin: 0">
-              <h4 style="margin-top: 0">Kyoto, Japan</h4>
-              <p style="margin-bottom: 6px">Eco Ryokan • 12 Mar – 16 Mar</p>
-              <span class="tag">Confirmed</span>
-            </div>
-
-            <div class="card span-4" style="margin: 0">
-              <h4 style="margin-top: 0">Rome, Italy</h4>
-              <p style="margin-bottom: 6px">City Boutique Hotel • 20 Apr – 24 Apr</p>
-              <span class="tag">Confirmed</span>
-            </div>
-
-            <div class="card span-4" style="margin: 0">
-              <h4 style="margin-top: 0">Barcelona, Spain</h4>
-              <p style="margin-bottom: 6px">Beachside Stay • 02 May – 06 May</p>
-              <span class="tag">Confirmed</span>
-            </div>
-          </div>
-
-          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap">
-            <button class="btn btn-ghost" type="button" onclick="window.location.href='booking-history.html'">
-              View booking history
-            </button>
-            <button class="btn btn-ghost" type="button" onclick="window.location.href='booking-details.html'">
-              Open booking details
-            </button>
-          </div>
-        </section>
-      </div>
-    </main>
-
-    <!-- KB Modal -->
-    <div
-      id="kbModal"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add knowledge base entry"
-      style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); padding: 20px; z-index: 50"
-    >
-      <div class="card" style="max-width: 760px; margin: 40px auto">
-        <h3 style="margin-top: 0">Add Knowledge Base Entry</h3>
-        <p>This content can power AI Guidance + Learning questions.</p>
-
-        <div class="detail">
-          <strong>Destination</strong>
-          <span>
-            <select id="kbCity" class="input" style="width: 100%">
-              <option value="Kyoto">Kyoto</option>
-              <option value="Rome">Rome</option>
-              <option value="Barcelona">Barcelona</option>
-            </select>
-          </span>
-        </div>
-
-        <div class="detail">
-          <strong>Type</strong>
-          <span>
-            <select id="kbType" class="input" style="width: 100%">
-              <option value="Local Laws">Local Laws</option>
-              <option value="Etiquette">Etiquette</option>
-              <option value="Safety">Safety</option>
-              <option value="Learning Question">Learning Question</option>
-            </select>
-          </span>
-        </div>
-
-        <div class="detail">
-          <strong>Entry</strong>
-          <span>
-            <textarea
-              id="kbText"
-              class="input"
-              rows="5"
-              style="width: 100%"
-              placeholder="Example: Rome — Sitting on the Spanish Steps can result in fines."
-            ></textarea>
-          </span>
-        </div>
-
-        <div class="actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px">
-          <button class="btn btn-primary" type="button" id="saveKbBtn">Save entry</button>
-          <button class="btn btn-ghost" type="button" id="cancelKbBtn">Cancel</button>
-        </div>
+      <div class="stats">
+        <div class="pill">👤 <strong id="adminName">Loading…</strong></div>
+        <div class="pill">📧 <strong id="adminEmail">Loading…</strong></div>
+        <div class="pill">📚 KB: <strong id="kbCount">0</strong></div>
+        <div class="pill">🟢 <strong id="sysStatus">OK</strong></div>
       </div>
     </div>
 
-    <footer class="footer" aria-label="Site footer"></footer>
-  </body>
+    <div class="hero-actions">
+      <button class="btn btn-primary" id="openKbBtn">Add KB Entry</button>
+    </div>
+  </section>
+
+  <div class="grid">
+
+    <section class="card span-7">
+      <h3>Knowledge Base</h3>
+
+      <div class="detail">
+        <strong>Latest:</strong>
+        <span id="kbRecent">Loading…</span>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn btn-primary" id="openKbBtn2">Add entry</button>
+      </div>
+
+      <div class="table-wrap kb-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Destination</th>
+              <th>Category</th>
+              <th>Title</th>
+              <th>Updated</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="kbTableBody">
+            <tr><td colspan="5">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card span-5">
+      <h3>System</h3>
+
+      <div class="detail">
+        <strong>Warnings</strong>
+        <span id="warnLine">0 critical • 0 minor</span>
+      </div>
+
+      <div class="detail">
+        <strong>Pending insights</strong>
+        <span id="insightPendingInline">0</span>
+      </div>
+    </section>
+
+    <section class="card span-6">
+      <h3>Chatbot Analytics</h3>
+
+      <div class="detail">
+        <strong>Sessions</strong>
+        <span id="aiCount">0</span>
+      </div>
+
+      <div class="detail">
+        <strong>Total messages</strong>
+        <span id="msgCount">0</span>
+      </div>
+
+      <div class="detail">
+        <strong>Negative feedback</strong>
+        <span id="fallbackCount">0</span>
+      </div>
+
+      <div class="detail">
+        <strong>Total chatbot feedback</strong>
+        <span id="chatbotFeedbackTotal">0</span>
+      </div>
+    </section>
+
+    <section class="card span-6">
+      <h3>User Feedback</h3>
+
+      <div class="stats">
+        <div class="pill">⭐ Avg: <strong id="avgRating">0</strong></div>
+        <div class="pill">🧾 Total: <strong id="feedbackTotal">0</strong></div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Rating</th>
+              <th>Topic</th>
+              <th>Comment</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="feedbackTableBody">
+            <tr><td colspan="5">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card span-12">
+      <h3>Insight Moderation</h3>
+
+      <div class="stats">
+        <div class="pill">Total <strong id="insightTotal">0</strong></div>
+        <div class="pill">Pending <strong id="insightPending">0</strong></div>
+        <div class="pill">Approved <strong id="insightApproved">0</strong></div>
+        <div class="pill">Rejected <strong id="insightRejected">0</strong></div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Destination</th>
+              <th>Title</th>
+              <th>Content</th>
+              <th>User</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="insightsTableBody">
+            <tr><td colspan="7">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div id="kbModal" class="modal">
+  <div class="card modal-card">
+    <h3>Add KB Entry</h3>
+
+    <select   id="kbDestination" class="input"></select>
+    <select   id="kbCategory"    class="input"></select>
+    <input    id="kbTitle"       class="input" placeholder="Title"/>
+    <textarea id="kbText"        class="input" placeholder="Write the knowledge base content here"></textarea>
+    <input    id="kbSourceUrl"   class="input" placeholder="Source URL (optional)"/>
+
+    <div class="actions-row">
+      <button class="btn btn-primary" id="saveKbBtn"   type="button">Save</button>
+      <button class="btn btn-ghost"   id="cancelKbBtn" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="api/api.js"></script>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  const escapeHtml = str =>
+    String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+
+  const formatDate = d => {
+    if (!d) return "—";
+    const dt = new Date(d);
+    return isNaN(dt) ? String(d) : dt.toLocaleString();
+  };
+
+  const redirectToLogin = () => { window.location.href = "admin-login.html"; };
+
+
+  const openModal  = () => {
+    $("kbModal").classList.add("open");
+  };
+
+  // Close the KB modal and clear the form
+  const closeModal = () => {
+    $("kbModal").classList.remove("open");
+    ["kbDestination","kbCategory","kbTitle","kbText","kbSourceUrl"]
+      .forEach(id => { $(id).value = ""; });
+  };
+
+  $("openKbBtn").addEventListener("click",  openModal);
+  $("openKbBtn2").addEventListener("click", openModal);
+  $("cancelKbBtn").addEventListener("click", closeModal);
+
+  $("kbModal").addEventListener("click", e => {
+    if (e.target === $("kbModal")) closeModal();
+  });
+
+  /* Logout */
+
+  // Clear token and send user back to login
+  $("logoutBtn").addEventListener("click", e => {
+    e.preventDefault();
+    clearToken();      
+    redirectToLogin();
+  });
+
+  /* Save knowledge base entry */
+  $("saveKbBtn").addEventListener("click", async () => {
+    const destination_id = $("kbDestination").value;
+    const category_id    = $("kbCategory").value;
+    const title          = $("kbTitle").value.trim();
+    const content        = $("kbText").value.trim();
+    const source_url     = $("kbSourceUrl").value.trim() || null;
+
+    if (!destination_id || !category_id || !title || !content) {
+      alert("Please fill in destination, category, title, and content.");
+      return;
+    }
+
+    $("saveKbBtn").disabled    = true;
+    $("saveKbBtn").textContent = "Saving…";
+
+    try {
+      // Send new entry to backend
+      await apiFetch("/api/knowledge-base", {
+        method: "POST",
+        body: JSON.stringify({ destination_id, category_id, title, content, source_url })
+      });
+
+      closeModal();
+      await loadKB();
+      alert("Knowledge base entry created successfully.");
+
+    } catch (err) {
+      console.error("saveKbBtn:", err);
+      alert(err.message || "Failed to save knowledge base entry.");
+    } finally {
+      $("saveKbBtn").disabled    = false;
+      $("saveKbBtn").textContent = "Save";
+    }
+  });
+
+  // Delete a knowledge base entry
+  window.deleteKb = async id => {
+    if (!confirm("Delete this knowledge base entry?")) return;
+    try {
+      await apiFetch(`/api/knowledge-base/${id}`, { method: "DELETE" });
+      await loadKB();
+    } catch (err) {
+      alert(err.message || "Failed to delete entry.");
+    }
+  };
+
+  // Approve or reject an insight
+  window.updateInsight = async (id, status) => {
+    try {
+      await apiFetch(`/api/insights/${id}/status`, {
+        method: "POST",
+        body: JSON.stringify({ status })
+      });
+      await loadInsights();
+    } catch (err) {
+      alert(err.message || "Failed to update insight.");
+    }
+  };
+
+
+  // Load knowledge base table data
+  const loadKB = async () => {
+    try {
+      const rows = await apiFetch("/api/knowledge-base");
+
+      $("kbCount").textContent  = rows.length;
+      $("kbRecent").textContent = rows.length ? rows[0].title : "No entries yet.";
+
+      $("kbTableBody").innerHTML = rows.length
+        ? rows.map(r => `
+            <tr>
+              <td>${escapeHtml(r.destination_name)}</td>
+              <td>${escapeHtml(r.category_name)}</td>
+              <td>${escapeHtml(r.title)}</td>
+              <td>${formatDate(r.updated_at)}</td>
+              <td>
+                <button class="btn btn-ghost"
+                  onclick="deleteKb(${r.id})">Delete</button>
+              </td>
+            </tr>`).join("")
+        : `<tr><td colspan="5">No knowledge base entries found.</td></tr>`;
+
+    } catch (err) {
+      console.error("loadKB:", err.message);
+      $("kbTableBody").innerHTML =
+        `<tr><td colspan="5">Failed to load knowledge base.</td></tr>`;
+    }
+  };
+
+  // Load dropdown options for destination and category
+  const loadKbDropdowns = async () => {
+    try {
+      const [destinations, categories] = await Promise.all([
+        apiFetch("/api/knowledge-base/destinations"),
+        apiFetch("/api/knowledge-base/categories")
+      ]);
+
+      const toOptions = (items, placeholder) =>
+        `<option value="">${placeholder}</option>` +
+        items.map(i =>
+          `<option value="${i.id}">${escapeHtml(i.name)}</option>`
+        ).join("");
+
+      $("kbDestination").innerHTML = toOptions(destinations, "Select destination");
+      $("kbCategory").innerHTML    = toOptions(categories,    "Select category");
+
+    } catch (err) {
+      console.error("loadKbDropdowns:", err.message);
+      alert("Could not load destinations / categories for the KB form.");
+    }
+  };
+
+  // Load insight moderation table
+  const loadInsights = async () => {
+    try {
+      const rows = await apiFetch("/api/insights/moderation");
+
+      const count = s => rows.filter(r => r.status === s).length;
+
+      $("insightTotal").textContent         = rows.length;
+      $("insightPending").textContent       = count("pending");
+      $("insightApproved").textContent      = count("approved");
+      $("insightRejected").textContent      = count("rejected");
+      $("insightPendingInline").textContent = count("pending");
+
+      $("insightsTableBody").innerHTML = rows.length
+        ? rows.map(r => `
+            <tr>
+              <td>${escapeHtml(r.destination_name)}</td>
+              <td>${escapeHtml(r.title)}</td>
+              <td>${escapeHtml(r.content)}</td>
+              <td>${escapeHtml(r.community_name)}</td>
+              <td>
+                <span class="status-badge status-${escapeHtml(r.status)}">
+                  ${escapeHtml(r.status)}
+                </span>
+              </td>
+              <td>${formatDate(r.created_at)}</td>
+              <td>
+                ${r.status !== "approved"
+                  ? `<button class="btn btn-ghost"
+                       onclick="updateInsight(${r.id},'approved')">Approve</button>`
+                  : ""}
+                ${r.status !== "rejected"
+                  ? `<button class="btn btn-ghost"
+                       onclick="updateInsight(${r.id},'rejected')">Reject</button>`
+                  : ""}
+              </td>
+            </tr>`).join("")
+        : `<tr><td colspan="7">No insights awaiting moderation.</td></tr>`;
+
+    } catch (err) {
+      console.error("loadInsights:", err.message);
+      $("insightsTableBody").innerHTML =
+        `<tr><td colspan="7">Failed to load insights.</td></tr>`;
+    }
+  };
+
+  // Load user feedback table
+  const loadFeedback = async () => {
+    try {
+      const res = await apiFetch("/api/admin/feedback");
+
+      $("avgRating").textContent     = res.average_rating ?? "—";
+      $("feedbackTotal").textContent = res.total          ?? 0;
+
+      $("feedbackTableBody").innerHTML = res.data?.length
+        ? res.data.map(r => `
+            <tr>
+              <td>${escapeHtml(r.traveller_name)}</td>
+              <td>${r.rating}</td>
+              <td>${escapeHtml(r.topic    || "—")}</td>
+              <td>${escapeHtml(r.comments || "—")}</td>
+              <td>${formatDate(r.created_at)}</td>
+            </tr>`).join("")
+        : `<tr><td colspan="5">No feedback submitted yet.</td></tr>`;
+
+    } catch (err) {
+      console.error("loadFeedback:", err.message);
+      $("feedbackTableBody").innerHTML =
+        `<tr><td colspan="5">Failed to load feedback.</td></tr>`;
+    }
+  };
+
+  // Load chatbot analytics
+  const loadAnalytics = async () => {
+    try {
+      const res = await apiFetch("/api/admin/analytics");
+
+      $("aiCount").textContent              = res.sessions       ?? 0;
+      $("msgCount").textContent             = res.messages       ?? 0;
+      $("fallbackCount").textContent        = res.negative       ?? 0;
+      $("chatbotFeedbackTotal").textContent = res.total_feedback ?? 0;
+
+    } catch (err) {
+      console.error("loadAnalytics:", err.message);
+    }
+  };
+
+
+
+  (async () => {
+
+    if (!getToken()) {
+      redirectToLogin();
+      return;
+    }
+
+    // Verify token and check role
+    let currentUser;
+    try {
+      currentUser = await apiFetch("/api/auth/me");
+
+      if (!currentUser || currentUser.role !== "admin") {
+        alert("Access denied. Admins only.");
+        clearToken();
+        redirectToLogin();
+        return;
+      }
+    } catch (err) {
+      console.error("Auth check failed:", err.message);
+      clearToken();
+      redirectToLogin();
+      return;
+    }
+
+    $("adminName").textContent    = currentUser.full_name || "Admin";
+    $("adminEmail").textContent   = currentUser.email     || "N/A";
+    $("adminWelcome").textContent =
+      `Admin Dashboard 🛠️ — Welcome, ${currentUser.full_name || "Admin"}`;
+
+    // Load all data sections in parallel
+    await Promise.all([
+      loadKbDropdowns(),
+      loadKB(),
+      loadInsights(),
+      loadFeedback(),
+      loadAnalytics()
+    ]);
+
+  })();
+
+</script>
+
+</body>
 </html>

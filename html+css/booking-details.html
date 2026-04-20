@@ -1,166 +1,153 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TripWise — Booking Details</title>
-    <link rel="stylesheet" href="tripwise.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Booking Details</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
 
-    <script src="../nodejs/destinations.js" defer></script>
+<body>
+  <header class="header" aria-label="Site header"></header>
 
-    <script defer>
-      (() => {
-        "use strict";
-
-        const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-
-        const daysBetween = (a, b) => Math.ceil((b - a) / (1000 * 60 * 60 * 24));
-
-        const formatISODate = (iso) => {
-          const d = new Date(iso);
-          if (Number.isNaN(d.getTime())) return iso;
-          return d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
-        };
-
-        
-        const getCountdown = (startISO, endISO) => {
-          const today = startOfDay(new Date());
-          const start = startOfDay(new Date(startISO));
-          const end = startOfDay(new Date(endISO));
-
-          if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-            return { text: "Dates unavailable", status: "ended" };
-          }
-
-          if (today < start) {
-            const d = daysBetween(today, start);
-            return { text: `${d} day${d === 1 ? "" : "s"} to go`, status: "upcoming" };
-          }
-
-          if (today >= start && today <= end) {
-            return { text: "Trip in progress", status: "in-progress" };
-          }
-
-          return { text: "Trip ended", status: "ended" };
-        };
-
-        document.addEventListener("DOMContentLoaded", () => {
-          const listEl = document.getElementById("bookingList");
-          if (!listEl) return;
-
-          const confirmedBookings = [
-            {
-              destination: "Kyoto, Japan",
-              accommodation: "Eco Ryokan",
-              startDate: "2026-03-12",
-              endDate: "2026-03-16",
-              guests: "2 guests",
-              id: "TW-123456",
-              status: "Confirmed"
-            },
-            {
-              destination: "Rome, Italy",
-              accommodation: "Boutique Hotel Roma",
-              startDate: "2026-04-28",
-              endDate: "2026-05-02",
-              guests: "2 guests",
-              id: "TW-654321",
-              status: "Confirmed"
-            },
-            {
-              destination: "Barcelona, Spain",
-              accommodation: "City Center Apartment",
-              startDate: "2026-06-09",
-              endDate: "2026-06-13",
-              guests: "2 guests",
-              id: "TW-998877",
-              status: "Confirmed"
-            }
-          ];
-
-          listEl.innerHTML = confirmedBookings
-            .map((b) => {
-              const countdown = getCountdown(b.startDate, b.endDate);
-
-              return `
-                <article class="booking-item" aria-label="Booking ${b.id}">
-                  <div>
-                    <div class="booking-dest">${b.destination}</div>
-                    <div class="booking-meta">🏨 ${b.accommodation}</div>
-
-                    <div class="booking-meta">
-                      📅 ${formatISODate(b.startDate)} → ${formatISODate(b.endDate)} • 👥 ${b.guests}
-                    </div>
-
-                    <div class="booking-meta">
-                      Confirmation ID: <strong>${b.id}</strong>
-                    </div>
-                  </div>
-
-                  <div class="booking-right">
-                    <span class="tag booking-tag">${b.status}</span>
-
-                    <!-- Countdown placed UNDER Confirmed (engaging pill) -->
-                    <div class="countdown-pill ${countdown.status}" aria-label="Countdown to trip">
-                      <span class="countdown-ico" aria-hidden="true">⏳</span>
-                      <span class="countdown-text">${countdown.text}</span>
-                    </div>
-                  </div>
-                </article>
-              `;
-            })
-            .join("");
-        });
-      })();
-    </script>
-  </head>
-
-  <body>
-    <header class="header" aria-label="Site header"></header>
-
-    <div class="top" role="banner">
-      <div class="brand">
-        <img src="../images/logo1.png" alt="TripWise logo" />
-        <h1>TripWise</h1>
-      </div>
-
-      <nav class="actions" aria-label="Secondary navigation">
-        <a class="link" href="booking-history.html">← Booking history</a>
-        <a class="link" href="traveller-dashboard.html">Dashboard</a>
-      </nav>
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
     </div>
 
-    <main class="container">
-      <div class="grid">
-        <section class="card span-7" aria-labelledby="page-title">
-          <h2 id="page-title">Booking Details</h2>
-          <p>Confirmed bookings (prototype).</p>
+    <nav class="actions" aria-label="Secondary navigation">
+      <a class="link" href="booking-history.html">← Booking history</a>
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+    </nav>
+  </div>
 
-          <div class="booking-list" id="bookingList" aria-label="Confirmed bookings list"></div>
+  <main class="container">
+    <div class="grid">
+      <section class="card span-7" aria-labelledby="page-title">
+        <h2 id="page-title">Booking Details</h2>
+        <p>View your real booking details below.</p>
 
-          <div class="actions" style="margin-top: 14px">
-            <a class="link" href="destination-details.html">View destination again</a>
-            <a class="link" href="feedback.html">Leave feedback</a>
-          </div>
-        </section>
+        <div id="bookingDetailsCard" class="booking-list" aria-label="Booking details">
+          <div class="item"><div><strong>Loading…</strong></div></div>
+        </div>
 
-        <aside class="card span-5" aria-labelledby="next-steps-title">
-          <h2 id="next-steps-title">Next Steps</h2>
-          <p>TripWise provides guidance after booking to support respectful travel.</p>
+        <p id="bookingDetailsMsg" style="margin-top: 12px;"></p>
 
-          <button class="btn btn-primary" type="button" onclick="window.location.href='ai-guidance.html'">
-            Open AI Guidance
-          </button>
+        <div class="actions" style="margin-top: 14px">
+          <a class="link" href="booking-history.html">Back to booking history</a>
+          <a class="link" href="feedback.html">Leave feedback</a>
+        </div>
+      </section>
 
-          <div style="height: 10px"></div>
+      <aside class="card span-5" aria-labelledby="next-steps-title">
+        <h2 id="next-steps-title">Next Steps</h2>
+        <p>TripWise provides chatbot guidance after booking to support respectful travel.</p>
 
-          <button class="btn btn-ghost" type="button" onclick="window.location.href='notifications.html'">
-            View Notifications
-          </button>
-        </aside>
-      </div>
-    </main>
+        <a id="openChatbotBtn" class="btn btn-primary" href="booking-history.html">
+          Open Chatbot
+        </a>
 
-    <footer class="footer" aria-label="Site footer"></footer>
-  </body>
+        <div style="height: 10px"></div>
+
+        <button class="btn btn-ghost" type="button" onclick="window.location.href='notifications.html'">
+          View Notifications
+        </button>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer" aria-label="Site footer"></footer>
+
+  <script src="api/api.js"></script>
+  <script>
+    if (!localStorage.getItem("tripwise_token")) {
+      window.location.href = "traveller-login.html";
+    }
+
+    function qp(name) {
+      return new URL(window.location.href).searchParams.get(name);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "N/A";
+      const date = new Date(dateStr);
+      if (Number.isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function countdownLabel(startISO, endISO) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const start = new Date(startISO);
+      const end = new Date(endISO);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      if (today < start) {
+        const days = Math.ceil((start - today) / (1000 * 60 * 60 * 24));
+        return { text: `${days} day${days === 1 ? "" : "s"} to go`, cls: "upcoming" };
+      }
+
+      if (today >= start && today <= end) {
+        return { text: "Trip in progress", cls: "in-progress" };
+      }
+
+      return { text: "Trip ended", cls: "ended" };
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const bookingId = qp("booking_id");
+      const card = document.getElementById("bookingDetailsCard");
+      const msg = document.getElementById("bookingDetailsMsg");
+      const chatbotBtn = document.getElementById("openChatbotBtn");
+
+      if (!bookingId) {
+        card.innerHTML = `<div class="item"><div><strong>No booking selected.</strong></div></div>`;
+        msg.textContent = "Open this page from the dashboard or booking history.";
+        chatbotBtn.href = "booking-history.html";
+        return;
+      }
+
+      try {
+        const booking = await apiFetch(`/api/bookings/${bookingId}`);
+        const countdown = countdownLabel(booking.check_in, booking.check_out);
+
+        card.innerHTML = `
+          <article class="booking-item" aria-label="Booking ${booking.id}">
+            <div>
+              <div class="booking-dest">${booking.destination_name}, ${booking.country_name}</div>
+              <div class="booking-meta">🏨 ${booking.accommodation_title || "Accommodation not selected"}</div>
+              <div class="booking-meta">📅 ${formatDate(booking.check_in)} → ${formatDate(booking.check_out)} • 👥 ${booking.guests} guest(s)</div>
+              <div class="booking-meta">Status: <strong>${booking.status}</strong></div>
+              <div class="booking-meta">Best time: ${booking.best_time || "N/A"}</div>
+              <div class="booking-meta">Occasions: ${booking.occasions || "N/A"}</div>
+              <div class="booking-meta">Language tip: ${booking.language_tips || "N/A"}</div>
+            </div>
+
+            <div class="booking-right">
+              <span class="tag booking-tag">${booking.status}</span>
+              <div class="countdown-pill ${countdown.cls}" aria-label="Countdown to trip">
+                <span class="countdown-ico" aria-hidden="true">⏳</span>
+                <span class="countdown-text">${countdown.text}</span>
+              </div>
+            </div>
+          </article>
+        `;
+
+        chatbotBtn.href = `chatbot-guidance.html?booking_id=${booking.id}`;
+      } catch (err) {
+        console.error("Booking details error:", err);
+        card.innerHTML = `<div class="item"><div><strong>Error loading booking.</strong></div></div>`;
+        msg.textContent = err.message;
+        chatbotBtn.href = "booking-history.html";
+      }
+    });
+  </script>
+</body>
 </html>

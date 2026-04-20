@@ -1,83 +1,136 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TripWise — Results</title>
-    <link rel="stylesheet" href="tripwise.css" />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Mission Results</title>
+  <link rel="stylesheet" href="tripwise.css" />
+  
+</head>
+<body>
+  <header class="header"></header>
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+    <nav class="row" style="margin-top:0">
+      <a class="link" href="learning-home.html">← Hub</a>
+      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+    </nav>
+  </div>
 
-  <body>
-    <header class="header" aria-label="Top bar"></header>
+  <main class="container">
+    <div class="card results-card">
+      <div class="result-emoji" id="resultEmoji">🎉</div>
+      <h2 id="resultTitle">Mission Complete!</h2>
+      <p id="resultSubtitle" style="color:#666;margin-bottom:8px"></p>
+      <span class="diff-badge" id="diffBadge"></span>
 
-    <div class="top" role="banner">
-      <div class="brand">
-        <img src="../images/logo1.png" alt="TripWise logo" />
-        <h1>TripWise</h1>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <span class="val" id="statEarned">0</span>
+          <span class="lbl">Points earned</span>
+        </div>
+        <div class="stat-box">
+          <span class="val" id="statAccuracy">0%</span>
+          <span class="lbl">Accuracy</span>
+        </div>
+        <div class="stat-box">
+          <span class="val" id="statGrade">—</span>
+          <span class="lbl">Grade</span>
+        </div>
+        <div class="stat-box">
+          <span class="val" id="statTotal">0</span>
+          <span class="lbl">Total points</span>
+        </div>
       </div>
 
-      <nav class="row" aria-label="Results navigation" style="margin-top: 0">
-        <a class="link" href="learning-home.html">← Hub</a>
-        <a class="link" href="traveller-dashboard.html">Dashboard</a>
-      </nav>
+      <div id="alertBox" style="display:none" class="alert-box"></div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="replayBtn">🔄 Play Again</button>
+        <a class="btn btn-ghost" href="learning-home.html">← Back to Hub</a>
+        <a class="btn btn-ghost" id="chatbotBtn" href="chatbot-guidance.html">🤖 Ask Chatbot</a>
+      </div>
     </div>
+  </main>
 
-    <main class="container">
-      <section class="card" aria-labelledby="page-title">
-        <h2 id="page-title">Mission Complete 🎉</h2>
-        <p>You’ve just learned important etiquette and law basics. That’s responsible travel in action.</p>
+  <footer class="footer"></footer>
+  <script>
+  (() => {
+    "use strict";
 
-        <div class="big" aria-label="Points summary">
-          Points earned: <span id="run">0</span> • Total points: <span id="total">0</span>
-        </div>
+    const params   = new URLSearchParams(window.location.search);
+    const mission  = params.get("mission")  || "kyoto-laws-etiquette";
+    const run      = Number(params.get("run")      || 0);
+    const total    = Number(params.get("total")    || 0);
+    const accuracy = Number(params.get("accuracy") || 0);
+    const diff     = params.get("diff")    || "medium";
+    const earned   = params.get("earned")  === "1";
+    const daily    = params.get("daily")   === "1";
 
-        <span class="pill" id="dailyPill" style="display: none">⚡ Daily Challenge streak updated!</span>
+    /* Grade */
+    const grade = accuracy === 100 ? "A+" :
+                  accuracy >= 80   ? "A"  :
+                  accuracy >= 65   ? "B"  :
+                  accuracy >= 45   ? "C"  : "D";
 
-        <div class="panel" id="badgeBox" style="display: none">
-          🏅 <strong>Badge Unlocked!</strong> Great performance — you earned a new badge.
-        </div>
+    /* Emoji */
+    const emoji = accuracy === 100 ? "🏆" :
+                  accuracy >= 80   ? "🎉" :
+                  accuracy >= 60   ? "✅" : "📚";
 
-        <div class="row">
-          <button class="btn btn-primary" type="button" id="replayBtn">Play again</button>
-          <a class="btn btn-ghost" href="learning-home.html">Choose another mission</a>
-          <a class="btn btn-ghost" href="ai-guidance.html">Ask TripWise AI</a>
-        </div>
+    /* Destination name from mission key */
+    const destName = mission.split("-")[0].charAt(0).toUpperCase() +
+                     mission.split("-")[0].slice(1);
 
-        <div class="row">
-          <a class="btn btn-ghost" href="booking-details.html">Back to booking</a>
-          <a class="btn btn-ghost" href="traveller-dashboard.html">Back to dashboard</a>
-        </div>
-      </section>
-    </main>
+    document.getElementById("resultEmoji").textContent    = emoji;
+    document.getElementById("resultTitle").textContent    = daily ? "Daily Challenge Complete! 🔥" : "Mission Complete!";
+    document.getElementById("resultSubtitle").textContent = `${destName} — Laws & Etiquette`;
 
-    <footer class="footer" aria-label="Footer"></footer>
+    document.getElementById("statEarned").textContent   = run;
+    document.getElementById("statAccuracy").textContent = `${accuracy}%`;
+    document.getElementById("statTotal").textContent    = total;
 
-    <script>
-      (() => {
-        "use strict";
-        // Read URL parameters to populate the results screen 
+    const gradeEl = document.getElementById("statGrade");
+    gradeEl.textContent = grade;
+    gradeEl.className   = `val grade-${CSS.escape ? grade : grade.replace("+","")}`;
 
-        const params = new URLSearchParams(window.location.search);
+    /* Difficulty badge */
+    const diffEl = document.getElementById("diffBadge");
+    diffEl.textContent = diff === "easy" ? "🟢 Easy" : diff === "medium" ? "🟡 Medium" : "🔴 Hard";
+    diffEl.className   = `diff-badge diff-${diff}`;
 
-        const mission = params.get("mission") ?? "kyoto-etiquette";
-        const run = params.get("run") ?? "0";
-        const total = params.get("total") ?? "0";
-        const earned = params.get("earned") === "1";
-        const daily = params.get("daily") === "1";
+    /* Alert */
+    const alertBox = document.getElementById("alertBox");
+    if (accuracy === 100) {
+      alertBox.className   = "alert-box alert-success";
+      alertBox.textContent = "🏆 Perfect score! You know this destination inside out.";
+      alertBox.style.display = "block";
+    } else if (earned) {
+      alertBox.className   = "alert-box alert-success";
+      alertBox.textContent = "⭐ New best score for this mission! Keep it up.";
+      alertBox.style.display = "block";
+    } else if (accuracy < 50) {
+      alertBox.className   = "alert-box alert-warning";
+      alertBox.textContent = "📖 Review the hints and try again to improve your accuracy.";
+      alertBox.style.display = "block";
+    }
 
-        // Populate scores
-        document.getElementById("run").textContent = run;
-        document.getElementById("total").textContent = total;
+    /* Replay button */
+    document.getElementById("replayBtn").addEventListener("click", () => {
+      window.location.href = `learning-game.html?mission=${encodeURIComponent(mission)}&diff=${diff}${daily ? "&daily=1" : ""}`;
+    });
 
-        if (earned) document.getElementById("badgeBox").style.display = "block";
-        if (daily) document.getElementById("dailyPill").style.display = "inline-block";
+    /* Chatbot button */
+    const chatBtn = document.getElementById("chatbotBtn");
+    try {
+      const bookings = JSON.parse(localStorage.getItem("tw_last_booking_id") || "null");
+      if (bookings) chatBtn.href = `chatbot-guidance.html?booking_id=${bookings}`;
+    } catch(e) {}
 
-        // Replay uses the same mission, and preserves daily mode if enabled
-        document.getElementById("replayBtn").addEventListener("click", () => {
-          const dailyParam = daily ? "&daily=1" : "";
-          window.location.href = `learning-game.html?mission=${encodeURIComponent(mission)}${dailyParam}`;
-        });
-      })();
-    </script>
-  </body>
+  })();
+  </script>
+</body>
 </html>

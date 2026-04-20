@@ -5,40 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TripWise — Booking Confirmation</title>
     <link rel="stylesheet" href="tripwise.css" />
-
-    <script defer>
-      (() => {
-        "use strict";
-
-        const generateConfirmationId = () =>
-          `TW-${Math.floor(100000 + Math.random() * 900000)}`;
-
-        const getParam = (params, key, fallback = "—") => params.get(key) || fallback;
-
-        document.addEventListener("DOMContentLoaded", () => {
-          const el = {
-            confirmId: document.getElementById("confirmId"),
-            destination: document.getElementById("d_destination"),
-            stay: document.getElementById("d_stay"),
-            checkin: document.getElementById("d_checkin"),
-            checkout: document.getElementById("d_checkout"),
-            guests: document.getElementById("d_guests"),
-            updates: document.getElementById("d_updates")
-          };
-
-          el.confirmId.textContent = generateConfirmationId();
-
-          const params = new URLSearchParams(window.location.search);
-
-          el.destination.textContent = getParam(params, "destination", "Kyoto, Japan");
-          el.stay.textContent = getParam(params, "stayType", "Eco Ryokan");
-          el.checkin.textContent = getParam(params, "checkin");
-          el.checkout.textContent = getParam(params, "checkout");
-          el.guests.textContent = getParam(params, "guests");
-          el.updates.textContent = params.has("updates") ? "Enabled" : "Disabled";
-        });
-      })();
-    </script>
   </head>
 
   <body>
@@ -94,7 +60,7 @@
         </div>
 
         <div class="actions">
-          <button class="btn btn-primary" type="button" onclick="window.location.href='ai-guidance.html'">
+          <button class="btn btn-primary" type="button" onclick="window.location.href='chatbot-guidance.html'">
             Open AI Guidance
           </button>
           <button class="btn btn-ghost" type="button" onclick="window.location.href='post-booking-education.html'">
@@ -118,5 +84,39 @@
     </main>
 
     <footer class="footer" aria-label="Site footer"></footer>
+
+    <script defer>
+      (() => {
+        "use strict";
+
+        const generateConfirmationId = () =>
+          `TW-${Math.floor(100000 + Math.random() * 900000)}`;
+
+        const getParam = (params, key, fallback = "—") => params.get(key) || fallback;
+
+        document.addEventListener("DOMContentLoaded", () => {
+          const el = {
+            confirmId: document.getElementById("confirmId"),
+            destination: document.getElementById("d_destination"),
+            stay: document.getElementById("d_stay"),
+            checkin: document.getElementById("d_checkin"),
+            checkout: document.getElementById("d_checkout"),
+            guests: document.getElementById("d_guests"),
+            updates: document.getElementById("d_updates")
+          };
+
+          el.confirmId.textContent = generateConfirmationId();
+
+          const params = new URLSearchParams(window.location.search);
+
+          el.destination.textContent = getParam(params, "destination", "Kyoto, Japan");
+          el.stay.textContent = getParam(params, "stayType", "Eco Ryokan");
+          el.checkin.textContent = getParam(params, "checkin");
+          el.checkout.textContent = getParam(params, "checkout");
+          el.guests.textContent = getParam(params, "guests");
+          el.updates.textContent = params.has("updates") ? "Enabled" : "Disabled";
+        });
+      })();
+    </script>
   </body>
 </html>

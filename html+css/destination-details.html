@@ -8,218 +8,160 @@
 </head>
 
 <body>
-  <header class="header" aria-label="Site header"></header>
+  <header class="header"></header>
 
   <div class="top" role="banner">
     <div class="brand">
       <img src="../images/logo1.png" alt="TripWise logo" />
       <h1>TripWise</h1>
     </div>
-
-    <nav class="actions" aria-label="Page links">
-      <a class="link" href="search-results.html">← Back to results</a>
+    <nav class="actions">
+      <a class="link" href="search-destination.html">← Back to search</a>
       <a class="link" href="traveller-dashboard.html">Dashboard</a>
     </nav>
   </div>
 
   <main class="container">
     <div class="grid">
-      <section class="card span-7" aria-labelledby="destTitle">
-        <h2 id="destTitle">Destination</h2>
-        <p id="destDesc">
-          Explore temples, traditional neighbourhoods, and local culture with respectful travel guidance.
-        </p>
 
-        <p id="destTags" class="subtitle" hidden></p>
+      <section class="card span-7">
+        <img id="destHeroImg" class="dest-hero-img" src="../images/logo1.png" alt="Destination" />
+        <h2 id="destTitle">Loading…</h2>
+        <p id="destCountry" style="color:#666;font-size:14px;margin-bottom:8px;"></p>
+        <p id="destDesc"></p>
 
-        <div class="photos" aria-label="Destination photos">
-          <figure class="ph"><img id="photo1" src="../images/placeholder1.png" alt="Destination photo 1" /></figure>
-          <figure class="ph"><img id="photo2" src="../images/placeholder2.png" alt="Destination photo 2" /></figure>
-          <figure class="ph"><img id="photo3" src="../images/placeholder3.png" alt="Destination photo 3" /></figure>
-        </div>
-
-        <h3>Key Facts</h3>
-        <div class="facts">
+        <div class="facts" style="margin-top:16px">
           <div class="fact">
             <strong>Best time to visit</strong>
             <small id="factBest">—</small>
           </div>
           <div class="fact">
-            <strong>Local etiquette</strong>
-            <small id="factEtiquette">—</small>
+            <strong>Local occasions</strong>
+            <small id="factOccasions">—</small>
           </div>
           <div class="fact">
-            <strong>Respectful photography</strong>
-            <small id="factPhoto">—</small>
-          </div>
-          <div class="fact">
-            <strong>Local support</strong>
-            <small id="factSupport">—</small>
+            <strong>Language tip</strong>
+            <small id="factLanguage">—</small>
           </div>
         </div>
 
-        <h3>Cultural Preview (AI)</h3>
-        <p>
-          After booking, TripWise provides personalised guidance on cultural norms, key laws, and etiquette
-          based on your trip details.
-        </p>
-
-        <div class="actions">
-          <button class="btn btn-ghost" type="button" onclick="window.location.href='ai-guidance.html'">
-            Preview guidance (demo)
-          </button>
+        <div id="kbSection" style="margin-top:20px;display:none">
+          <h3 style="margin-bottom:6px">Cultural Guidance</h3>
+          <p style="font-size:13px;color:#666;margin-bottom:10px">
+            Key tips from the TripWise knowledge base — more detail available via the chatbot after booking.
+          </p>
+          <div class="kb-list" id="kbList"></div>
         </div>
       </section>
 
-      <aside class="card span-5" aria-label="Accommodation options">
-        <h2>Accommodation Options</h2>
-        <p>Example stays (prototype data).</p>
+      <aside class="card span-5" style="align-self:start">
+        <h2 style="margin-bottom:6px">Book This Destination</h2>
+        <p style="font-size:14px;color:#666;margin-bottom:16px">
+          Book <strong id="bookDestName">this destination</strong> to unlock the TripWise chatbot for
+          personalised cultural and legal guidance.
+        </p>
 
-        <div class="stay">
-          <div>
-            <strong>Eco Stay</strong>
-            <small style="color: var(--muted)">Locally owned • Quiet area</small>
-            <span class="tag">Eco-certified</span>
+        <div style="border:1px solid rgba(0,0,0,0.08);border-radius:14px;overflow:hidden;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(0,0,0,0.06);font-size:13px">
+            <span style="color:#666;font-weight:600">Country</span>
+            <span id="sideCountry" style="color:#111;text-align:right">—</span>
           </div>
-          <div class="price">£120/night</div>
-        </div>
-
-        <div class="stay">
-          <div>
-            <strong>Traditional Guesthouse</strong>
-            <small style="color: var(--muted)">Family-run • Cultural immersion</small>
-            <span class="tag">Locally owned</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(0,0,0,0.06);font-size:13px">
+            <span style="color:#666;font-weight:600">Best time</span>
+            <span id="sideBestTime" style="color:#111;text-align:right">—</span>
           </div>
-          <div class="price">£85/night</div>
-        </div>
-
-        <div class="stay">
-          <div>
-            <strong>City Hotel</strong>
-            <small style="color: var(--muted)">Central • High rating</small>
-            <span class="tag">Recommended</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:13px">
+            <span style="color:#666;font-weight:600">Language tip</span>
+            <span id="sideLanguage" style="color:#111;text-align:right">—</span>
           </div>
-          <div class="price">£95/night</div>
         </div>
 
-        <div class="actions" style="margin-top: 14px">
-          <button class="btn btn-primary" type="button" onclick="window.location.href='booking-form.html'">
-            Book this destination
-          </button>
-        </div>
+        <button id="bookBtn" class="btn btn-primary" type="button" style="width:100%;justify-content:center;padding:13px;font-size:15px">
+          Book Now
+        </button>
 
-        <div class="actions">
-          <button class="btn btn-ghost" type="button" onclick="alert('Saved to favourites (placeholder)')">
-            Save
-          </button>
-          <button class="btn btn-ghost" type="button" onclick="alert('Share link (placeholder)')">
-            Share
-          </button>
+        <div style="margin-top:12px;padding:12px 14px;background:#f0f8ff;border-radius:12px;border:1px solid #cfe6ff;font-size:13px;color:#003366;line-height:1.5">
+          🤖 After booking, access the <strong>TripWise Chatbot</strong> for destination-specific
+          etiquette, laws, transport, food, and safety guidance.
         </div>
       </aside>
+
     </div>
   </main>
 
-  <footer class="footer" aria-label="Site footer"></footer>
+  <footer class="footer"></footer>
 
-  <script src="../nodejs/destinations.js"></script>
-
+  <script src="api/api.js"></script>
   <script>
-    (() => {
-      "use strict";
+    (async () => {
+      const params  = new URLSearchParams(window.location.search);
+      const urlSlug = params.get("dest");
 
-      const $ = (id) => document.getElementById(id);
+      const titleEl   = document.getElementById("destTitle");
+      const countryEl = document.getElementById("destCountry");
+      const descEl    = document.getElementById("destDesc");
+      const heroImg   = document.getElementById("destHeroImg");
+      const bookBtn   = document.getElementById("bookBtn");
 
-      const titleEl = $("destTitle");
-      const descEl = $("destDesc");
-      const tagsEl = $("destTags");
-
-      const photo1 = $("photo1");
-      const photo2 = $("photo2");
-      const photo3 = $("photo3");
-
-      const factBest = $("factBest");
-      const factEtiquette = $("factEtiquette");
-      const factPhoto = $("factPhoto");
-      const factSupport = $("factSupport");
-
-      const list = window.TRIPWISE_DESTINATIONS;
-      const getter = window.getDestinationById;
-
-      if (!Array.isArray(list) || typeof getter !== "function") {
-        titleEl.textContent = "Destination data not loaded";
-        descEl.textContent =
-          "destinations.js didn't load. Check your <script src> path and open DevTools → Network for a 404.";
-        tagsEl.hidden = true;
-        console.error("Missing TRIPWISE_DESTINATIONS or getDestinationById.");
+      if (!urlSlug) {
+        titleEl.textContent = "No destination selected";
         return;
       }
 
-      const params = new URLSearchParams(window.location.search);
-      const destId = params.get("dest");
-
-      const fallback = list.find((d) => d.visible !== false) || null;
-      const dest = destId ? getter(destId) : fallback;
-
-      if (!dest) {
+      /* Load destination */
+      let dest;
+      try {
+        dest = await apiFetch(`/api/destinations/by-slug/${urlSlug}`);
+      } catch (err) {
         titleEl.textContent = "Destination not found";
-        descEl.textContent =
-          "Use a valid ID like ?dest=tokyo-jp (must match destinations.js ids).";
-        tagsEl.hidden = true;
-        console.warn("dest param:", destId);
+        console.error(err);
         return;
       }
 
-      titleEl.textContent = dest.name || "Destination";
+      document.title               = `TripWise — ${dest.name}`;
+      titleEl.textContent          = dest.name;
+      countryEl.textContent        = dest.country_name  || "";
+      descEl.textContent           = dest.description   || "";
 
-      descEl.textContent = `Discover ${dest.name} with responsible travel guidance and respectful local tips.`;
+      document.getElementById("factBest").textContent      = dest.best_time    || "—";
+      document.getElementById("factOccasions").textContent = dest.occasions     || "—";
+      document.getElementById("factLanguage").textContent  = dest.language_tips || "—";
 
-      
-      if (Array.isArray(dest.tags) && dest.tags.length) {
-        tagsEl.textContent = dest.tags.join(" • ");
-        tagsEl.hidden = false;
-      } else {
-        tagsEl.hidden = true;
+      document.getElementById("bookDestName").textContent  = dest.name;
+      document.getElementById("sideCountry").textContent   = dest.country_name  || "—";
+      document.getElementById("sideBestTime").textContent  = dest.best_time     || "—";
+      document.getElementById("sideLanguage").textContent  = dest.language_tips || "—";
+
+      heroImg.src = dest.image_url
+        ? (dest.image_url.startsWith("/") ? `..${dest.image_url}` : `../${dest.image_url}`)
+        : `../images/${dest.slug}.png`;
+      heroImg.alt    = dest.name;
+      heroImg.onerror = () => { heroImg.src = "../images/logo1.png"; heroImg.onerror = null; };
+
+      /* Book button */
+      bookBtn.addEventListener("click", () => {
+        window.location.href = `booking-form.html?dest=${dest.slug}`;
+      });
+
+      /* Load KB preview */
+      try {
+        const kbRes = await fetch(`/api/knowledge-base/preview/${dest.id}`);
+        if (kbRes.ok) {
+          const kbEntries = await kbRes.json();
+          if (kbEntries && kbEntries.length) {
+            document.getElementById("kbSection").style.display = "block";
+            document.getElementById("kbList").innerHTML = kbEntries.map(e => `
+              <div class="kb-item">
+                <span class="category-badge">${e.category_name || e.category || ""}</span>
+                <strong>${e.title}</strong>
+                <span style="display:block;margin-top:4px;font-size:13px;color:#444">${e.content}</span>
+              </div>
+            `).join("");
+          }
+        }
+      } catch {
       }
 
-      
-      const imgs = Array.isArray(dest.images) ? dest.images : [];
-      const img1 = imgs[0] || dest.image;
-      const img2 = imgs[1] || dest.image;
-      const img3 = imgs[2] || dest.image;
-
-      if (img1) photo1.src = img1;
-      if (img2) photo2.src = img2;
-      if (img3) photo3.src = img3;
-
-      const alt = dest.name ? `${dest.name} photo` : "Destination photo";
-      photo1.alt = alt;
-      photo2.alt = alt;
-      photo3.alt = alt;
-
-      const has = (t) => Array.isArray(dest.tags) && dest.tags.includes(t);
-
-      factBest.textContent =
-        has("northernlights") ? "Sep–Mar (best chance of aurora)" :
-        has("beach") ? "May–Sep" :
-        has("temples") ? "Mar–May, Oct–Nov" :
-        "Year-round (depends on your plans)";
-
-      factEtiquette.textContent =
-        has("etiquette") ? "Be quiet in temples and on public transport" :
-        has("customs") ? "Ask before photographing people and stalls" :
-        has("religion") ? "Dress modestly in religious spaces" :
-        "Respect local customs and personal space";
-
-      factPhoto.textContent =
-        has("temples") ? "Follow “No Photo” signs in sacred spaces" :
-        has("museums") ? "Check museum photo policies" :
-        "Ask permission for close-up portraits";
-
-      factSupport.textContent =
-        "Support locally owned stays, shops, and guides where possible.";
-
-      console.log("Loaded destination:", dest);
     })();
   </script>
 </body>

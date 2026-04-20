@@ -1,112 +1,90 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TripWise — Community Login</title>
-    <link rel="stylesheet" href="tripwise.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Community Login</title>
+  <link rel="stylesheet" href="tripwise.css" />
 </head>
 
-<body>
-    <header class="header" aria-label="Top bar"></header>
+<body class="auth-page">
+  <header class="header" aria-label="Site header"></header>
 
-    <header class="logo-bar" aria-label="TripWise branding">
-        <img src="../images/logo1.png" alt="TripWise logo" />
-        <span class="brand-title">TripWise</span>
-    </header>
+  <div class="logo-bar"></div>
 
-    <main class="container">
-        <section class="box" aria-labelledby="page-title">
-            <h1 id="page-title">Community Partner Login</h1>
-            <p class="subtitle">Log in to manage listings and view bookings.</p>
+  <main class="container">
+    <section class="box" aria-labelledby="page-title">
+      <h2 id="page-title">Community Partner Login</h2>
+      <p class="subtitle">Log in to share local insights and help travellers.</p>
 
-            <form id="comLogin" action="#" method="post" novalidate>
-                <div class="field">
-                    <label for="c_email">Contact Email</label>
-                    <input id="c_email" name="email" type="email" required autocomplete="email" inputmode="email"
-                        placeholder="contact@example.com" />
-                </div>
+      <p id="message" style="display:none; color:white; background:#d32f2f; padding:10px; border-radius:4px; text-align:center; margin-bottom:15px; font-weight:bold;"></p>
 
-                <div class="field">
-                    <label for="c_password">Password</label>
-                    <input id="c_password" name="password" type="password" required autocomplete="current-password"
-                        placeholder="Your password" />
-                </div>
+      <form id="comLogin" novalidate>
+        <label for="c_email">Contact Email</label>
+        <input id="c_email" name="email" type="email" required
+               autocomplete="email" placeholder="contact@example.com" />
 
-                <p id="comError" class="error" role="alert" aria-live="polite">
-                    Incorrect email or password.
-                </p>
+        <label for="c_password">Password</label>
+        <input id="c_password" name="password" type="password" required
+               autocomplete="current-password" placeholder="Your password" />
 
-                <div class="row">
-                    <a class="link" href="forgot-password.html">Forgot password?</a>
-                    <a class="link" href="localcommunities-register.html">Register as partner</a>
-                </div>
-
-                <button class="btn" type="submit">Log In</button>
-
-                <div class="row-actions">
-                    <a class="link" href="traveller-login.html">Traveller login</a>
-                </div>
-            </form>
-        </section>
-    </main>
-
-    <footer class="footer" aria-label="Footer">
-        <!-- Keep branding consistent in the footer without duplicating loose sections -->
-        <div class="logo-bar" aria-label="TripWise branding footer">
-            <img src="../images/logo1.png" alt="TripWise logo" />
-            <span class="brand-title">TripWise</span>
+        <div class="row">
+          <a class="link" href="forgot-password.html">Forgot password?</a>
         </div>
-    </footer>
 
-    <script>
-        (() => {
-            "use strict";
+        <button class="btn" type="submit">Log In</button>
+        <a class="link" href="localcommunities-register.html">Don't have an account? Register</a>
+      </form>
+    </section>
+  </main>
 
-            const form = document.getElementById("comLogin");
-            const email = document.getElementById("c_email");
-            const password = document.getElementById("c_password");
-            const errorBox = document.getElementById("comError");
+  <div class="logo-bar"></div>
+  <footer class="footer" aria-label="Site footer"></footer>
 
-            // Ensure error starts hidden 
-            errorBox.style.display = "none";
+  <script src="api/api.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form    = document.getElementById("comLogin");
+      const emailEl = document.getElementById("c_email");
+      const passEl  = document.getElementById("c_password");
+      const msg     = document.getElementById("message");
 
-            // Clears error state when the user edits inputs
-            const clearError = () => {
-                errorBox.style.display = "none";
-                password.setCustomValidity("");
-            };
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msg.textContent   = "";
+        msg.style.display = "none";
 
-            email.addEventListener("input", clearError);
-            password.addEventListener("input", clearError);
+        if (!form.checkValidity()) { form.reportValidity(); return; }
 
-            form.addEventListener("submit", (e) => {
-                e.preventDefault();
+        try {
+          const data = await apiFetch("/api/auth/login", {
+            method: "POST",
+            body: JSON.stringify({
+              email:    emailEl.value.trim().toLowerCase(),
+              password: passEl.value
+            })
+          });
 
-                // Let browser handle required/email format first
-                if (!form.checkValidity()) {
-                    form.reportValidity();
-                    return;
-                }
+          if (data.role !== "community") {
+            msg.textContent   = "This login is for community partners only.";
+            msg.style.display = "block";
+            return;
+          }
 
-                
-                const ok = password.value === "password123";
+          // Role-specific token key
+          localStorage.setItem("tripwise_token_community", data.token);
+          localStorage.setItem("tripwise_token", data.token);
+          localStorage.setItem("tripwise_role", data.role);
+          localStorage.setItem("tripwise_name", data.full_name || "");
 
-                if (!ok) {
-                    errorBox.style.display = "block";
-                    password.setCustomValidity("Incorrect email or password.");
-                    form.reportValidity();
-                    return;
-                }
+          window.location.href = "localcommunities-dashboard.html";
 
-                clearError();
-
-                // Placeholder success behaviour 
-                window.location.href = "community-dashboard.html";
-            });
-        })();
-    </script>
+        } catch (err) {
+          msg.textContent   = err.message || "Invalid email or password.";
+          msg.style.display = "block";
+        }
+      });
+    });
+  </script>
 </body>
-
 </html>

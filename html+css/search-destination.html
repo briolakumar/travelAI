@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,33 +15,38 @@
       <img src="../images/logo1.png" alt="TripWise logo" />
       <h1>TripWise</h1>
     </div>
-
     <nav aria-label="Page navigation">
       <a class="link" href="traveller-dashboard.html">← Back to dashboard</a>
     </nav>
   </div>
 
   <main class="container">
-    <section class="card" aria-labelledby="page-title">
-      <h2 id="page-title">Search Destinations</h2>
-      <p>Search for a destination and explore responsible accommodation options.</p>
+    <section class="card">
+      <h2>Search Destinations</h2>
+      <p>Find your destination, explore cultural guidance, and book responsibly.</p>
 
-      <!-- Single search form -->
-      <form id="searchForm" action="search-results.html" method="get">
+      <form id="searchForm">
         <div class="grid">
           <div class="span-6">
             <label for="destination">Destination</label>
-            <select id="destination" name="q" required></select>
+            <select id="destination">
+              <option value="">Loading destinations…</option>
+            </select>
           </div>
 
-          <div class="span-6">
-            <label for="dates">Travel Dates</label>
-            <input id="dates" name="dates" type="text" placeholder="e.g., 12 Mar - 16 Mar" />
+          <div class="span-3">
+            <label for="checkin">Check-in</label>
+            <input type="date" id="checkin" />
+          </div>
+
+          <div class="span-3">
+            <label for="checkout">Check-out</label>
+            <input type="date" id="checkout" />
           </div>
 
           <div class="span-4">
             <label for="guests">Guests</label>
-            <select id="guests" name="guests">
+            <select id="guests">
               <option value="1">1 guest</option>
               <option value="2">2 guests</option>
               <option value="3">3 guests</option>
@@ -53,64 +57,91 @@
 
           <div class="span-4">
             <label for="budget">Budget</label>
-            <select id="budget" name="budget">
+            <select id="budget">
               <option value="">Any</option>
-              <option value="low">Low</option>
-              <option value="mid">Mid</option>
-              <option value="high">High</option>
+              <option value="low">Low (under £50/night)</option>
+              <option value="mid">Mid (£50–£150/night)</option>
+              <option value="high">High (£150+/night)</option>
             </select>
           </div>
 
           <div class="span-4">
-            <label for="type">Stay Type</label>
-            <select id="type" name="type">
-              <option value="">Any</option>
-              <option value="hotel">Hotel</option>
-              <option value="homestay">Homestay</option>
-              <option value="eco">Eco lodge</option>
-              <option value="hostel">Hostel</option>
-            </select>
-          </div>
-
-          <div class="span-12">
-            <label for="responsible">Responsible Travel Preferences</label>
-            <select id="responsible" name="responsible">
+            <label for="responsible">Travel Preference</label>
+            <select id="responsible">
               <option value="">No preference</option>
               <option value="local">Locally owned</option>
-              <option value="eco">Eco-certified</option>
+              <option value="eco">Eco-friendly</option>
               <option value="community">Community-run</option>
             </select>
           </div>
         </div>
 
-        <div class="actions">
-          <button class="btn btn-primary" type="submit">Search</button>
-          <button class="btn btn-ghost" type="reset">Clear</button>
+        <p id="searchMsg" style="color:#b00020;font-size:13px;margin-top:8px;"></p>
+
+        <div class="actions" style="margin-top:14px">
+          <button class="btn btn-primary" type="submit">Search Destinations</button>
+          <button class="btn btn-ghost" type="reset" id="clearBtn">Clear</button>
         </div>
       </form>
     </section>
   </main>
 
-  <footer class="footer" aria-label="Footer"></footer>
+  <footer class="footer"></footer>
 
-  <script src="../nodejs/destinations.js"></script>
+  <script src="api/api.js"></script>
   <script>
-    (() => {
-      "use strict";
-      // Runs after the page loads to safely access DOM elements
+    document.addEventListener("DOMContentLoaded", async () => {
+      const destSelect  = document.getElementById("destination");
+      const checkin     = document.getElementById("checkin");
+      const checkout    = document.getElementById("checkout");
+      const form        = document.getElementById("searchForm");
+      const searchMsg   = document.getElementById("searchMsg");
 
-      const destinationSelect = document.getElementById("destination");
+      const today = new Date().toISOString().split("T")[0];
+      checkin.setAttribute("min", today);
+      checkout.setAttribute("min", today);
 
-      // Ensure helper exists before calling it
-      if (typeof window.populateDestinationSelect !== "function") {
-        destinationSelect.innerHTML = '<option value="">Dataset not loaded</option>';
-        return;
+      checkin.addEventListener("change", () => {
+        checkout.min = checkin.value;
+        if (checkout.value && checkout.value < checkin.value) checkout.value = "";
+      });
+
+      /* Load destinations into dropdown */
+      try {
+        const destinations = await apiFetch("/api/destinations");
+        destSelect.innerHTML =
+          `<option value="">All destinations</option>` +
+          destinations.map(d =>
+            `<option value="${d.slug}">${d.name} (${d.country_name})</option>`
+          ).join("");
+      } catch (err) {
+        destSelect.innerHTML = `<option value="">Could not load destinations</option>`;
+        console.error("Destination load error:", err);
       }
 
-      // Populate the destination <select> using your existing helper
-      window.populateDestinationSelect("destination", true);
-    })();
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        searchMsg.textContent = "";
+      });
+
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        searchMsg.textContent = "";
+
+        const slug = destSelect.value;
+
+        /* If specific destination chosen go straight to details */
+        if (slug) {
+          let url = `destination-details.html?dest=${slug}`;
+          if (checkin.value)  url += `&checkin=${checkin.value}`;
+          if (checkout.value) url += `&checkout=${checkout.value}`;
+          window.location.href = url;
+          return;
+        }
+
+        /* Otherwise go to results page with optional filter */
+        window.location.href = `search-results.html`;
+      });
+    });
   </script>
 </body>
-
 </html>

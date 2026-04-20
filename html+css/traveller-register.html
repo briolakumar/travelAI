@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,41 +7,40 @@
   <link rel="stylesheet" href="tripwise.css" />
 </head>
 
-<body>
-  <header class="header" aria-label="Site header">
-    <div class="logo-bar">
-      <img src="../images/logo1.png" alt="TripWise logo" />
-      <span class="brand-title">TripWise</span>
-    </div>
+<body class="auth-page">
+  <header class="header">
+    <div class="logo-bar"></div>
   </header>
 
   <main class="container">
-    <section class="box" aria-labelledby="page-title">
-      <h1 id="page-title">Traveller Registration</h1>
+    <section class="box">
+      <h1>Traveller Registration</h1>
       <p class="subtitle">Create an account to book trips and receive destination guidance.</p>
 
-      <form id="travRegister" action="#" method="post" autocomplete="on" novalidate>
+      <p id="message" style="display:none; color:white; background:#d32f2f; padding:10px; border-radius:4px; text-align:center; margin-bottom:15px; font-weight:bold;"></p>
+
+      <form id="travRegister" novalidate>
         <div class="field">
           <label for="t_name">Full Name</label>
-          <input id="t_name" name="fullname" type="text" required autocomplete="name" placeholder="e.g., Alex Smith" />
+          <input id="t_name" type="text" required autocomplete="name" placeholder="e.g., Alex Smith" />
         </div>
 
         <div class="field">
           <label for="t_email">Email</label>
-          <input id="t_email" name="email" type="email" required autocomplete="email" inputmode="email"
-            placeholder="name@example.com" />
+          <input id="t_email" type="email" required autocomplete="email" placeholder="name@example.com" />
         </div>
 
         <div class="field">
           <label for="t_password">Password</label>
-          <input id="t_password" name="password" type="password" minlength="8" required autocomplete="new-password"
-            placeholder="Minimum 8 characters" aria-describedby="password-hint" />
-          <p class="hint" id="password-hint">Use at least 8 characters.</p>
+          <input id="t_password" type="password" minlength="8" required
+            autocomplete="new-password" placeholder="Minimum 8 characters"
+            aria-describedby="t_pw_hint" />
+          <p id="t_pw_hint" class="pw-hint">Use at least 8 characters.</p>
         </div>
 
         <div class="field">
           <label for="t_confirm">Confirm Password</label>
-          <input id="t_confirm" name="confirmPassword" type="password" minlength="8" required
+          <input id="t_confirm" type="password" minlength="8" required
             autocomplete="new-password" placeholder="Re-enter password" />
         </div>
 
@@ -62,53 +60,99 @@
     </section>
   </main>
 
-  <footer class="footer" aria-label="Site footer">
-    <div class="logo-bar">
-      <img src="../images/logo1.png" alt="TripWise logo" />
-      <span class="brand-title">TripWise</span>
-    </div>
+  <footer class="footer">
+    <div class="logo-bar"></div>
   </footer>
 
+  <script src="api/api.js"></script>
   <script>
-    (() => {
-      "use strict";
-      // Enables strict mode to prevent common JS mistakes
-      const form = document.getElementById("travRegister");
-      const password = document.getElementById("t_password");
-      const confirmPassword = document.getElementById("t_confirm");
+    document.addEventListener("DOMContentLoaded", () => {
+      const form         = document.getElementById("travRegister");
+      const nameInput    = document.getElementById("t_name");
+      const emailInput   = document.getElementById("t_email");
+      const passInput    = document.getElementById("t_password");
+      const confirmInput = document.getElementById("t_confirm");
+      const pwHint       = document.getElementById("t_pw_hint");
+      const msg          = document.getElementById("message");
 
-      /**
-       * Checks whether the password and confirm-password fields match.
-       * If they do not match, a custom validation message is attached to the confirm password input.
-       */
-      const validatePasswordsMatch = () => {
-        if (password.value !== confirmPassword.value) {
-          // Set a custom browser validation message
-          confirmPassword.setCustomValidity("Passwords do not match.");
-        } else {
-          // Clear the custom message so the field becomes valid
-          confirmPassword.setCustomValidity("");
-        }
+      const showMsg = (text, isSuccess = false) => {
+        msg.textContent = text;
+        msg.style.display = "block";
+        msg.style.backgroundColor = isSuccess ? "#2e7d32" : "#d32f2f";
       };
 
-      // Perform live validation as the user types
-      password.addEventListener("input", validatePasswordsMatch);
-      confirmPassword.addEventListener("input", validatePasswordsMatch);
+      /* Live password length hint */
+      passInput.addEventListener("input", () => {
+        const len = passInput.value.length;
+        if (len === 0) {
+          pwHint.textContent = "Use at least 8 characters.";
+          pwHint.style.color = "#666";
+        } else if (len < 8) {
+          pwHint.textContent = `${8 - len} more character${8 - len === 1 ? "" : "s"} needed.`;
+          pwHint.style.color = "#c62828";
+        } else {
+          pwHint.textContent = "✓ Password length is good.";
+          pwHint.style.color = "#2e7d32";
+        }
+        /* Re-check match if confirm already has a value */
+        if (confirmInput.value) validateMatch();
+      });
 
-      // Validate again when the form is submitted
-      form.addEventListener("submit", (e) => {
-        // Ensure passwords are checked one last time
-        validatePasswordsMatch();
+      /* Live confirm match */
+      const validateMatch = () => {
+        if (confirmInput.value && passInput.value !== confirmInput.value) {
+          confirmInput.setCustomValidity("Passwords do not match.");
+        } else {
+          confirmInput.setCustomValidity("");
+        }
+      };
+      confirmInput.addEventListener("input", validateMatch);
 
-        // If any field fails HTML5 validation rules, prevent submission and show browser messages
+      /* Submit */
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msg.style.display = "none";
+
+        if (passInput.value.length < 8) {
+          showMsg("Password must be at least 8 characters.");
+          passInput.focus();
+          return;
+        }
+
+        if (passInput.value !== confirmInput.value) {
+          showMsg("Passwords do not match.");
+          return;
+        }
+
+        if (!document.getElementById("terms").checked) {
+          showMsg("You must agree to the terms.");
+          return;
+        }
+
         if (!form.checkValidity()) {
-          e.preventDefault();
           form.reportValidity();
+          return;
+        }
+
+        try {
+          await apiFetch("/api/auth/register", {
+            method: "POST",
+            body: JSON.stringify({
+              role:      "traveller",
+              full_name: nameInput.value.trim(),
+              email:     emailInput.value.trim().toLowerCase(),
+              password:  passInput.value,
+            }),
+          });
+
+          showMsg("Registration successful! Redirecting to login…", true);
+          setTimeout(() => { window.location.href = "traveller-login.html"; }, 2000);
+
+        } catch (err) {
+          showMsg(err.message || "Registration failed. Please try again.");
         }
       });
-    })();
+    });
   </script>
-
 </body>
-
 </html>
