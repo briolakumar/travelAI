@@ -51,6 +51,9 @@ app.use(express.static(path.join(__dirname, "../html+css")));
 app.use("/images", express.static(path.join(__dirname, "../html+css/images")));
 app.use("/images", express.static(path.join(__dirname, "../images")));
 
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../html+css/traveller-login.html"));
+});
 /* API routes */
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/bookings", require("./routes/bookings.routes"));
