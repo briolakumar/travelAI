@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Learning Game</title>
   <link rel="stylesheet" href="tripwise.css" />
 </head>
+
 <body>
   <header class="header"></header>
   <div class="top" role="banner">
@@ -30,13 +32,15 @@
           <div class="pill timer">⏱ <strong id="time">20</strong><span class="sr-only"> seconds remaining</span></div>
           <span class="diff-label" id="diffLabel"></span>
         </div>
-        <div class="progress"><div id="bar"></div></div>
+        <div class="progress">
+          <div id="bar"></div>
+        </div>
         <div class="qbox">
           <div class="qtitle" id="qText">Question</div>
           <div class="answers" id="answers"></div>
           <div class="hint" id="hint"></div>
           <div class="row" style="margin-top:12px">
-            <button class="btn btn-ghost"   id="skipBtn" type="button">Skip</button>
+            <button class="btn btn-ghost" id="skipBtn" type="button">Skip</button>
             <button class="btn btn-primary" id="nextBtn" type="button" disabled>Next →</button>
           </div>
         </div>
@@ -70,470 +74,471 @@
   <footer class="footer"></footer>
   <div class="confetti" id="confetti" aria-hidden="true"></div>
   <script>
-  (() => {
-    "use strict";
-    const $ = id => document.getElementById(id);
-    const getNum  = (k, d=0) => Number(localStorage.getItem(k) ?? d);
-    const setNum  = (k, v)   => localStorage.setItem(k, String(v));
-    const getJSON = (k, d)   => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(d)); } catch { return d; } };
-    const setJSON = (k, v)   => localStorage.setItem(k, JSON.stringify(v));
-    const calcLevel = p      => Math.max(1, Math.floor(p / 300) + 1);
-    const shuffle = arr => {
-      const a = arr.slice();
-      for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-      return a;
-    };
-    const pickRandom = (arr, n) => shuffle(arr).slice(0, Math.min(n, arr.length));
-    const beep = (freq=520, dur=0.08) => {
-      if ((localStorage.getItem("tw_sound") ?? "on") !== "on") return;
-      try {
-        const ctx=new(window.AudioContext||window.webkitAudioContext)();
-        const osc=ctx.createOscillator(), gain=ctx.createGain();
-        osc.type="sine"; osc.frequency.value=freq;
-        osc.connect(gain); gain.connect(ctx.destination);
-        gain.gain.value=0.05; osc.start();
-        setTimeout(()=>{ osc.stop(); ctx.close(); }, dur*1000);
-      } catch {}
-    };
+    (() => {
+      "use strict";
+      const $ = id => document.getElementById(id);
+      const getNum = (k, d = 0) => Number(localStorage.getItem(k) ?? d);
+      const setNum = (k, v) => localStorage.setItem(k, String(v));
+      const getJSON = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || JSON.stringify(d)); } catch { return d; } };
+      const setJSON = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+      const calcLevel = p => Math.max(1, Math.floor(p / 300) + 1);
+      const shuffle = arr => {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+        return a;
+      };
+      const pickRandom = (arr, n) => shuffle(arr).slice(0, Math.min(n, arr.length));
+      const beep = (freq = 520, dur = 0.08) => {
+        if ((localStorage.getItem("tw_sound") ?? "on") !== "on") return;
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator(), gain = ctx.createGain();
+          osc.type = "sine"; osc.frequency.value = freq;
+          osc.connect(gain); gain.connect(ctx.destination);
+          gain.gain.value = 0.05; osc.start();
+          setTimeout(() => { osc.stop(); ctx.close(); }, dur * 1000);
+        } catch { }
+      };
 
-    const params     = new URLSearchParams(window.location.search);
-    const missionKey = params.get("mission") || "kyoto-laws-etiquette";
-    const isDaily    = params.get("daily") === "1";
-    const difficulty = params.get("diff") || localStorage.getItem("tw_difficulty") || "medium";
-    const TIME_PER_Q = { easy:10, medium:20, hard:30 }[difficulty] || 20;
+      const params = new URLSearchParams(window.location.search);
+      const missionKey = params.get("mission") || "kyoto-laws-etiquette";
+      const isDaily = params.get("daily") === "1";
+      const difficulty = params.get("diff") || localStorage.getItem("tw_difficulty") || "medium";
+      const TIME_PER_Q = { easy: 10, medium: 20, hard: 30 }[difficulty] || 20;
 
-    const bgMap = {
-      "kyoto-laws-etiquette":     "../images/bg-kyoto.jpg",
-      "tokyo-laws-etiquette":     "../images/bg-tokyo.jpg",
-      "paris-laws-etiquette":     "../images/bg-paris.jpg",
-      "rome-laws-etiquette":      "../images/bg-rome.jpg",
-      "barcelona-laws-etiquette": "../images/bg-barcelona.jpg",
-      "newyork-laws-etiquette":   "../images/bg-newyork.jpg",
-      "marrakech-laws-etiquette": "../images/bg-marrakech.jpg",
-      "bangkok-laws-etiquette":   "../images/bg-bangkok.jpg",
-      "reykjavik-laws-etiquette": "../images/bg-reykjavik.jpg",
-      "siemreap-laws-etiquette":  "../images/bg-siemreap.jpg",
-    };
-    if (bgMap[missionKey]) document.documentElement.style.setProperty("--city-bg", `url("${bgMap[missionKey]}")`);
+      const bgMap = {
+        "kyoto-laws-etiquette": "../images/bg-kyoto.jpg",
+        "tokyo-laws-etiquette": "../images/bg-tokyo.jpg",
+        "paris-laws-etiquette": "../images/bg-paris.jpg",
+        "rome-laws-etiquette": "../images/bg-rome.jpg",
+        "barcelona-laws-etiquette": "../images/bg-barcelona.jpg",
+        "newyork-laws-etiquette": "../images/bg-newyork.jpg",
+        "marrakech-laws-etiquette": "../images/bg-marrakech.jpg",
+        "bangkok-laws-etiquette": "../images/bg-bangkok.jpg",
+        "reykjavik-laws-etiquette": "../images/bg-reykjavik.jpg",
+        "siemreap-laws-etiquette": "../images/bg-siemreap.jpg",
+      };
+      if (bgMap[missionKey]) document.documentElement.style.setProperty("--city-bg", `url("${bgMap[missionKey]}")`);
 
-    const diffLabel = $("diffLabel");
-    diffLabel.textContent = { easy:"🟢 Easy", medium:"🟡 Medium", hard:"🔴 Hard" }[difficulty] || "";
-    diffLabel.className   = `diff-label diff-${difficulty}`;
+      const diffLabel = $("diffLabel");
+      diffLabel.textContent = { easy: "🟢 Easy", medium: "🟡 Medium", hard: "🔴 Hard" }[difficulty] || "";
+      diffLabel.className = `diff-label diff-${difficulty}`;
 
-    const BADGE_DEFS = {
-      first_mission: { icon:"🎯", label:"First Mission"   },
-      perfect_score: { icon:"💯", label:"Perfect Score"   },
-      speed_demon:   { icon:"⚡", label:"Speed Demon"     },
-      combo_5:       { icon:"🔥", label:"On Fire"         },
-      level_5:       { icon:"🧠", label:"Scholar"         },
-      all_missions:  { icon:"🌍", label:"World Traveller" },
-      streak_3:      { icon:"📅", label:"Dedicated"       },
-      points_1000:   { icon:"⭐", label:"Star Student"    },
-    };
-    let earnedBadges       = getJSON("tw_badges_earned", {});
-    let completions        = getJSON("tw_completions", {});
-    const newBadgesThisRun = [];
-    const awardBadge = id => {
-      if (earnedBadges[id]) return;
-      earnedBadges[id] = Date.now();
-      setJSON("tw_badges_earned", earnedBadges);
-      newBadgesThisRun.push(id);
-    };
+      const BADGE_DEFS = {
+        first_mission: { icon: "🎯", label: "First Mission" },
+        perfect_score: { icon: "💯", label: "Perfect Score" },
+        speed_demon: { icon: "⚡", label: "Speed Demon" },
+        combo_5: { icon: "🔥", label: "On Fire" },
+        level_5: { icon: "🧠", label: "Scholar" },
+        all_missions: { icon: "🌍", label: "World Traveller" },
+        streak_3: { icon: "📅", label: "Dedicated" },
+        points_1000: { icon: "⭐", label: "Star Student" },
+      };
+      let earnedBadges = getJSON("tw_badges_earned", {});
+      let completions = getJSON("tw_completions", {});
+      const newBadgesThisRun = [];
+      const awardBadge = id => {
+        if (earnedBadges[id]) return;
+        earnedBadges[id] = Date.now();
+        setJSON("tw_badges_earned", earnedBadges);
+        newBadgesThisRun.push(id);
+      };
 
-    /* Question Banks */
-    const missions = {
+      /* Question Banks */
+      const missions = {
 
-      "kyoto-laws-etiquette": {
-        title:"Kyoto: Rules + Respect Challenge", desc:"Smoking zones, Gion etiquette, temple protocol, and cultural nuances.", questionsPerRun:9,
-        questionBank:[
-          {q:"Under Kyoto's municipal ordinance, where is smoking while walking specifically prohibited?",a:["Inside temples only","On all public streets and roads","In restaurants only","In taxis only"],correct:1,hint:"Kyoto bans walking and smoking anywhere on public streets — only designated smoking zones are permitted."},
-          {q:"Which Kyoto district has introduced fines and photography restriction signs specifically to protect geisha?",a:["Nishiki Market","Gion Hanamikoji Street","Fushimi Inari","Arashiyama"],correct:1,hint:"Gion Hanamikoji has explicit no-photography signs following persistent harassment of maiko and geisha."},
-          {q:"At a Shinto shrine purification fountain (temizuya), what is the correct order of actions?",a:["Right hand, left hand, mouth, left hand again","Both hands together then mouth","Left hand only, then bow","Rinse mouth first then hands"],correct:0,hint:"The ritual: ladle in right hand, rinse left, switch, rinse right, cup water for mouth, then rinse ladle handle."},
-          {q:"Why is passing food directly from chopstick to chopstick strictly taboo in Japan?",a:["It spreads bacteria","It mirrors a funeral cremation ritual with bones","It wastes food","It is considered greedy"],correct:1,hint:"This gesture replicates how cremated remains are passed between family members at a funeral — deeply offensive."},
-          {q:"True or False: The centre path (sandō) leading to a shrine's main hall is reserved for deities and should be avoided by humans.",a:["True","False"],correct:0,hint:"Worshippers walk along the sides — the centre path is considered the path of the gods."},
-          {q:"What does itadakimasu literally mean and why is it said before every meal in Japan?",a:["Thank you for cooking","I humbly receive — honouring all life sacrificed for the meal","Good appetite","Please enjoy the food"],correct:1,hint:"It expresses humble gratitude toward the food, farmers, and cooks — skipping it is considered disrespectful."},
-          {q:"True or False: Tipping a taxi driver in Kyoto is considered a polite and appreciated gesture.",a:["True","False"],correct:1,hint:"Tipping is not customary anywhere in Japan — it can cause confusion and even offence."},
-          {q:"What fine can visitors face for dumping rubbish in Kyoto's canals or rivers?",a:["¥1,000","Up to ¥50,000","No fine — just a warning","¥500"],correct:1,hint:"Environmental protection fines in Kyoto can reach ¥50,000 for illegal dumping in waterways."},
-          {q:"True or False: Littering in Kyoto is technically illegal even if no bin is available — you are expected to carry rubbish home.",a:["True","False"],correct:0,hint:"Public bins are almost non-existent in Kyoto — carrying your waste is both law and cultural expectation."},
-          {q:"Which prohibited action in Arashiyama Bamboo Grove can result in removal by security?",a:["Running through it","Touching or carving into the bamboo","Eating inside it","Taking selfies"],correct:1,hint:"Damaging the bamboo is an offence — staff patrol specifically to prevent this."},
-          {q:"What is the polite way to accept something from a Japanese local?",a:["With one hand","With the left hand","With both hands","Nod and take with right hand only"],correct:2,hint:"Using both hands shows respect in Japanese culture."},
-          {q:"True or False: Geisha in Gion are tourist performers available for photos on request.",a:["True","False"],correct:1,hint:"They are working professionals with strict schedules — do not approach, follow, or photograph without permission."},
-        ]
-      },
+        "kyoto-laws-etiquette": {
+          title: "Kyoto: Rules + Respect Challenge", desc: "Smoking zones, Gion etiquette, temple protocol, and cultural nuances.", questionsPerRun: 9,
+          questionBank: [
+            { q: "Under Kyoto's municipal ordinance, where is smoking while walking specifically prohibited?", a: ["Inside temples only", "On all public streets and roads", "In restaurants only", "In taxis only"], correct: 1, hint: "Kyoto bans walking and smoking anywhere on public streets — only designated smoking zones are permitted." },
+            { q: "Which Kyoto district has introduced fines and photography restriction signs specifically to protect geisha?", a: ["Nishiki Market", "Gion Hanamikoji Street", "Fushimi Inari", "Arashiyama"], correct: 1, hint: "Gion Hanamikoji has explicit no-photography signs following persistent harassment of maiko and geisha." },
+            { q: "At a Shinto shrine purification fountain (temizuya), what is the correct order of actions?", a: ["Right hand, left hand, mouth, left hand again", "Both hands together then mouth", "Left hand only, then bow", "Rinse mouth first then hands"], correct: 0, hint: "The ritual: ladle in right hand, rinse left, switch, rinse right, cup water for mouth, then rinse ladle handle." },
+            { q: "Why is passing food directly from chopstick to chopstick strictly taboo in Japan?", a: ["It spreads bacteria", "It mirrors a funeral cremation ritual with bones", "It wastes food", "It is considered greedy"], correct: 1, hint: "This gesture replicates how cremated remains are passed between family members at a funeral — deeply offensive." },
+            { q: "True or False: The centre path (sandō) leading to a shrine's main hall is reserved for deities and should be avoided by humans.", a: ["True", "False"], correct: 0, hint: "Worshippers walk along the sides — the centre path is considered the path of the gods." },
+            { q: "What does itadakimasu literally mean and why is it said before every meal in Japan?", a: ["Thank you for cooking", "I humbly receive — honouring all life sacrificed for the meal", "Good appetite", "Please enjoy the food"], correct: 1, hint: "It expresses humble gratitude toward the food, farmers, and cooks — skipping it is considered disrespectful." },
+            { q: "True or False: Tipping a taxi driver in Kyoto is considered a polite and appreciated gesture.", a: ["True", "False"], correct: 1, hint: "Tipping is not customary anywhere in Japan — it can cause confusion and even offence." },
+            { q: "What fine can visitors face for dumping rubbish in Kyoto's canals or rivers?", a: ["¥1,000", "Up to ¥50,000", "No fine — just a warning", "¥500"], correct: 1, hint: "Environmental protection fines in Kyoto can reach ¥50,000 for illegal dumping in waterways." },
+            { q: "True or False: Littering in Kyoto is technically illegal even if no bin is available — you are expected to carry rubbish home.", a: ["True", "False"], correct: 0, hint: "Public bins are almost non-existent in Kyoto — carrying your waste is both law and cultural expectation." },
+            { q: "Which prohibited action in Arashiyama Bamboo Grove can result in removal by security?", a: ["Running through it", "Touching or carving into the bamboo", "Eating inside it", "Taking selfies"], correct: 1, hint: "Damaging the bamboo is an offence — staff patrol specifically to prevent this." },
+            { q: "What is the polite way to accept something from a Japanese local?", a: ["With one hand", "With the left hand", "With both hands", "Nod and take with right hand only"], correct: 2, hint: "Using both hands shows respect in Japanese culture." },
+            { q: "True or False: Geisha in Gion are tourist performers available for photos on request.", a: ["True", "False"], correct: 1, hint: "They are working professionals with strict schedules — do not approach, follow, or photograph without permission." },
+          ]
+        },
 
-      "tokyo-laws-etiquette": {
-        title:"Tokyo: Precision + Protocol", desc:"Passport law, train rules, waste sorting, and cultural subtleties.", questionsPerRun:9,
-        questionBank:[
-          {q:"Under Japanese law, which document must foreign nationals carry at all times or face possible detention?",a:["A driving licence","Their passport or Residence Card","Travel insurance document","Hotel booking confirmation"],correct:1,hint:"Japan's Immigration Control Act requires this — police can demand it on the spot with legal consequences."},
-          {q:"What is the specific escalator convention in Tokyo?",a:["Stand right, walk left","Stand left, walk right","Either side is fine","Stand in the middle always"],correct:1,hint:"Tokyo's convention is stand left, walk right — the opposite of London and Osaka."},
-          {q:"Which of these actions is specifically banned on Tokyo's subway network?",a:["Reading books","Eating hot food and making phone calls","Listening to music with earphones","Sleeping"],correct:1,hint:"Eating and phone calls are both officially prohibited — quiet and no strong odours are enforced norms."},
-          {q:"True or False: Blowing your nose in public in Tokyo is considered far more offensive than in Western cultures.",a:["True","False"],correct:0,hint:"It is considered very rude — people step away privately rather than blowing their nose in public."},
-          {q:"What should you never do with Japanese business cards (meishi)?",a:["Read them carefully","Accept with both hands","Stuff them in your back pocket or write on them","Store them in a card holder"],correct:2,hint:"Business cards are a formal extension of the person — writing on them or pocketing carelessly is deeply disrespectful."},
-          {q:"True or False: Tokyo taxi doors open and close automatically — grabbing the door handle yourself is considered rude.",a:["True","False"],correct:0,hint:"Tokyo taxis have automatic doors controlled by the driver — touching the handle startles the driver and is bad etiquette."},
-          {q:"Which of these is a genuine law in Tokyo related to waste disposal?",a:["All rubbish must be sorted into specific categories before collection","You can put all waste in one bag","Recycling is optional","Bins are on every street corner"],correct:0,hint:"Japan has one of the world's most rigorous waste sorting systems — wrong category bags are rejected and offenders fined."},
-          {q:"True or False: In a traditional Japanese restaurant, it is acceptable to pour your own drink.",a:["True","False"],correct:1,hint:"You pour for others at the table — it is rude to fill your own glass. Others will fill yours."},
-          {q:"What does a red torii gate specifically mark in Japan?",a:["A Buddhist temple entrance","The sacred boundary of a Shinto shrine","A government building","A historical landmark"],correct:1,hint:"The torii marks the transition from the ordinary world to the sacred space of a Shinto shrine."},
-          {q:"True or False: Visiting an onsen with tattoos will always result in being refused entry at all facilities.",a:["True","False"],correct:1,hint:"Many traditional onsens ban tattoos, but an increasing number now accept them — always check the specific facility's policy."},
-          {q:"What does sumimasen mean and when is it used?",a:["Goodbye when leaving","Excuse me or I'm sorry — for polite interruption or apology","Thank you very much","Please when ordering"],correct:1,hint:"Sumimasen covers both apology and polite interruption — far more common in daily use than arigatō."},
-          {q:"What is the significance of the genkan entrance area in a Japanese home?",a:["A storage area only","A transitional space — wearing outdoor shoes inside brings impurity into the home","A recent hygiene trend","Only relevant in temples"],correct:1,hint:"The genkan represents the boundary between outside (unclean) and inside (sacred) — this ritual has deep cultural roots."},
-        ]
-      },
+        "tokyo-laws-etiquette": {
+          title: "Tokyo: Precision + Protocol", desc: "Passport law, train rules, waste sorting, and cultural subtleties.", questionsPerRun: 9,
+          questionBank: [
+            { q: "Under Japanese law, which document must foreign nationals carry at all times or face possible detention?", a: ["A driving licence", "Their passport or Residence Card", "Travel insurance document", "Hotel booking confirmation"], correct: 1, hint: "Japan's Immigration Control Act requires this — police can demand it on the spot with legal consequences." },
+            { q: "What is the specific escalator convention in Tokyo?", a: ["Stand right, walk left", "Stand left, walk right", "Either side is fine", "Stand in the middle always"], correct: 1, hint: "Tokyo's convention is stand left, walk right — the opposite of London and Osaka." },
+            { q: "Which of these actions is specifically banned on Tokyo's subway network?", a: ["Reading books", "Eating hot food and making phone calls", "Listening to music with earphones", "Sleeping"], correct: 1, hint: "Eating and phone calls are both officially prohibited — quiet and no strong odours are enforced norms." },
+            { q: "True or False: Blowing your nose in public in Tokyo is considered far more offensive than in Western cultures.", a: ["True", "False"], correct: 0, hint: "It is considered very rude — people step away privately rather than blowing their nose in public." },
+            { q: "What should you never do with Japanese business cards (meishi)?", a: ["Read them carefully", "Accept with both hands", "Stuff them in your back pocket or write on them", "Store them in a card holder"], correct: 2, hint: "Business cards are a formal extension of the person — writing on them or pocketing carelessly is deeply disrespectful." },
+            { q: "True or False: Tokyo taxi doors open and close automatically — grabbing the door handle yourself is considered rude.", a: ["True", "False"], correct: 0, hint: "Tokyo taxis have automatic doors controlled by the driver — touching the handle startles the driver and is bad etiquette." },
+            { q: "Which of these is a genuine law in Tokyo related to waste disposal?", a: ["All rubbish must be sorted into specific categories before collection", "You can put all waste in one bag", "Recycling is optional", "Bins are on every street corner"], correct: 0, hint: "Japan has one of the world's most rigorous waste sorting systems — wrong category bags are rejected and offenders fined." },
+            { q: "True or False: In a traditional Japanese restaurant, it is acceptable to pour your own drink.", a: ["True", "False"], correct: 1, hint: "You pour for others at the table — it is rude to fill your own glass. Others will fill yours." },
+            { q: "What does a red torii gate specifically mark in Japan?", a: ["A Buddhist temple entrance", "The sacred boundary of a Shinto shrine", "A government building", "A historical landmark"], correct: 1, hint: "The torii marks the transition from the ordinary world to the sacred space of a Shinto shrine." },
+            { q: "True or False: Visiting an onsen with tattoos will always result in being refused entry at all facilities.", a: ["True", "False"], correct: 1, hint: "Many traditional onsens ban tattoos, but an increasing number now accept them — always check the specific facility's policy." },
+            { q: "What does sumimasen mean and when is it used?", a: ["Goodbye when leaving", "Excuse me or I'm sorry — for polite interruption or apology", "Thank you very much", "Please when ordering"], correct: 1, hint: "Sumimasen covers both apology and polite interruption — far more common in daily use than arigatō." },
+            { q: "What is the significance of the genkan entrance area in a Japanese home?", a: ["A storage area only", "A transitional space — wearing outdoor shoes inside brings impurity into the home", "A recent hygiene trend", "Only relevant in temples"], correct: 1, hint: "The genkan represents the boundary between outside (unclean) and inside (sacred) — this ritual has deep cultural roots." },
+          ]
+        },
 
-      "paris-laws-etiquette": {
-        title:"Paris: Laws, Fines + Café Codes", desc:"Identity law, copyright traps, fines, and what annoys Parisians most.", questionsPerRun:9,
-        questionBank:[
-          {q:"Under French law, police can request identification and detain you for up to how long if you cannot produce it?",a:["30 minutes","4 hours while identity is verified","24 hours","You cannot be detained — only fined"],correct:1,hint:"France has strong identity check powers — detention for verification of up to 4 hours is legal without formal arrest."},
-          {q:"True or False: The lit Eiffel Tower at night is under copyright — commercial photography of it may be an intellectual property violation.",a:["True","False"],correct:0,hint:"The lighting design is copyrighted — commercial use of night photos requires a licence from SETE. Personal photos are fine."},
-          {q:"What specific fine can you receive for urinating in public in Paris?",a:["€50","€150","€450","€750"],correct:2,hint:"Public urination carries a €450 on-the-spot fine in Paris — considerably higher than many tourists expect."},
-          {q:"What is the legally correct blood alcohol limit for driving in France?",a:["0.8g/L same as UK","0.5g/L","0.3g/L","Zero tolerance"],correct:1,hint:"France has a stricter limit of 0.5g/L compared to the UK's 0.8g/L — new drivers face an even lower 0.2g/L limit."},
-          {q:"True or False: In France it is illegal to name a pig Napoléon.",a:["True","False"],correct:0,hint:"An old French law still on the books technically prohibits this — insulting the dignity of a French head of state."},
-          {q:"What does the August closure phenomenon (fermeture d'août) mean for tourists?",a:["All tourist attractions close by law","Many Parisian shops and restaurants close the entire month — owners take their annual holiday","A single public holiday weekend","Only affects government buildings"],correct:1,hint:"Paris in August sees mass closures of independent restaurants, bakeries, and shops — a cultural institution that catches tourists off guard."},
-          {q:"Which specific French table manner is considered the height of rudeness at dinner?",a:["Eating everything on your plate","Cutting salad leaves with a knife","Asking for ketchup","Pouring your own wine"],correct:1,hint:"Cutting salad leaves with a knife is a persistent French faux pas — they should be folded with a fork only."},
-          {q:"How do you correctly get a waiter's attention in a Paris café?",a:["Wave your hand","Call out s'il vous plaît loudly","Make eye contact and wait patiently","Click your fingers"],correct:2,hint:"Patient eye contact is the Parisian norm — calling out or gesturing excessively is considered rude."},
-          {q:"What does asking for l'addition mean in a French restaurant?",a:["Ordering another drink","Asking for the bill","Complaining about the price","Requesting the dessert menu"],correct:1,hint:"It means you want the bill — Parisian waiters deliberately do not bring it unsolicited, as lingering is normal."},
-          {q:"True or False: Speaking English without attempting any French greeting is generally well received in Paris.",a:["True","False"],correct:1,hint:"Attempting Bonjour and Parlez-vous anglais? makes an enormous difference — skipping it entirely is considered rude."},
-          {q:"Why is it sensitive to discuss personal finances in a French social setting?",a:["It is fine in casual settings","Money is a profound social taboo — far more so than in British or American culture","Only rude at formal dinners","It is a recent social change"],correct:1,hint:"Discussing personal earnings or wealth is one of the greatest social taboos in France — considered crass and intrusive."},
-          {q:"What is the specific French law protecting privacy of individuals that affects photography?",a:["Photography is always permitted in public spaces","Article 9 of the Civil Code — photographing identifiable people without consent is illegal","Only professional photography requires consent","Photos are fine as long as you do not publish them"],correct:1,hint:"France has among the world's strongest personal privacy laws — photographing individuals without consent can lead to legal action."},
-        ]
-      },
+        "paris-laws-etiquette": {
+          title: "Paris: Laws, Fines + Café Codes", desc: "Identity law, copyright traps, fines, and what annoys Parisians most.", questionsPerRun: 9,
+          questionBank: [
+            { q: "Under French law, police can request identification and detain you for up to how long if you cannot produce it?", a: ["30 minutes", "4 hours while identity is verified", "24 hours", "You cannot be detained — only fined"], correct: 1, hint: "France has strong identity check powers — detention for verification of up to 4 hours is legal without formal arrest." },
+            { q: "True or False: The lit Eiffel Tower at night is under copyright — commercial photography of it may be an intellectual property violation.", a: ["True", "False"], correct: 0, hint: "The lighting design is copyrighted — commercial use of night photos requires a licence from SETE. Personal photos are fine." },
+            { q: "What specific fine can you receive for urinating in public in Paris?", a: ["€50", "€150", "€450", "€750"], correct: 2, hint: "Public urination carries a €450 on-the-spot fine in Paris — considerably higher than many tourists expect." },
+            { q: "What is the legally correct blood alcohol limit for driving in France?", a: ["0.8g/L same as UK", "0.5g/L", "0.3g/L", "Zero tolerance"], correct: 1, hint: "France has a stricter limit of 0.5g/L compared to the UK's 0.8g/L — new drivers face an even lower 0.2g/L limit." },
+            { q: "True or False: In France it is illegal to name a pig Napoléon.", a: ["True", "False"], correct: 0, hint: "An old French law still on the books technically prohibits this — insulting the dignity of a French head of state." },
+            { q: "What does the August closure phenomenon (fermeture d'août) mean for tourists?", a: ["All tourist attractions close by law", "Many Parisian shops and restaurants close the entire month — owners take their annual holiday", "A single public holiday weekend", "Only affects government buildings"], correct: 1, hint: "Paris in August sees mass closures of independent restaurants, bakeries, and shops — a cultural institution that catches tourists off guard." },
+            { q: "Which specific French table manner is considered the height of rudeness at dinner?", a: ["Eating everything on your plate", "Cutting salad leaves with a knife", "Asking for ketchup", "Pouring your own wine"], correct: 1, hint: "Cutting salad leaves with a knife is a persistent French faux pas — they should be folded with a fork only." },
+            { q: "How do you correctly get a waiter's attention in a Paris café?", a: ["Wave your hand", "Call out s'il vous plaît loudly", "Make eye contact and wait patiently", "Click your fingers"], correct: 2, hint: "Patient eye contact is the Parisian norm — calling out or gesturing excessively is considered rude." },
+            { q: "What does asking for l'addition mean in a French restaurant?", a: ["Ordering another drink", "Asking for the bill", "Complaining about the price", "Requesting the dessert menu"], correct: 1, hint: "It means you want the bill — Parisian waiters deliberately do not bring it unsolicited, as lingering is normal." },
+            { q: "True or False: Speaking English without attempting any French greeting is generally well received in Paris.", a: ["True", "False"], correct: 1, hint: "Attempting Bonjour and Parlez-vous anglais? makes an enormous difference — skipping it entirely is considered rude." },
+            { q: "Why is it sensitive to discuss personal finances in a French social setting?", a: ["It is fine in casual settings", "Money is a profound social taboo — far more so than in British or American culture", "Only rude at formal dinners", "It is a recent social change"], correct: 1, hint: "Discussing personal earnings or wealth is one of the greatest social taboos in France — considered crass and intrusive." },
+            { q: "What is the specific French law protecting privacy of individuals that affects photography?", a: ["Photography is always permitted in public spaces", "Article 9 of the Civil Code — photographing identifiable people without consent is illegal", "Only professional photography requires consent", "Photos are fine as long as you do not publish them"], correct: 1, hint: "France has among the world's strongest personal privacy laws — photographing individuals without consent can lead to legal action." },
+          ]
+        },
 
-      "rome-laws-etiquette": {
-        title:"Rome: Ancient Rules, Modern Fines", desc:"Monument laws, church codes, dining traps, and street scams.", questionsPerRun:9,
-        questionBank:[
-          {q:"What specific fine was introduced in Rome for sitting on the Spanish Steps?",a:["€50","€150","Up to €400","No fine — just a warning"],correct:2,hint:"Rome introduced fines of up to €400 for sitting on the Spanish Steps to combat tourist damage to the monument."},
-          {q:"What does the 2024 Trevi Fountain law specifically prohibit?",a:["Throwing coins is now banned","Wading or touching the water — fines of €250–€500 apply","Photography is restricted","Entry is capped at 50 people"],correct:1,hint:"Rome introduced strict €250–€500 fines for touching or entering the Trevi Fountain water following repeated tourist incidents."},
-          {q:"True or False: Buying counterfeit goods from a street vendor in Italy makes the buyer legally liable for a fine.",a:["True","False"],correct:0,hint:"Italian law holds the buyer liable — fines can reach €7,000 even for tourists purchasing fakes, regardless of claimed ignorance."},
-          {q:"What does coperto on an Italian restaurant bill legally represent?",a:["An optional tip","A mandatory cover charge for bread and table service","A tourist surcharge","A government tax"],correct:1,hint:"Coperto is a legal cover charge — typically €1.50–€3 per person. It is not a tip and is not optional."},
-          {q:"What is the specific penalty for carving into Rome's ancient monuments including the Colosseum?",a:["A €50 fine","Community service only","Up to 5 years in prison and fines exceeding €15,000","Deportation only"],correct:2,hint:"Italy treats monument vandalism as serious criminal offence — a 2023 Colosseum carving incident resulted in international charges."},
-          {q:"True or False: Ordering a cappuccino after 11am in Italy will confuse Italian locals.",a:["True","False"],correct:0,hint:"Italians believe milky coffee upsets digestion after meals — ordering it post-morning is a definitive tourist marker that locals find amusing."},
-          {q:"What does pane e coperto specifically mean in Italian dining?",a:["Bread is included free","You pay for the bread brought to the table as part of the cover charge","Bread is optional — ask to remove it","Only charged to tourists"],correct:1,hint:"The bread brought to your table is charged as part of coperto — you pay for it whether you eat it or not."},
-          {q:"What is the friendship bracelet scam near tourist sites in Rome?",a:["Bracelets are stolen property","They forcibly tie it on then aggressively demand €10–20","They bring bad luck","It is illegal to sell on the street"],correct:1,hint:"A well-documented Rome scam — once the bracelet is on your wrist they claim you owe money and create a scene."},
-          {q:"True or False: Complimentary items brought to your table in Rome are always genuinely free.",a:["True","False"],correct:1,hint:"Pre-meal olives, water, and breadsticks are often charged — some restaurants automatically add them to the bill."},
-          {q:"What is the dress code enforced at St. Peter's Basilica?",a:["Formal wear required — turned away otherwise","Shoulders and knees covered — guards will refuse entry or provide scarves","Hats must be worn","Religious symbols must be removed"],correct:1,hint:"Vatican Swiss Guards actively enforce the code — shoulders and knees must be covered at all times."},
-          {q:"What are Roman nasoni?",a:["Street food stalls","Free fresh drinking water fountains found across the city","Small underground museums","Souvenir shops"],correct:1,hint:"Rome has hundreds of free drinking water fountains — locals and tourists use them constantly. The water is safe and cold."},
-          {q:"When ordering espresso in Rome, what does standing at the bar (al banco) mean for the price?",a:["It is more expensive","It is the same price everywhere","It is significantly cheaper than sitting at a table","It is only available to locals"],correct:2,hint:"Sitting at a table in Italy triggers a service charge (servizio) — espresso at the counter can be half the price of table service."},
-        ]
-      },
+        "rome-laws-etiquette": {
+          title: "Rome: Ancient Rules, Modern Fines", desc: "Monument laws, church codes, dining traps, and street scams.", questionsPerRun: 9,
+          questionBank: [
+            { q: "What specific fine was introduced in Rome for sitting on the Spanish Steps?", a: ["€50", "€150", "Up to €400", "No fine — just a warning"], correct: 2, hint: "Rome introduced fines of up to €400 for sitting on the Spanish Steps to combat tourist damage to the monument." },
+            { q: "What does the 2024 Trevi Fountain law specifically prohibit?", a: ["Throwing coins is now banned", "Wading or touching the water — fines of €250–€500 apply", "Photography is restricted", "Entry is capped at 50 people"], correct: 1, hint: "Rome introduced strict €250–€500 fines for touching or entering the Trevi Fountain water following repeated tourist incidents." },
+            { q: "True or False: Buying counterfeit goods from a street vendor in Italy makes the buyer legally liable for a fine.", a: ["True", "False"], correct: 0, hint: "Italian law holds the buyer liable — fines can reach €7,000 even for tourists purchasing fakes, regardless of claimed ignorance." },
+            { q: "What does coperto on an Italian restaurant bill legally represent?", a: ["An optional tip", "A mandatory cover charge for bread and table service", "A tourist surcharge", "A government tax"], correct: 1, hint: "Coperto is a legal cover charge — typically €1.50–€3 per person. It is not a tip and is not optional." },
+            { q: "What is the specific penalty for carving into Rome's ancient monuments including the Colosseum?", a: ["A €50 fine", "Community service only", "Up to 5 years in prison and fines exceeding €15,000", "Deportation only"], correct: 2, hint: "Italy treats monument vandalism as serious criminal offence — a 2023 Colosseum carving incident resulted in international charges." },
+            { q: "True or False: Ordering a cappuccino after 11am in Italy will confuse Italian locals.", a: ["True", "False"], correct: 0, hint: "Italians believe milky coffee upsets digestion after meals — ordering it post-morning is a definitive tourist marker that locals find amusing." },
+            { q: "What does pane e coperto specifically mean in Italian dining?", a: ["Bread is included free", "You pay for the bread brought to the table as part of the cover charge", "Bread is optional — ask to remove it", "Only charged to tourists"], correct: 1, hint: "The bread brought to your table is charged as part of coperto — you pay for it whether you eat it or not." },
+            { q: "What is the friendship bracelet scam near tourist sites in Rome?", a: ["Bracelets are stolen property", "They forcibly tie it on then aggressively demand €10–20", "They bring bad luck", "It is illegal to sell on the street"], correct: 1, hint: "A well-documented Rome scam — once the bracelet is on your wrist they claim you owe money and create a scene." },
+            { q: "True or False: Complimentary items brought to your table in Rome are always genuinely free.", a: ["True", "False"], correct: 1, hint: "Pre-meal olives, water, and breadsticks are often charged — some restaurants automatically add them to the bill." },
+            { q: "What is the dress code enforced at St. Peter's Basilica?", a: ["Formal wear required — turned away otherwise", "Shoulders and knees covered — guards will refuse entry or provide scarves", "Hats must be worn", "Religious symbols must be removed"], correct: 1, hint: "Vatican Swiss Guards actively enforce the code — shoulders and knees must be covered at all times." },
+            { q: "What are Roman nasoni?", a: ["Street food stalls", "Free fresh drinking water fountains found across the city", "Small underground museums", "Souvenir shops"], correct: 1, hint: "Rome has hundreds of free drinking water fountains — locals and tourists use them constantly. The water is safe and cold." },
+            { q: "When ordering espresso in Rome, what does standing at the bar (al banco) mean for the price?", a: ["It is more expensive", "It is the same price everywhere", "It is significantly cheaper than sitting at a table", "It is only available to locals"], correct: 2, hint: "Sitting at a table in Italy triggers a service charge (servizio) — espresso at the counter can be half the price of table service." },
+          ]
+        },
 
-      "barcelona-laws-etiquette": {
-        title:"Barcelona: Ordinances + Street Smarts", desc:"Fines, Catalan identity, licensing laws, and tourist traps.", questionsPerRun:9,
-        questionBank:[
-          {q:"Under Barcelona's Civic Ordinance, what fine applies to walking shirtless or in swimwear more than 200m from a beach?",a:["€30","€100","Up to €300","A warning only"],correct:2,hint:"Barcelona's ordinance targets beachwear in the city centre — it was strengthened after complaints from residents."},
-          {q:"True or False: Barcelona's anti-noise ordinance allows residents to report tourist apartments for excessive noise, potentially leading to licence revocation.",a:["True","False"],correct:0,hint:"Barcelona has used this mechanism to permanently close multiple tourist apartments — noise violations can end a property's operating licence."},
-          {q:"Why is assuming Catalan people prefer Spanish politically sensitive in Barcelona?",a:["Spanish is not spoken there","Catalan is co-official and a deep cultural identity marker — assuming Spanish can be seen as disrespectful","They are the same language","Only older residents feel this way"],correct:1,hint:"For many locals Catalan is cultural resistance — saying Bon dia instead of Buenos días is genuinely appreciated."},
-          {q:"What specific location has the highest documented rate of pickpocketing in Europe?",a:["Camp Nou","Las Ramblas and the Gothic Quarter","Barceloneta Beach","Sagrada Família entrance"],correct:1,hint:"Las Ramblas consistently ranks among Europe's highest-risk zones — money belts and front-facing bags are strongly advised."},
-          {q:"True or False: Free tapas with drinks is a Barcelona tradition.",a:["True","False"],correct:1,hint:"Free tapas with drinks is an Andalusian tradition — in Barcelona tapas are almost always charged separately. Many tourists are confused by this."},
-          {q:"What fine can cyclists face for riding on the pavement in Barcelona?",a:["€30","€100","Up to €500","A warning only"],correct:2,hint:"Barcelona actively enforces pavement cycling bans — fines of up to €500 are issued and tourist ignorance is not accepted."},
-          {q:"What does menú del día legally guarantee in a Barcelona restaurant?",a:["A discounted main course only","Three courses with bread and a drink at a fixed price — legally defined for Monday–Friday lunch","It is not regulated by law","A free dessert"],correct:1,hint:"Spain legally defines the menú del día — starter, main, dessert, bread, and drink at a fixed price. The best value lunch option."},
-          {q:"True or False: Barcelona law requires tourist apartments to display a visible HUTB licence number.",a:["True","False"],correct:0,hint:"Barcelona has strict licensing laws — operating without a HUTB licence is illegal and the city actively prosecutes unlicensed hosts."},
-          {q:"What is la bolita (three-card monte) and why should tourists avoid it?",a:["A legitimate street game of skill","An illegal scam where the operator always wins — bystanders are often accomplices","A licensed casino game","A children's street activity"],correct:1,hint:"La bolita is organised crime — stopping to watch marks you as a target. Bystanders appearing to win are planted accomplices."},
-          {q:"True or False: Sagrada Família charges different entry prices for Barcelona residents versus tourists.",a:["True","False"],correct:0,hint:"Barcelona residents receive discounted or free entry — a deliberate policy to reduce resident resentment of tourist pressure on the city."},
-          {q:"What specific fine is issued for bathing in Barcelona's ornamental public fountains?",a:["€30","€90","Up to €3,000","No fine — confiscation only"],correct:2,hint:"Bathing in ornamental fountains falls under Barcelona's Civic Ordinance — serious fines apply especially if damage occurs."},
-          {q:"True or False: In Catalonia, businesses are legally required to serve you in Catalan if you request it.",a:["True","False"],correct:0,hint:"Catalonia's Language Policy Law guarantees the right to be served in Catalan — businesses are legally required to accommodate Catalan-speaking customers."},
-        ]
-      },
+        "barcelona-laws-etiquette": {
+          title: "Barcelona: Ordinances + Street Smarts", desc: "Fines, Catalan identity, licensing laws, and tourist traps.", questionsPerRun: 9,
+          questionBank: [
+            { q: "Under Barcelona's Civic Ordinance, what fine applies to walking shirtless or in swimwear more than 200m from a beach?", a: ["€30", "€100", "Up to €300", "A warning only"], correct: 2, hint: "Barcelona's ordinance targets beachwear in the city centre — it was strengthened after complaints from residents." },
+            { q: "True or False: Barcelona's anti-noise ordinance allows residents to report tourist apartments for excessive noise, potentially leading to licence revocation.", a: ["True", "False"], correct: 0, hint: "Barcelona has used this mechanism to permanently close multiple tourist apartments — noise violations can end a property's operating licence." },
+            { q: "Why is assuming Catalan people prefer Spanish politically sensitive in Barcelona?", a: ["Spanish is not spoken there", "Catalan is co-official and a deep cultural identity marker — assuming Spanish can be seen as disrespectful", "They are the same language", "Only older residents feel this way"], correct: 1, hint: "For many locals Catalan is cultural resistance — saying Bon dia instead of Buenos días is genuinely appreciated." },
+            { q: "What specific location has the highest documented rate of pickpocketing in Europe?", a: ["Camp Nou", "Las Ramblas and the Gothic Quarter", "Barceloneta Beach", "Sagrada Família entrance"], correct: 1, hint: "Las Ramblas consistently ranks among Europe's highest-risk zones — money belts and front-facing bags are strongly advised." },
+            { q: "True or False: Free tapas with drinks is a Barcelona tradition.", a: ["True", "False"], correct: 1, hint: "Free tapas with drinks is an Andalusian tradition — in Barcelona tapas are almost always charged separately. Many tourists are confused by this." },
+            { q: "What fine can cyclists face for riding on the pavement in Barcelona?", a: ["€30", "€100", "Up to €500", "A warning only"], correct: 2, hint: "Barcelona actively enforces pavement cycling bans — fines of up to €500 are issued and tourist ignorance is not accepted." },
+            { q: "What does menú del día legally guarantee in a Barcelona restaurant?", a: ["A discounted main course only", "Three courses with bread and a drink at a fixed price — legally defined for Monday–Friday lunch", "It is not regulated by law", "A free dessert"], correct: 1, hint: "Spain legally defines the menú del día — starter, main, dessert, bread, and drink at a fixed price. The best value lunch option." },
+            { q: "True or False: Barcelona law requires tourist apartments to display a visible HUTB licence number.", a: ["True", "False"], correct: 0, hint: "Barcelona has strict licensing laws — operating without a HUTB licence is illegal and the city actively prosecutes unlicensed hosts." },
+            { q: "What is la bolita (three-card monte) and why should tourists avoid it?", a: ["A legitimate street game of skill", "An illegal scam where the operator always wins — bystanders are often accomplices", "A licensed casino game", "A children's street activity"], correct: 1, hint: "La bolita is organised crime — stopping to watch marks you as a target. Bystanders appearing to win are planted accomplices." },
+            { q: "True or False: Sagrada Família charges different entry prices for Barcelona residents versus tourists.", a: ["True", "False"], correct: 0, hint: "Barcelona residents receive discounted or free entry — a deliberate policy to reduce resident resentment of tourist pressure on the city." },
+            { q: "What specific fine is issued for bathing in Barcelona's ornamental public fountains?", a: ["€30", "€90", "Up to €3,000", "No fine — confiscation only"], correct: 2, hint: "Bathing in ornamental fountains falls under Barcelona's Civic Ordinance — serious fines apply especially if damage occurs." },
+            { q: "True or False: In Catalonia, businesses are legally required to serve you in Catalan if you request it.", a: ["True", "False"], correct: 0, hint: "Catalonia's Language Policy Law guarantees the right to be served in Catalan — businesses are legally required to accommodate Catalan-speaking customers." },
+          ]
+        },
 
-      "newyork-laws-etiquette": {
-        title:"New York City: Laws + Urban Survival", desc:"Legal specifics, tipping culture, transit rules, and street awareness.", questionsPerRun:9,
-        questionBank:[
-          {q:"Under New York law, what is the fine for carrying an open alcoholic container on a public street?",a:["Up to $25 civil fine","30-day jail sentence","€100 criminal charge","No fine — a warning only for first offence"],correct:0,hint:"NYC open container violations are typically $25 civil fines — but disorderly conduct linked to drinking can escalate significantly."},
-          {q:"Why does not tipping in NYC restaurants directly harm the server, unlike in Europe?",a:["Servers earn a higher base wage here","New York allows a tip credit — servers can legally be paid below minimum wage with the assumption tips will compensate","Tipping is legally optional","Restaurants keep tips as profit"],correct:1,hint:"The tip credit system means servers may legally earn as little as $10/hour — tips make up the majority of their income."},
-          {q:"True or False: When hailing a yellow cab, the centre roof light being ON means the cab is available.",a:["True","False"],correct:0,hint:"Centre light ON = available. Side lights only = off duty. All lights off = occupied. Most tourists get this wrong."},
-          {q:"True or False: NYC decriminalised jaywalking in 2022 — police can no longer issue fines for it.",a:["True","False"],correct:0,hint:"NYC formally decriminalised jaywalking in 2022 — it remains technically against a statute but fines can no longer be issued."},
-          {q:"What is the combined sales tax rate in New York City, and which items are exempt?",a:["8.875% on most items — clothing under $110 per item is exempt","10% across the board","5% on luxury goods only","No sales tax — included in displayed prices"],correct:0,hint:"NYC's 8.875% sales tax catches tourists out — but clothing under $110 per item is exempt, a policy many visitors do not know."},
-          {q:"Which Times Square character scam technique targets tourists?",a:["Offering directions then demanding payment","Posing for photos then aggressively demanding $20–40","Selling fake Broadway tickets","Offering to carry luggage"],correct:1,hint:"Costumed characters in Times Square are not buskers with optional tips — many aggressively demand large sums after posing."},
-          {q:"What is the NYC subway rule about priority seating that tourists often misunderstand?",a:["Priority seats are enforced by law","They are legally designated for elderly, pregnant, or disabled passengers — refusing to vacate is technically a civil violation","They are only suggestions","Only applicable during rush hour"],correct:1,hint:"Priority seating is legally designated — refusing to move when asked by a person with a need is a civil violation."},
-          {q:"Why should you avoid using your phone visibly while walking in crowded NYC areas?",a:["It is illegal","Phone snatching is among NYC's most common street crimes — the NYPD specifically warns against visible phone use","Mobile signals are blocked","GPS drains battery quickly"],correct:1,hint:"Phone snatching increased dramatically in NYC — thieves specifically target distracted pedestrians on busy streets."},
-          {q:"True or False: Standing on the left side of an escalator in NYC is acceptable.",a:["True","False"],correct:1,hint:"Stand right, walk left — blocking the left side will earn you hostile looks from New Yorkers in a hurry."},
-          {q:"What does on the clock mean for NYC yellow taxis?",a:["The driver is tracking trip time","The meter is running — all yellow taxi rides must legally use the meter","The driver is working overtime","The cab is pre-booked"],correct:1,hint:"Yellow cabs are legally required to use meters — any driver offering a flat rate before starting the meter is acting illegally."},
-          {q:"What is the specific minimum tip percentage considered standard in NYC sit-down restaurants?",a:["10%","15% minimum — 18–22% is more typical","25% is standard","Tipping is optional"],correct:1,hint:"15% is the absolute minimum in NYC — 18–22% is the genuine standard, especially given the tip credit system servers operate under."},
-          {q:"True or False: Eating and drinking on the NYC subway is technically illegal but has been inconsistently enforced.",a:["True","False"],correct:0,hint:"All three are technically illegal — eating, drinking, and taking up multiple seats — but enforcement is inconsistent and periodic."},
-        ]
-      },
+        "newyork-laws-etiquette": {
+          title: "New York City: Laws + Urban Survival", desc: "Legal specifics, tipping culture, transit rules, and street awareness.", questionsPerRun: 9,
+          questionBank: [
+            { q: "Under New York law, what is the fine for carrying an open alcoholic container on a public street?", a: ["Up to $25 civil fine", "30-day jail sentence", "€100 criminal charge", "No fine — a warning only for first offence"], correct: 0, hint: "NYC open container violations are typically $25 civil fines — but disorderly conduct linked to drinking can escalate significantly." },
+            { q: "Why does not tipping in NYC restaurants directly harm the server, unlike in Europe?", a: ["Servers earn a higher base wage here", "New York allows a tip credit — servers can legally be paid below minimum wage with the assumption tips will compensate", "Tipping is legally optional", "Restaurants keep tips as profit"], correct: 1, hint: "The tip credit system means servers may legally earn as little as $10/hour — tips make up the majority of their income." },
+            { q: "True or False: When hailing a yellow cab, the centre roof light being ON means the cab is available.", a: ["True", "False"], correct: 0, hint: "Centre light ON = available. Side lights only = off duty. All lights off = occupied. Most tourists get this wrong." },
+            { q: "True or False: NYC decriminalised jaywalking in 2022 — police can no longer issue fines for it.", a: ["True", "False"], correct: 0, hint: "NYC formally decriminalised jaywalking in 2022 — it remains technically against a statute but fines can no longer be issued." },
+            { q: "What is the combined sales tax rate in New York City, and which items are exempt?", a: ["8.875% on most items — clothing under $110 per item is exempt", "10% across the board", "5% on luxury goods only", "No sales tax — included in displayed prices"], correct: 0, hint: "NYC's 8.875% sales tax catches tourists out — but clothing under $110 per item is exempt, a policy many visitors do not know." },
+            { q: "Which Times Square character scam technique targets tourists?", a: ["Offering directions then demanding payment", "Posing for photos then aggressively demanding $20–40", "Selling fake Broadway tickets", "Offering to carry luggage"], correct: 1, hint: "Costumed characters in Times Square are not buskers with optional tips — many aggressively demand large sums after posing." },
+            { q: "What is the NYC subway rule about priority seating that tourists often misunderstand?", a: ["Priority seats are enforced by law", "They are legally designated for elderly, pregnant, or disabled passengers — refusing to vacate is technically a civil violation", "They are only suggestions", "Only applicable during rush hour"], correct: 1, hint: "Priority seating is legally designated — refusing to move when asked by a person with a need is a civil violation." },
+            { q: "Why should you avoid using your phone visibly while walking in crowded NYC areas?", a: ["It is illegal", "Phone snatching is among NYC's most common street crimes — the NYPD specifically warns against visible phone use", "Mobile signals are blocked", "GPS drains battery quickly"], correct: 1, hint: "Phone snatching increased dramatically in NYC — thieves specifically target distracted pedestrians on busy streets." },
+            { q: "True or False: Standing on the left side of an escalator in NYC is acceptable.", a: ["True", "False"], correct: 1, hint: "Stand right, walk left — blocking the left side will earn you hostile looks from New Yorkers in a hurry." },
+            { q: "What does on the clock mean for NYC yellow taxis?", a: ["The driver is tracking trip time", "The meter is running — all yellow taxi rides must legally use the meter", "The driver is working overtime", "The cab is pre-booked"], correct: 1, hint: "Yellow cabs are legally required to use meters — any driver offering a flat rate before starting the meter is acting illegally." },
+            { q: "What is the specific minimum tip percentage considered standard in NYC sit-down restaurants?", a: ["10%", "15% minimum — 18–22% is more typical", "25% is standard", "Tipping is optional"], correct: 1, hint: "15% is the absolute minimum in NYC — 18–22% is the genuine standard, especially given the tip credit system servers operate under." },
+            { q: "True or False: Eating and drinking on the NYC subway is technically illegal but has been inconsistently enforced.", a: ["True", "False"], correct: 0, hint: "All three are technically illegal — eating, drinking, and taking up multiple seats — but enforcement is inconsistent and periodic." },
+          ]
+        },
 
-      "marrakech-laws-etiquette": {
-        title:"Marrakech: Laws + Deep Cultural Codes", desc:"Islamic law, Ramadan rules, negotiation culture, and legal traps.", questionsPerRun:9,
-        questionBank:[
-          {q:"Under Morocco's Penal Code, what is the penalty for sexual relations outside marriage — does it apply to tourists?",a:["A fine only for Moroccan citizens","Up to one year in prison — tourists are not exempt","Deportation without charges","No penalty for foreigners"],correct:1,hint:"Article 490 criminalises relations outside marriage — enforcement against tourists does occur, particularly following hotel complaints."},
-          {q:"Which behaviour during Ramadan is illegal for anyone — including tourists — in Morocco during daylight hours?",a:["Listening to music","Eating, drinking, or smoking publicly — fines and detention apply","Wearing Western clothing","Using social media"],correct:1,hint:"Morocco enforces public fasting rules during Ramadan — tourists visibly eating or drinking in public can be fined or detained."},
-          {q:"True or False: Morocco's lèse-majesté laws mean criticising King Mohammed VI on social media — even before visiting — can result in prosecution.",a:["True","False"],correct:0,hint:"Morocco has prosecuted individuals for historical social media posts — digital history is sometimes checked at borders."},
-          {q:"Which drug is technically illegal in Morocco despite being widely visible to tourists?",a:["Alcohol","Cannabis (kif) — possession remains illegal and tourists face prosecution, sometimes after being sold drugs by sellers who then report them","Tobacco","Prescription medication"],correct:1,hint:"Cannabis is illegal in Morocco — tourists have been imprisoned after buying drugs from sellers who then reported them to police."},
-          {q:"True or False: In Morocco, an unmarried couple including tourists may legally be refused a shared hotel room.",a:["True","False"],correct:0,hint:"Technically illegal under Article 490 — some hotels enforce the law and require a marriage certificate."},
-          {q:"What is a faux guide (false guide) in Marrakech?",a:["A guide with outdated historical information","An unlicensed guide who leads tourists to commission shops — official guides carry laminated ID cards","A government-certified guide","A digital GPS app"],correct:1,hint:"Faux guides are well-documented — they offer help then divert tourists to shops where they receive kickbacks."},
-          {q:"What is the appropriate phrase to firmly but politely refuse a persistent vendor in Marrakech's souks?",a:["No problem","La shukran — No thank you — said firmly while continuing to walk","Ignore completely with no response","Accept then return items"],correct:1,hint:"La shukran is universally understood — firm but polite refusal respects the cultural dynamic without confrontation."},
-          {q:"True or False: Photography of military installations and government buildings in Morocco is illegal.",a:["True","False"],correct:0,hint:"Morocco takes security photography seriously — tourists have had equipment confiscated and been detained for photographing restricted buildings."},
-          {q:"What is the dirham black market and what risk does it pose?",a:["A legitimate exchange service","Illegal currency exchange — tourists often receive counterfeit notes, are shortchanged, or reported to police by the exchanger","A government currency programme","An ATM fee avoidance scheme"],correct:1,hint:"Street currency exchange is illegal — tourists have received counterfeits, been robbed, or been arrested after accepting black market rates."},
-          {q:"True or False: Using your left hand to eat, greet, or hand over money in Morocco is deeply offensive.",a:["True","False"],correct:0,hint:"In Islamic culture the left hand is associated with impurity — using it for eating, greeting, or exchanging money causes genuine offence."},
-          {q:"What is the cultural significance of mint tea offered during souk negotiations?",a:["It creates an obligation to buy","It is genuine hospitality — you may accept without any obligation to purchase","It is a scam — leave immediately","Only accept if you intend to buy"],correct:1,hint:"Mint tea is genuine Moroccan hospitality — accepting graciously is correct etiquette. You are under no obligation whatsoever."},
-          {q:"Are most Moroccan mosques open to non-Muslim tourists like they are in Turkey or Egypt?",a:["Yes — all mosques welcome tourists","No — most Moroccan mosques do not permit non-Muslim visitors. Entering can result in police involvement","Only during Friday prayers","Tourists are always welcome"],correct:1,hint:"Unlike many Muslim countries, most Moroccan mosques are closed to non-Muslims — the Koutoubia in Marrakech is specifically restricted."},
-        ]
-      },
+        "marrakech-laws-etiquette": {
+          title: "Marrakech: Laws + Deep Cultural Codes", desc: "Islamic law, Ramadan rules, negotiation culture, and legal traps.", questionsPerRun: 9,
+          questionBank: [
+            { q: "Under Morocco's Penal Code, what is the penalty for sexual relations outside marriage — does it apply to tourists?", a: ["A fine only for Moroccan citizens", "Up to one year in prison — tourists are not exempt", "Deportation without charges", "No penalty for foreigners"], correct: 1, hint: "Article 490 criminalises relations outside marriage — enforcement against tourists does occur, particularly following hotel complaints." },
+            { q: "Which behaviour during Ramadan is illegal for anyone — including tourists — in Morocco during daylight hours?", a: ["Listening to music", "Eating, drinking, or smoking publicly — fines and detention apply", "Wearing Western clothing", "Using social media"], correct: 1, hint: "Morocco enforces public fasting rules during Ramadan — tourists visibly eating or drinking in public can be fined or detained." },
+            { q: "True or False: Morocco's lèse-majesté laws mean criticising King Mohammed VI on social media — even before visiting — can result in prosecution.", a: ["True", "False"], correct: 0, hint: "Morocco has prosecuted individuals for historical social media posts — digital history is sometimes checked at borders." },
+            { q: "Which drug is technically illegal in Morocco despite being widely visible to tourists?", a: ["Alcohol", "Cannabis (kif) — possession remains illegal and tourists face prosecution, sometimes after being sold drugs by sellers who then report them", "Tobacco", "Prescription medication"], correct: 1, hint: "Cannabis is illegal in Morocco — tourists have been imprisoned after buying drugs from sellers who then reported them to police." },
+            { q: "True or False: In Morocco, an unmarried couple including tourists may legally be refused a shared hotel room.", a: ["True", "False"], correct: 0, hint: "Technically illegal under Article 490 — some hotels enforce the law and require a marriage certificate." },
+            { q: "What is a faux guide (false guide) in Marrakech?", a: ["A guide with outdated historical information", "An unlicensed guide who leads tourists to commission shops — official guides carry laminated ID cards", "A government-certified guide", "A digital GPS app"], correct: 1, hint: "Faux guides are well-documented — they offer help then divert tourists to shops where they receive kickbacks." },
+            { q: "What is the appropriate phrase to firmly but politely refuse a persistent vendor in Marrakech's souks?", a: ["No problem", "La shukran — No thank you — said firmly while continuing to walk", "Ignore completely with no response", "Accept then return items"], correct: 1, hint: "La shukran is universally understood — firm but polite refusal respects the cultural dynamic without confrontation." },
+            { q: "True or False: Photography of military installations and government buildings in Morocco is illegal.", a: ["True", "False"], correct: 0, hint: "Morocco takes security photography seriously — tourists have had equipment confiscated and been detained for photographing restricted buildings." },
+            { q: "What is the dirham black market and what risk does it pose?", a: ["A legitimate exchange service", "Illegal currency exchange — tourists often receive counterfeit notes, are shortchanged, or reported to police by the exchanger", "A government currency programme", "An ATM fee avoidance scheme"], correct: 1, hint: "Street currency exchange is illegal — tourists have received counterfeits, been robbed, or been arrested after accepting black market rates." },
+            { q: "True or False: Using your left hand to eat, greet, or hand over money in Morocco is deeply offensive.", a: ["True", "False"], correct: 0, hint: "In Islamic culture the left hand is associated with impurity — using it for eating, greeting, or exchanging money causes genuine offence." },
+            { q: "What is the cultural significance of mint tea offered during souk negotiations?", a: ["It creates an obligation to buy", "It is genuine hospitality — you may accept without any obligation to purchase", "It is a scam — leave immediately", "Only accept if you intend to buy"], correct: 1, hint: "Mint tea is genuine Moroccan hospitality — accepting graciously is correct etiquette. You are under no obligation whatsoever." },
+            { q: "Are most Moroccan mosques open to non-Muslim tourists like they are in Turkey or Egypt?", a: ["Yes — all mosques welcome tourists", "No — most Moroccan mosques do not permit non-Muslim visitors. Entering can result in police involvement", "Only during Friday prayers", "Tourists are always welcome"], correct: 1, hint: "Unlike many Muslim countries, most Moroccan mosques are closed to non-Muslims — the Koutoubia in Marrakech is specifically restricted." },
+          ]
+        },
 
-      "bangkok-laws-etiquette": {
-        title:"Bangkok: Laws, Scams + Sacred Rules", desc:"Royal law, Buddhist protocol, taxi traps, and serious cultural taboos.", questionsPerRun:9,
-        questionBank:[
-          {q:"What is the maximum prison sentence per count under Thailand's Lèse-majesté law (Section 112)?",a:["2 years","5 years","15 years per count — charges can be stacked","A fine only"],correct:2,hint:"Section 112 carries 3–15 years per offence — charges can be stacked. Foreign tourists have been imprisoned. Social media is monitored."},
-          {q:"True or False: Vaping and e-cigarettes are illegal to import into Thailand — fines and imprisonment apply to tourists.",a:["True","False"],correct:0,hint:"Thailand banned e-cigarettes in 2014 — importation carries a fine of up to 30,000 baht and potential imprisonment."},
-          {q:"What is the specific offence of stepping on a Thai banknote?",a:["It is only rude — not illegal","It is illegal — banknotes bear the King's image, constituting an insult to the monarchy","It damages currency — a minor fine applies","It is a superstition only"],correct:1,hint:"Thai banknotes carry the King's portrait — placing your foot on one has resulted in arrests under lèse-majesté."},
-          {q:"Which part of the body is considered most sacred in Thai culture and must never be touched?",a:["The heart","The head — even touching a child's head affectionately can cause offence","The feet","The hands"],correct:1,hint:"The head is spiritually the highest part of the body in Thai Buddhism — touching anyone's head is culturally inappropriate."},
-          {q:"True or False: The three-finger salute became the symbol of anti-government protest in Thailand post-2014 — displaying it publicly can lead to questioning by authorities.",a:["True","False"],correct:0,hint:"After the 2014 coup, the three-finger salute (from The Hunger Games) became a protest symbol — displaying it in public has resulted in arrests."},
-          {q:"What is the Grand Palace dress code and consequence for non-compliance?",a:["Formal wear required","Shoulders and knees covered in non-transparent fabric — staff refuse entry and offer sarong rentals on site","Shoes must be white","Hats off but shorts are fine"],correct:1,hint:"The Grand Palace strictly enforces dress code — transparent tops, shorts, and sleeveless clothing result in denied entry."},
-          {q:"What is the specific legal requirement for renting a scooter in Thailand?",a:["Any valid driving licence is sufficient","A valid International Driving Permit is legally required — driving without one voids insurance entirely","No licence is required","A Thai domestic licence only"],correct:1,hint:"An IDP is legally required — without one your insurance is void and you are personally liable for all accident costs."},
-          {q:"True or False: Women may hand items directly to a monk in Bangkok.",a:["True","False"],correct:1,hint:"Women must not touch monks or hand items directly — items must be placed on a cloth or surface for the monk to collect."},
-          {q:"What does the gem store scam typically involve in Bangkok?",a:["Selling stolen gems","A tuk-tuk driver offering free tours then directing tourists to shops selling fake investment-grade stones","A legitimate discount gem market","Government-approved gem tours"],correct:1,hint:"One of Bangkok's most persistent scams — tuk-tuk drivers are paid by gem stores to bring tourists. The stones are fake or grossly overpriced."},
-          {q:"What does disrespecting a Buddha image as a tourist — including posing provocatively for photos — constitute in Thailand?",a:["Poor taste but legal","A criminal offence — tourists have been prosecuted and imprisoned","Only offensive in temples","A civil matter only"],correct:1,hint:"Disrespecting Buddha images is a criminal offence in Thailand — prosecutions of tourists have occurred for irreverent photos."},
-          {q:"What is the Wai gesture hierarchy — when should tourists NOT initiate a Wai?",a:["Always initiate a Wai to everyone","Do not initiate a Wai toward service workers or children — it reverses social hierarchy and causes confusion","Only used in temples","Reserved for funerals"],correct:1,hint:"The Wai conveys social hierarchy — initiating it toward someone of lower social status (child, waiter) is awkward and can embarrass them."},
-          {q:"True or False: Fake monks operating tourist scams in Bangkok are often identifiable by wearing sandals and using mobile phones.",a:["True","False"],correct:0,hint:"Genuine Buddhist monks follow strict rules about possessions and footwear — monks with smartphones and sandals approaching tourists proactively are almost always running scams."},
-        ]
-      },
+        "bangkok-laws-etiquette": {
+          title: "Bangkok: Laws, Scams + Sacred Rules", desc: "Royal law, Buddhist protocol, taxi traps, and serious cultural taboos.", questionsPerRun: 9,
+          questionBank: [
+            { q: "What is the maximum prison sentence per count under Thailand's Lèse-majesté law (Section 112)?", a: ["2 years", "5 years", "15 years per count — charges can be stacked", "A fine only"], correct: 2, hint: "Section 112 carries 3–15 years per offence — charges can be stacked. Foreign tourists have been imprisoned. Social media is monitored." },
+            { q: "True or False: Vaping and e-cigarettes are illegal to import into Thailand — fines and imprisonment apply to tourists.", a: ["True", "False"], correct: 0, hint: "Thailand banned e-cigarettes in 2014 — importation carries a fine of up to 30,000 baht and potential imprisonment." },
+            { q: "What is the specific offence of stepping on a Thai banknote?", a: ["It is only rude — not illegal", "It is illegal — banknotes bear the King's image, constituting an insult to the monarchy", "It damages currency — a minor fine applies", "It is a superstition only"], correct: 1, hint: "Thai banknotes carry the King's portrait — placing your foot on one has resulted in arrests under lèse-majesté." },
+            { q: "Which part of the body is considered most sacred in Thai culture and must never be touched?", a: ["The heart", "The head — even touching a child's head affectionately can cause offence", "The feet", "The hands"], correct: 1, hint: "The head is spiritually the highest part of the body in Thai Buddhism — touching anyone's head is culturally inappropriate." },
+            { q: "True or False: The three-finger salute became the symbol of anti-government protest in Thailand post-2014 — displaying it publicly can lead to questioning by authorities.", a: ["True", "False"], correct: 0, hint: "After the 2014 coup, the three-finger salute (from The Hunger Games) became a protest symbol — displaying it in public has resulted in arrests." },
+            { q: "What is the Grand Palace dress code and consequence for non-compliance?", a: ["Formal wear required", "Shoulders and knees covered in non-transparent fabric — staff refuse entry and offer sarong rentals on site", "Shoes must be white", "Hats off but shorts are fine"], correct: 1, hint: "The Grand Palace strictly enforces dress code — transparent tops, shorts, and sleeveless clothing result in denied entry." },
+            { q: "What is the specific legal requirement for renting a scooter in Thailand?", a: ["Any valid driving licence is sufficient", "A valid International Driving Permit is legally required — driving without one voids insurance entirely", "No licence is required", "A Thai domestic licence only"], correct: 1, hint: "An IDP is legally required — without one your insurance is void and you are personally liable for all accident costs." },
+            { q: "True or False: Women may hand items directly to a monk in Bangkok.", a: ["True", "False"], correct: 1, hint: "Women must not touch monks or hand items directly — items must be placed on a cloth or surface for the monk to collect." },
+            { q: "What does the gem store scam typically involve in Bangkok?", a: ["Selling stolen gems", "A tuk-tuk driver offering free tours then directing tourists to shops selling fake investment-grade stones", "A legitimate discount gem market", "Government-approved gem tours"], correct: 1, hint: "One of Bangkok's most persistent scams — tuk-tuk drivers are paid by gem stores to bring tourists. The stones are fake or grossly overpriced." },
+            { q: "What does disrespecting a Buddha image as a tourist — including posing provocatively for photos — constitute in Thailand?", a: ["Poor taste but legal", "A criminal offence — tourists have been prosecuted and imprisoned", "Only offensive in temples", "A civil matter only"], correct: 1, hint: "Disrespecting Buddha images is a criminal offence in Thailand — prosecutions of tourists have occurred for irreverent photos." },
+            { q: "What is the Wai gesture hierarchy — when should tourists NOT initiate a Wai?", a: ["Always initiate a Wai to everyone", "Do not initiate a Wai toward service workers or children — it reverses social hierarchy and causes confusion", "Only used in temples", "Reserved for funerals"], correct: 1, hint: "The Wai conveys social hierarchy — initiating it toward someone of lower social status (child, waiter) is awkward and can embarrass them." },
+            { q: "True or False: Fake monks operating tourist scams in Bangkok are often identifiable by wearing sandals and using mobile phones.", a: ["True", "False"], correct: 0, hint: "Genuine Buddhist monks follow strict rules about possessions and footwear — monks with smartphones and sandals approaching tourists proactively are almost always running scams." },
+          ]
+        },
 
-      "reykjavik-laws-etiquette": {
-        title:"Reykjavík: Environmental Laws + Safety", desc:"Off-road fines, pool hygiene, alcohol rules, and glacier dangers.", questionsPerRun:9,
-        questionBank:[
-          {q:"What specific consequence can result from off-road driving in Iceland beyond the fine?",a:["A warning and €50","A fine of up to 500,000 ISK plus liability for the full cost of environmental restoration","A fixed €100 fine","Deportation for repeat offenders"],correct:1,hint:"Iceland takes off-road driving extremely seriously — fines exceed 500,000 ISK and drivers can be billed for full ecosystem restoration."},
-          {q:"What specific health regulation governs showering before entering Icelandic public pools?",a:["A 30-second rinse is sufficient","Full shower without swimwear — pool staff actively enforce this and will direct non-compliant visitors back to change","A recommendation only","Foot wash only"],correct:1,hint:"Iceland's pool hygiene culture is genuine and strictly enforced — attendants monitor showers and require full compliance."},
-          {q:"What law specifically protects Iceland's lava rocks, moss, and geological materials from removal?",a:["The Nature Conservation Act — removal is illegal with fines","There is no specific law — just cultural expectation","Only protected in national parks","A recent EU directive"],correct:0,hint:"Iceland's Nature Conservation Act prohibits removing lava, rocks, moss, and plants — including picking up lava rocks as souvenirs."},
-          {q:"What road classification makes F-roads legally inaccessible to standard cars?",a:["F-roads are advisory only","F-roads are legally restricted to 4WD — using a standard car voids rental insurance entirely","Only applicable in winter","A 4WD recommendation only"],correct:1,hint:"F-road use in a 2WD vehicle voids your rental agreement and all insurance — you are personally liable for recovery and damages."},
-          {q:"True or False: Iceland has a law prohibiting disturbance of puffin colonies — fines apply to tourists who get too close.",a:["True","False"],correct:0,hint:"Iceland's bird protection laws include puffin colonies — approaching too closely or disturbing nesting birds is illegal."},
-          {q:"What specific alcohol purchasing restriction surprises many tourists in Iceland?",a:["Alcohol is banned on Sundays","Spirits can only be purchased from government Vínbúðin stores — supermarkets do not stock wine or spirits","Tourists must show a passport to buy alcohol","Alcohol is only sold in restaurants"],correct:1,hint:"Iceland operates a state alcohol monopoly — only government Vínbúðin stores sell wine, beer above 2.25%, and spirits."},
-          {q:"True or False: Wild camping is legal anywhere in Iceland as long as you follow Leave No Trace principles.",a:["True","False"],correct:1,hint:"Wild camping rules have been significantly tightened — most areas near the ring road now require use of official campsites due to past environmental damage."},
-          {q:"What specific danger makes entering Icelandic glacial rivers on foot extremely risky even in summer?",a:["Strong currents only","Water temperature of 2–4°C — cold shock can incapacitate a swimmer in under 2 minutes regardless of fitness","Pollution from glacial melt","Aggressive wildlife"],correct:1,hint:"Glacial rivers have killed tourists — cold shock is the primary danger, not current strength. Even shallow crossings have proven fatal."},
-          {q:"What traffic offence is actively enforced in Iceland specifically related to Northern Lights photography?",a:["Photography is banned in dark sky zones","Illegally stopping on roads without a safe pull-in to photograph the aurora — fines are actively issued","Tripods require a permit","Photography apps are restricted"],correct:1,hint:"Illegal roadside stopping for Northern Lights photography has become a safety crisis — police fine drivers who stop on roads without proper pull-ins."},
-          {q:"True or False: The midnight sun means outdoor rules and noise ordinances are suspended in Icelandic summer.",a:["True","False"],correct:1,hint:"The midnight sun creates perpetual daylight but Iceland's noise ordinances and camping regulations apply 24 hours regardless."},
-          {q:"What personal space norm in Iceland is the opposite of Southern European cultures?",a:["Standing very close is expected","A significantly larger personal space bubble is normal — standing too close is considered slightly aggressive","No specific norm exists","Only in professional settings"],correct:1,hint:"Icelanders maintain considerable personal space — queuing in Iceland means standing noticeably further back than in Mediterranean cultures."},
-          {q:"True or False: Drinking Reykjavík's tap water is safe — it is considered among the cleanest in the world.",a:["True","False"],correct:0,hint:"Reykjavík's tap water comes directly from glacial springs — it is among the world's cleanest and buying bottled water is considered unnecessary."},
-        ]
-      },
+        "reykjavik-laws-etiquette": {
+          title: "Reykjavík: Environmental Laws + Safety", desc: "Off-road fines, pool hygiene, alcohol rules, and glacier dangers.", questionsPerRun: 9,
+          questionBank: [
+            { q: "What specific consequence can result from off-road driving in Iceland beyond the fine?", a: ["A warning and €50", "A fine of up to 500,000 ISK plus liability for the full cost of environmental restoration", "A fixed €100 fine", "Deportation for repeat offenders"], correct: 1, hint: "Iceland takes off-road driving extremely seriously — fines exceed 500,000 ISK and drivers can be billed for full ecosystem restoration." },
+            { q: "What specific health regulation governs showering before entering Icelandic public pools?", a: ["A 30-second rinse is sufficient", "Full shower without swimwear — pool staff actively enforce this and will direct non-compliant visitors back to change", "A recommendation only", "Foot wash only"], correct: 1, hint: "Iceland's pool hygiene culture is genuine and strictly enforced — attendants monitor showers and require full compliance." },
+            { q: "What law specifically protects Iceland's lava rocks, moss, and geological materials from removal?", a: ["The Nature Conservation Act — removal is illegal with fines", "There is no specific law — just cultural expectation", "Only protected in national parks", "A recent EU directive"], correct: 0, hint: "Iceland's Nature Conservation Act prohibits removing lava, rocks, moss, and plants — including picking up lava rocks as souvenirs." },
+            { q: "What road classification makes F-roads legally inaccessible to standard cars?", a: ["F-roads are advisory only", "F-roads are legally restricted to 4WD — using a standard car voids rental insurance entirely", "Only applicable in winter", "A 4WD recommendation only"], correct: 1, hint: "F-road use in a 2WD vehicle voids your rental agreement and all insurance — you are personally liable for recovery and damages." },
+            { q: "True or False: Iceland has a law prohibiting disturbance of puffin colonies — fines apply to tourists who get too close.", a: ["True", "False"], correct: 0, hint: "Iceland's bird protection laws include puffin colonies — approaching too closely or disturbing nesting birds is illegal." },
+            { q: "What specific alcohol purchasing restriction surprises many tourists in Iceland?", a: ["Alcohol is banned on Sundays", "Spirits can only be purchased from government Vínbúðin stores — supermarkets do not stock wine or spirits", "Tourists must show a passport to buy alcohol", "Alcohol is only sold in restaurants"], correct: 1, hint: "Iceland operates a state alcohol monopoly — only government Vínbúðin stores sell wine, beer above 2.25%, and spirits." },
+            { q: "True or False: Wild camping is legal anywhere in Iceland as long as you follow Leave No Trace principles.", a: ["True", "False"], correct: 1, hint: "Wild camping rules have been significantly tightened — most areas near the ring road now require use of official campsites due to past environmental damage." },
+            { q: "What specific danger makes entering Icelandic glacial rivers on foot extremely risky even in summer?", a: ["Strong currents only", "Water temperature of 2–4°C — cold shock can incapacitate a swimmer in under 2 minutes regardless of fitness", "Pollution from glacial melt", "Aggressive wildlife"], correct: 1, hint: "Glacial rivers have killed tourists — cold shock is the primary danger, not current strength. Even shallow crossings have proven fatal." },
+            { q: "What traffic offence is actively enforced in Iceland specifically related to Northern Lights photography?", a: ["Photography is banned in dark sky zones", "Illegally stopping on roads without a safe pull-in to photograph the aurora — fines are actively issued", "Tripods require a permit", "Photography apps are restricted"], correct: 1, hint: "Illegal roadside stopping for Northern Lights photography has become a safety crisis — police fine drivers who stop on roads without proper pull-ins." },
+            { q: "True or False: The midnight sun means outdoor rules and noise ordinances are suspended in Icelandic summer.", a: ["True", "False"], correct: 1, hint: "The midnight sun creates perpetual daylight but Iceland's noise ordinances and camping regulations apply 24 hours regardless." },
+            { q: "What personal space norm in Iceland is the opposite of Southern European cultures?", a: ["Standing very close is expected", "A significantly larger personal space bubble is normal — standing too close is considered slightly aggressive", "No specific norm exists", "Only in professional settings"], correct: 1, hint: "Icelanders maintain considerable personal space — queuing in Iceland means standing noticeably further back than in Mediterranean cultures." },
+            { q: "True or False: Drinking Reykjavík's tap water is safe — it is considered among the cleanest in the world.", a: ["True", "False"], correct: 0, hint: "Reykjavík's tap water comes directly from glacial springs — it is among the world's cleanest and buying bottled water is considered unnecessary." },
+          ]
+        },
 
-      "siemreap-laws-etiquette": {
-        title:"Siem Reap: Temples, Laws + Deep Respect", desc:"Angkor regulations, Buddhist protocol, cultural taboos, and landmine awareness.", questionsPerRun:9,
-        questionBank:[
-          {q:"True or False: The Angkor Archaeological Park ticket uses biometric facial recognition — lending it to another person carries serious fines and blacklisting.",a:["True","False"],correct:0,hint:"Angkor tickets use facial recognition at checkpoints — lending or selling your ticket is illegal and results in permanent park blacklisting."},
-          {q:"What is the APSARA Authority's specific rule about touching apsara carvings on temple walls?",a:["Touching is encouraged to feel history","It is prohibited — skin oils cause irreversible chemical damage to sandstone carvings","Gloves make it acceptable","Only lower sections may be touched"],correct:1,hint:"Natural skin oils cause accelerated deterioration — APSARA Authority prohibits all touching of carvings with guards present at key sites."},
-          {q:"Why must women place items on a surface rather than hand them directly to a monk?",a:["Women must avoid monks entirely","Direct hand-to-hand transfer from women is forbidden by monastic code — items must be placed for the monk to collect","Only true for foreign women","Only in temples not on streets"],correct:1,hint:"Monks' vows prevent physical contact with women — items must be placed for the monk to collect without touching the woman's hand."},
-          {q:"What specific fine applies for removing any stone, vegetation, or material from the Angkor Archaeological Park?",a:["$50","Up to $1,000 and possible arrest","A warning for first offence","No fine — items are confiscated only"],correct:1,hint:"Removal of any material from Angkor constitutes cultural heritage theft — fines up to $1,000 and arrest are possible under Cambodian law."},
-          {q:"True or False: APSARA Authority has introduced a strike system for tourist behaviour — three violations result in a permanent international ban.",a:["True","False"],correct:0,hint:"APSARA Authority's strike system results in a permanent ban from Angkor entered into an international database after three violations."},
-          {q:"What is the specific cultural meaning conveyed by the height of hands in the Sampeah gesture?",a:["It is a simple greeting with no hierarchy","Height conveys respect level — chest for equals, forehead for monks and elders, above head for sacred figures","Always performed at head height","Only used by Buddhists"],correct:1,hint:"The Sampeah is nuanced — misjudging the height accidentally conveys a lower level of respect than intended."},
-          {q:"What drug offence carries the death penalty in Cambodia and how does this affect tourists?",a:["Possession of cannabis","Drug trafficking — even small quantities deemed for supply can result in execution. Courts treat tourist claims of personal use sceptically","Alcohol consumption","Prescription drugs"],correct:1,hint:"Cambodia enforces severe drug laws — tourists have received long sentences. The death penalty exists for trafficking and burden of proof is reversed."},
-          {q:"True or False: Cambodia uses USD as a de facto second currency — receiving change in Cambodian Riel is normal and legitimate.",a:["True","False"],correct:0,hint:"Cambodia's dual-currency system means USD is widely used — change below $1 is routinely given in Riel. This is legitimate and expected."},
-          {q:"Why should tourists be extremely cautious of unmarked roads and fields outside Siem Reap?",a:["Poor road quality only","Cambodia has one of the world's highest densities of unexploded landmines — leaving marked paths is potentially fatal","Wild animals are common","Flooding is frequent"],correct:1,hint:"An estimated 4–6 million unexploded landmines remain in Cambodia — straying off marked paths outside urban areas carries a real risk of death."},
-          {q:"What specific rule governs sunrise visits to Angkor Wat to prevent overcrowding?",a:["Unlimited visitors at any time","A timed entry system limits visitor numbers per slot — arriving without a pre-booked slot results in denied entry during peak season","A separate premium ticket is required","Photography is banned at sunrise"],correct:1,hint:"APSARA Authority introduced timed entry slots for sunrise viewing — spontaneous arrivals can be turned away during busy periods."},
-          {q:"What attire is specifically required at Angkor temples?",a:["Shorts above the knee are fine","Long pants or long skirt covering knees — shoulders must also be covered","Any clothing is accepted","Only required for the inner sanctum"],correct:1,hint:"Modest dress covering both shoulders and knees is enforced at Angkor temples — non-compliant visitors are refused entry."},
-          {q:"When eating in a Cambodian home, what is the correct cultural behaviour before beginning a meal?",a:["Start immediately to show enthusiasm","Wait for the eldest person to begin eating","Ask what ingredients are in the food","Say a prayer regardless of religion"],correct:1,hint:"Always waiting for the eldest to begin is a fundamental Cambodian dining courtesy — starting before them is disrespectful."},
-        ]
-      },
+        "siemreap-laws-etiquette": {
+          title: "Siem Reap: Temples, Laws + Deep Respect", desc: "Angkor regulations, Buddhist protocol, cultural taboos, and landmine awareness.", questionsPerRun: 9,
+          questionBank: [
+            { q: "True or False: The Angkor Archaeological Park ticket uses biometric facial recognition — lending it to another person carries serious fines and blacklisting.", a: ["True", "False"], correct: 0, hint: "Angkor tickets use facial recognition at checkpoints — lending or selling your ticket is illegal and results in permanent park blacklisting." },
+            { q: "What is the APSARA Authority's specific rule about touching apsara carvings on temple walls?", a: ["Touching is encouraged to feel history", "It is prohibited — skin oils cause irreversible chemical damage to sandstone carvings", "Gloves make it acceptable", "Only lower sections may be touched"], correct: 1, hint: "Natural skin oils cause accelerated deterioration — APSARA Authority prohibits all touching of carvings with guards present at key sites." },
+            { q: "Why must women place items on a surface rather than hand them directly to a monk?", a: ["Women must avoid monks entirely", "Direct hand-to-hand transfer from women is forbidden by monastic code — items must be placed for the monk to collect", "Only true for foreign women", "Only in temples not on streets"], correct: 1, hint: "Monks' vows prevent physical contact with women — items must be placed for the monk to collect without touching the woman's hand." },
+            { q: "What specific fine applies for removing any stone, vegetation, or material from the Angkor Archaeological Park?", a: ["$50", "Up to $1,000 and possible arrest", "A warning for first offence", "No fine — items are confiscated only"], correct: 1, hint: "Removal of any material from Angkor constitutes cultural heritage theft — fines up to $1,000 and arrest are possible under Cambodian law." },
+            { q: "True or False: APSARA Authority has introduced a strike system for tourist behaviour — three violations result in a permanent international ban.", a: ["True", "False"], correct: 0, hint: "APSARA Authority's strike system results in a permanent ban from Angkor entered into an international database after three violations." },
+            { q: "What is the specific cultural meaning conveyed by the height of hands in the Sampeah gesture?", a: ["It is a simple greeting with no hierarchy", "Height conveys respect level — chest for equals, forehead for monks and elders, above head for sacred figures", "Always performed at head height", "Only used by Buddhists"], correct: 1, hint: "The Sampeah is nuanced — misjudging the height accidentally conveys a lower level of respect than intended." },
+            { q: "What drug offence carries the death penalty in Cambodia and how does this affect tourists?", a: ["Possession of cannabis", "Drug trafficking — even small quantities deemed for supply can result in execution. Courts treat tourist claims of personal use sceptically", "Alcohol consumption", "Prescription drugs"], correct: 1, hint: "Cambodia enforces severe drug laws — tourists have received long sentences. The death penalty exists for trafficking and burden of proof is reversed." },
+            { q: "True or False: Cambodia uses USD as a de facto second currency — receiving change in Cambodian Riel is normal and legitimate.", a: ["True", "False"], correct: 0, hint: "Cambodia's dual-currency system means USD is widely used — change below $1 is routinely given in Riel. This is legitimate and expected." },
+            { q: "Why should tourists be extremely cautious of unmarked roads and fields outside Siem Reap?", a: ["Poor road quality only", "Cambodia has one of the world's highest densities of unexploded landmines — leaving marked paths is potentially fatal", "Wild animals are common", "Flooding is frequent"], correct: 1, hint: "An estimated 4–6 million unexploded landmines remain in Cambodia — straying off marked paths outside urban areas carries a real risk of death." },
+            { q: "What specific rule governs sunrise visits to Angkor Wat to prevent overcrowding?", a: ["Unlimited visitors at any time", "A timed entry system limits visitor numbers per slot — arriving without a pre-booked slot results in denied entry during peak season", "A separate premium ticket is required", "Photography is banned at sunrise"], correct: 1, hint: "APSARA Authority introduced timed entry slots for sunrise viewing — spontaneous arrivals can be turned away during busy periods." },
+            { q: "What attire is specifically required at Angkor temples?", a: ["Shorts above the knee are fine", "Long pants or long skirt covering knees — shoulders must also be covered", "Any clothing is accepted", "Only required for the inner sanctum"], correct: 1, hint: "Modest dress covering both shoulders and knees is enforced at Angkor temples — non-compliant visitors are refused entry." },
+            { q: "When eating in a Cambodian home, what is the correct cultural behaviour before beginning a meal?", a: ["Start immediately to show enthusiasm", "Wait for the eldest person to begin eating", "Ask what ingredients are in the food", "Say a prayer regardless of religion"], correct: 1, hint: "Always waiting for the eldest to begin is a fundamental Cambodian dining courtesy — starting before them is disrespectful." },
+          ]
+        },
 
-    }; 
+      };
 
-    /* Load mission */
-    const baseMission = missions[missionKey] || missions["kyoto-laws-etiquette"];
-    const questions   = pickRandom(baseMission.questionBank, baseMission.questionsPerRun || 9);
+      /* Load mission */
+      const baseMission = missions[missionKey] || missions["kyoto-laws-etiquette"];
+      const questions = pickRandom(baseMission.questionBank, baseMission.questionsPerRun || 9);
 
-    $("missionTitle").textContent = isDaily ? `${baseMission.title} — Daily Challenge` : baseMission.title;
-    $("missionDesc").textContent  = baseMission.desc;
+      $("missionTitle").textContent = isDaily ? `${baseMission.title} — Daily Challenge` : baseMission.title;
+      $("missionDesc").textContent = baseMission.desc;
 
-    /* Game state */
-    let idx           = 0;
-    let answered      = false;
-    let combo         = 0;
-    let maxCombo      = 0;
-    let correct       = 0;
-    let earnedThisRun = 0;
-    let timeLeft      = TIME_PER_Q;
-    let timerId       = null;
-    let points        = getNum("tw_points", 0);
-    const missedQs    = [];
+      /* Game state */
+      let idx = 0;
+      let answered = false;
+      let combo = 0;
+      let maxCombo = 0;
+      let correct = 0;
+      let earnedThisRun = 0;
+      let timeLeft = TIME_PER_Q;
+      let timerId = null;
+      let points = getNum("tw_points", 0);
+      const missedQs = [];
 
-    const updateHUD = () => {
-      $("points").textContent = String(points);
-      $("level").textContent  = String(calcLevel(points));
-      $("combo").textContent  = `×${combo}`;
-      $("time").textContent   = String(timeLeft);
-      $("bar").style.width    = `${Math.round((idx / questions.length) * 100)}%`;
-    };
-
-    const stopTimer  = () => { clearInterval(timerId); timerId = null; };
-    const startTimer = () => {
-      stopTimer();
-      timeLeft = TIME_PER_Q;
-      updateHUD();
-      timerId = setInterval(() => {
-        timeLeft -= 1;
+      const updateHUD = () => {
+        $("points").textContent = String(points);
+        $("level").textContent = String(calcLevel(points));
+        $("combo").textContent = `×${combo}`;
         $("time").textContent = String(timeLeft);
-        if (timeLeft <= 0) { stopTimer(); onTimeout(); }
-      }, 1000);
-    };
+        $("bar").style.width = `${Math.round((idx / questions.length) * 100)}%`;
+      };
 
-    const renderQuestion = () => {
-      answered = false;
-      $("nextBtn").disabled   = true;
-      $("hint").style.display = "none";
-      $("hint").textContent   = "";
-      const item = questions[idx];
-      $("qText").textContent = `Q${idx + 1} of ${questions.length}: ${item.q}`;
-      $("answers").innerHTML = "";
-      item.a.forEach((text, i) => {
-        const btn = document.createElement("button");
-        btn.className   = "ans";
-        btn.type        = "button";
-        btn.textContent = text;
-        btn.addEventListener("click", () => chooseAnswer(i, btn));
-        $("answers").appendChild(btn);
-      });
-      startTimer();
-      updateHUD();
-    };
+      const stopTimer = () => { clearInterval(timerId); timerId = null; };
+      const startTimer = () => {
+        stopTimer();
+        timeLeft = TIME_PER_Q;
+        updateHUD();
+        timerId = setInterval(() => {
+          timeLeft -= 1;
+          $("time").textContent = String(timeLeft);
+          if (timeLeft <= 0) { stopTimer(); onTimeout(); }
+        }, 1000);
+      };
 
-    const revealCorrect = correctIdx => {
-      document.querySelectorAll(".ans").forEach((b, j) => {
-        b.disabled = true;
-        if (j === correctIdx) b.classList.add("correct");
-      });
-    };
+      const renderQuestion = () => {
+        answered = false;
+        $("nextBtn").disabled = true;
+        $("hint").style.display = "none";
+        $("hint").textContent = "";
+        const item = questions[idx];
+        $("qText").textContent = `Q${idx + 1} of ${questions.length}: ${item.q}`;
+        $("answers").innerHTML = "";
+        item.a.forEach((text, i) => {
+          const btn = document.createElement("button");
+          btn.className = "ans";
+          btn.type = "button";
+          btn.textContent = text;
+          btn.addEventListener("click", () => chooseAnswer(i, btn));
+          $("answers").appendChild(btn);
+        });
+        startTimer();
+        updateHUD();
+      };
 
-    const chooseAnswer = (choiceIdx, btnEl) => {
-      if (answered) return;
-      answered = true;
-      stopTimer();
-      const item = questions[idx];
-      revealCorrect(item.correct);
-      if (choiceIdx === item.correct) {
-        combo += 1;
-        maxCombo = Math.max(maxCombo, combo);
-        correct += 1;
-        const speedBonus = Math.max(0, timeLeft);
-        const gained     = 60 + combo * 15 + Math.floor(speedBonus / 3);
-        points        += gained;
-        earnedThisRun += gained;
-        if (speedBonus >= 15) awardBadge("speed_demon");
-        if (combo >= 5)       awardBadge("combo_5");
-        beep(720, 0.07);
-      } else {
+      const revealCorrect = correctIdx => {
+        document.querySelectorAll(".ans").forEach((b, j) => {
+          b.disabled = true;
+          if (j === correctIdx) b.classList.add("correct");
+        });
+      };
+
+      const chooseAnswer = (choiceIdx, btnEl) => {
+        if (answered) return;
+        answered = true;
+        stopTimer();
+        const item = questions[idx];
+        revealCorrect(item.correct);
+        if (choiceIdx === item.correct) {
+          combo += 1;
+          maxCombo = Math.max(maxCombo, combo);
+          correct += 1;
+          const speedBonus = Math.max(0, timeLeft);
+          const gained = 60 + combo * 15 + Math.floor(speedBonus / 3);
+          points += gained;
+          earnedThisRun += gained;
+          if (speedBonus >= 15) awardBadge("speed_demon");
+          if (combo >= 5) awardBadge("combo_5");
+          beep(720, 0.07);
+        } else {
+          combo = 0;
+          btnEl.classList.add("wrong");
+          $("hint").textContent = item.hint || "Check the correct answer above.";
+          $("hint").style.display = "block";
+          missedQs.push(item);
+          beep(220, 0.1);
+        }
+        $("nextBtn").disabled = false;
+        updateHUD();
+      };
+
+      const onTimeout = () => {
+        if (answered) return;
+        answered = true;
         combo = 0;
-        btnEl.classList.add("wrong");
-        $("hint").textContent   = item.hint || "Check the correct answer above.";
+        const item = questions[idx];
+        revealCorrect(item.correct);
+        $("hint").textContent = "Time's up! Answer faster for the speed bonus.";
         $("hint").style.display = "block";
         missedQs.push(item);
-        beep(220, 0.1);
-      }
-      $("nextBtn").disabled = false;
-      updateHUD();
-    };
+        $("nextBtn").disabled = false;
+        beep(200, 0.12);
+        updateHUD();
+      };
 
-    const onTimeout = () => {
-      if (answered) return;
-      answered = true;
-      combo    = 0;
-      const item = questions[idx];
-      revealCorrect(item.correct);
-      $("hint").textContent   = "Time's up! Answer faster for the speed bonus.";
-      $("hint").style.display = "block";
-      missedQs.push(item);
-      $("nextBtn").disabled   = false;
-      beep(200, 0.12);
-      updateHUD();
-    };
+      $("skipBtn").addEventListener("click", () => {
+        if (answered) return;
+        stopTimer();
+        answered = true;
+        combo = 0;
+        const item = questions[idx];
+        revealCorrect(item.correct);
+        $("hint").textContent = "Skipped — answer quickly next time to keep your combo!";
+        $("hint").style.display = "block";
+        missedQs.push(item);
+        $("nextBtn").disabled = false;
+        beep(320, 0.06);
+        updateHUD();
+      });
 
-    $("skipBtn").addEventListener("click", () => {
-      if (answered) return;
-      stopTimer();
-      answered = true;
-      combo    = 0;
-      const item = questions[idx];
-      revealCorrect(item.correct);
-      $("hint").textContent   = "Skipped — answer quickly next time to keep your combo!";
-      $("hint").style.display = "block";
-      missedQs.push(item);
-      $("nextBtn").disabled   = false;
-      beep(320, 0.06);
-      updateHUD();
-    });
+      $("nextBtn").addEventListener("click", () => {
+        if (idx < questions.length - 1) { idx += 1; renderQuestion(); }
+        else finishGame();
+      });
 
-    $("nextBtn").addEventListener("click", () => {
-      if (idx < questions.length - 1) { idx += 1; renderQuestion(); }
-      else finishGame();
-    });
+      const finishGame = () => {
+        stopTimer();
+        setNum("tw_points", points);
+        const accuracy = Math.round((correct / questions.length) * 100);
+        const prev = completions[missionKey];
+        if (!prev || earnedThisRun > prev.best) {
+          completions[missionKey] = { best: earnedThisRun, accuracy, ts: Date.now() };
+          setJSON("tw_completions", completions);
+        }
+        awardBadge("first_mission");
+        if (correct === questions.length) awardBadge("perfect_score");
+        if (calcLevel(points) >= 5) awardBadge("level_5");
+        if (points >= 1000) awardBadge("points_1000");
+        if (Object.keys(completions).length >= 10) awardBadge("all_missions");
 
-    const finishGame = () => {
-      stopTimer();
-      setNum("tw_points", points);
-      const accuracy = Math.round((correct / questions.length) * 100);
-      const prev = completions[missionKey];
-      if (!prev || earnedThisRun > prev.best) {
-        completions[missionKey] = { best: earnedThisRun, accuracy, ts: Date.now() };
-        setJSON("tw_completions", completions);
-      }
-      awardBadge("first_mission");
-      if (correct === questions.length)          awardBadge("perfect_score");
-      if (calcLevel(points) >= 5)                awardBadge("level_5");
-      if (points >= 1000)                        awardBadge("points_1000");
-      if (Object.keys(completions).length >= 10) awardBadge("all_missions");
+        $("gameScreen").style.display = "none";
+        $("resultsScreen").style.display = "block";
 
-      $("gameScreen").style.display    = "none";
-      $("resultsScreen").style.display = "block";
+        const grade = accuracy === 100 ? "Perfect! 🏆" :
+          accuracy >= 80 ? "Excellent! 🌟" :
+            accuracy >= 60 ? "Good effort! 👍" :
+              accuracy >= 40 ? "Keep practising 📖" : "Try again 💪";
 
-      const grade = accuracy === 100 ? "Perfect! 🏆" :
-                    accuracy >= 80   ? "Excellent! 🌟" :
-                    accuracy >= 60   ? "Good effort! 👍" :
-                    accuracy >= 40   ? "Keep practising 📖" : "Try again 💪";
+        $("resultsTitle").textContent = isDaily ? "Daily Challenge Complete!" : "Mission Complete!";
+        $("resultsScore").textContent = String(earnedThisRun);
+        $("resultsGrade").textContent = grade;
+        $("resCorrect").textContent = String(correct);
+        $("resTotal").textContent = String(questions.length);
+        $("resAccuracy").textContent = `${accuracy}%`;
+        $("resEarned").textContent = `+${earnedThisRun}`;
+        $("resMaxCombo").textContent = String(maxCombo);
 
-      $("resultsTitle").textContent = isDaily ? "Daily Challenge Complete!" : "Mission Complete!";
-      $("resultsScore").textContent = String(earnedThisRun);
-      $("resultsGrade").textContent = grade;
-      $("resCorrect").textContent   = String(correct);
-      $("resTotal").textContent     = String(questions.length);
-      $("resAccuracy").textContent  = `${accuracy}%`;
-      $("resEarned").textContent    = `+${earnedThisRun}`;
-      $("resMaxCombo").textContent  = String(maxCombo);
+        if (newBadgesThisRun.length > 0) {
+          $("newBadgesSection").style.display = "block";
+          $("newBadgesList").innerHTML = newBadgesThisRun.map(id => {
+            const b = BADGE_DEFS[id];
+            return `<div class="new-badge"><div class="new-badge-icon">${b.icon}</div><span>${b.label}</span></div>`;
+          }).join("");
+        }
 
-      if (newBadgesThisRun.length > 0) {
-        $("newBadgesSection").style.display = "block";
-        $("newBadgesList").innerHTML = newBadgesThisRun.map(id => {
-          const b = BADGE_DEFS[id];
-          return `<div class="new-badge"><div class="new-badge-icon">${b.icon}</div><span>${b.label}</span></div>`;
-        }).join("");
-      }
-
-      if (missedQs.length > 0) {
-        $("missedSection").style.display = "block";
-        $("missedList").innerHTML = missedQs.map(q =>
-          `<div class="missed-item">
+        if (missedQs.length > 0) {
+          $("missedSection").style.display = "block";
+          $("missedList").innerHTML = missedQs.map(q =>
+            `<div class="missed-item">
             <div class="missed-q">${q.q}</div>
             <div class="missed-ans">✓ ${q.a[q.correct]}</div>
             <div class="missed-hint">${q.hint}</div>
           </div>`
-        ).join("");
-      }
+          ).join("");
+        }
 
-      if (accuracy >= 80) launchConfetti();
-    };
+        if (accuracy >= 80) launchConfetti();
+      };
 
-    $("playAgainBtn").addEventListener("click", () => window.location.reload());
+      $("playAgainBtn").addEventListener("click", () => window.location.reload());
 
-    const launchConfetti = () => {
-      const container = $("confetti");
-      container.innerHTML = "";
-      container.style.display = "block";
-      const colors = ["#ffd700","#ff6b6b","#4ecdc4","#45b7d1","#96ceb4","#ff9a9e","#a29bfe","#fd79a8","#55efc4","#fdcb6e"];
-      for (let i = 0; i < 100; i++) {
-        const c = document.createElement("div");
-        c.className = "c";
-        const dur = (0.8 + Math.random() * 1.4).toFixed(2);
-        c.style.left            = `${Math.random() * 100}%`;
-        c.style.background      = colors[Math.floor(Math.random() * colors.length)];
-        c.style.animationDelay    = `${(Math.random() * 0.8).toFixed(2)}s`;
-        c.style.animationDuration = `${dur}s`;
-        c.style.width           = `${6 + Math.random() * 10}px`;
-        c.style.height          = `${8 + Math.random() * 14}px`;
-        c.style.borderRadius    = Math.random() > 0.5 ? "50%" : "3px";
-        c.style.opacity         = (0.7 + Math.random() * 0.3).toFixed(2);
-        container.appendChild(c);
-      }
-      setTimeout(() => { container.style.display = "none"; container.innerHTML = ""; }, 3500);
-    };
+      const launchConfetti = () => {
+        const container = $("confetti");
+        container.innerHTML = "";
+        container.style.display = "block";
+        const colors = ["#ffd700", "#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#ff9a9e", "#a29bfe", "#fd79a8", "#55efc4", "#fdcb6e"];
+        for (let i = 0; i < 100; i++) {
+          const c = document.createElement("div");
+          c.className = "c";
+          const dur = (0.8 + Math.random() * 1.4).toFixed(2);
+          c.style.left = `${Math.random() * 100}%`;
+          c.style.background = colors[Math.floor(Math.random() * colors.length)];
+          c.style.animationDelay = `${(Math.random() * 0.8).toFixed(2)}s`;
+          c.style.animationDuration = `${dur}s`;
+          c.style.width = `${6 + Math.random() * 10}px`;
+          c.style.height = `${8 + Math.random() * 14}px`;
+          c.style.borderRadius = Math.random() > 0.5 ? "50%" : "3px";
+          c.style.opacity = (0.7 + Math.random() * 0.3).toFixed(2);
+          container.appendChild(c);
+        }
+        setTimeout(() => { container.style.display = "none"; container.innerHTML = ""; }, 3500);
+      };
 
-    renderQuestion();
-  })();
+      renderQuestion();
+    })();
   </script>
 </body>
+
 </html>

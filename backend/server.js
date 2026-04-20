@@ -1,11 +1,11 @@
 require("dotenv").config();
 
-const express   = require("express");
-const path      = require("path");
-const cors      = require("cors");
-const helmet    = require("helmet");
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
+const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const db        = require("./db");
+const db = require("./db");
 
 const app = express();
 
@@ -44,7 +44,7 @@ const globalLimiter = rateLimit({
 
 app.use(globalLimiter);
 app.use("/api/auth", authLimiter);
-app.use("/api",      apiLimiter);
+app.use("/api", apiLimiter);
 
 /* Static files */
 app.use(express.static(path.join(__dirname, "../html+css")));
@@ -52,14 +52,14 @@ app.use("/images", express.static(path.join(__dirname, "../html+css/images")));
 app.use("/images", express.static(path.join(__dirname, "../images")));
 
 /* API routes */
-app.use("/api/auth",           require("./routes/auth.routes"));
-app.use("/api/bookings",       require("./routes/bookings.routes"));
-app.use("/api/feedback",       require("./routes/feedback.routes"));
-app.use("/api/insights",       require("./routes/insights.routes"));
+app.use("/api/auth", require("./routes/auth.routes"));
+app.use("/api/bookings", require("./routes/bookings.routes"));
+app.use("/api/feedback", require("./routes/feedback.routes"));
+app.use("/api/insights", require("./routes/insights.routes"));
 app.use("/api/knowledge-base", require("./routes/knowledgeBase.routes"));
-app.use("/api/chatbot",        require("./routes/chatbot.routes"));
-app.use("/api/admin",          require("./routes/admin.routes"));
-app.use("/api/destinations",   require("./routes/destinations.routes"));
+app.use("/api/chatbot", require("./routes/chatbot.routes"));
+app.use("/api/admin", require("./routes/admin.routes"));
+app.use("/api/destinations", require("./routes/destinations.routes"));
 
 /* Health check */
 app.get("/health", (req, res) => {

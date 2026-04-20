@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="tripwise.css" />
   <link rel="stylesheet" href="learning-home.css" />
 </head>
+
 <body>
   <header class="header"></header>
 
@@ -26,7 +28,8 @@
     <section class="hub-hero" aria-label="Learning Hub overview">
       <div>
         <h2>Learning Hub 🎮</h2>
-        <p>Master local laws and etiquette for every destination you've booked.<br>Earn points, badges, and level up.</p>
+        <p>Master local laws and etiquette for every destination you've booked.<br>Earn points, badges, and level up.
+        </p>
         <div class="hub-stats">
           <div class="pill">🔥 Streak: <strong id="streak">0</strong> days</div>
           <div class="pill">⭐ Points: <strong id="points">0</strong></div>
@@ -34,11 +37,13 @@
           <div class="pill">🧠 Level: <strong id="level">1</strong></div>
           <div class="pill">✅ Done: <strong id="missionsComplete">0</strong></div>
         </div>
-        <div class="hub-levelbar"><div id="xpBar"></div></div>
+        <div class="hub-levelbar">
+          <div id="xpBar"></div>
+        </div>
       </div>
       <div class="hub-hero-actions">
         <button class="btn btn-primary" id="dailyBtn">⚡ Daily Challenge</button>
-        <button class="btn btn-ghost"   id="resetBtn">🔄 Reset Progress</button>
+        <button class="btn btn-ghost" id="resetBtn">🔄 Reset Progress</button>
       </div>
     </section>
 
@@ -71,121 +76,121 @@
 
   <script src="api/api.js"></script>
   <script>
-  (() => {
-    "use strict";
+    (() => {
+      "use strict";
 
-    /* Auth guard */
-    if (!localStorage.getItem("tripwise_token_traveller") && !localStorage.getItem("tripwise_token")) {
-      window.location.href = "traveller-login.html";
-    }
+      /* Auth guard */
+      if (!localStorage.getItem("tripwise_token_traveller") && !localStorage.getItem("tripwise_token")) {
+        window.location.href = "traveller-login.html";
+      }
 
-    /* Storage helpers */
-    const getNum = k => Number(localStorage.getItem(k) ?? 0);
-    const setNum = (k, v) => localStorage.setItem(k, String(v));
-    const getObj = k => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
+      /* Storage helpers */
+      const getNum = k => Number(localStorage.getItem(k) ?? 0);
+      const setNum = (k, v) => localStorage.setItem(k, String(v));
+      const getObj = k => { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch { return {}; } };
 
-    const calcLevel = p => Math.max(1, Math.floor(p / 300) + 1);
-    const calcXp    = p => { const b = Math.floor(p / 300) * 300; return Math.min(100, Math.round(((p - b) / 300) * 100)); };
+      const calcLevel = p => Math.max(1, Math.floor(p / 300) + 1);
+      const calcXp = p => { const b = Math.floor(p / 300) * 300; return Math.min(100, Math.round(((p - b) / 300) * 100)); };
 
-    /* Slug: mission key map */
-    const SLUG_TO_MISSION = {
-      kyoto:     "kyoto-laws-etiquette",
-      tokyo:     "tokyo-laws-etiquette",
-      paris:     "paris-laws-etiquette",
-      rome:      "rome-laws-etiquette",
-      barcelona: "barcelona-laws-etiquette",
-      newyork:   "newyork-laws-etiquette",
-      marrakech: "marrakech-laws-etiquette",
-      bangkok:   "bangkok-laws-etiquette",
-      reykjavik: "reykjavik-laws-etiquette",
-      siemreap:  "siemreap-laws-etiquette",
-    };
+      /* Slug: mission key map */
+      const SLUG_TO_MISSION = {
+        kyoto: "kyoto-laws-etiquette",
+        tokyo: "tokyo-laws-etiquette",
+        paris: "paris-laws-etiquette",
+        rome: "rome-laws-etiquette",
+        barcelona: "barcelona-laws-etiquette",
+        newyork: "newyork-laws-etiquette",
+        marrakech: "marrakech-laws-etiquette",
+        bangkok: "bangkok-laws-etiquette",
+        reykjavik: "reykjavik-laws-etiquette",
+        siemreap: "siemreap-laws-etiquette",
+      };
 
-    const MISSION_SUB = {
-      kyoto:     "Rules + Respect",
-      tokyo:     "Clean + Calm Challenge",
-      paris:     "Rules + Café Culture",
-      rome:      "Monuments + Manners",
-      barcelona: "City Rules + Street Smarts",
-      newyork:   "Street Rules + Subway",
-      marrakech: "Laws + Etiquette Drill",
-      bangkok:   "Respect + Temple Rules",
-      reykjavik: "Nature Rules + Pool Rules",
-      siemreap:  "Temple Rules + Respect",
-    };
+      const MISSION_SUB = {
+        kyoto: "Rules + Respect",
+        tokyo: "Clean + Calm Challenge",
+        paris: "Rules + Café Culture",
+        rome: "Monuments + Manners",
+        barcelona: "City Rules + Street Smarts",
+        newyork: "Street Rules + Subway",
+        marrakech: "Laws + Etiquette Drill",
+        bangkok: "Respect + Temple Rules",
+        reykjavik: "Nature Rules + Pool Rules",
+        siemreap: "Temple Rules + Respect",
+      };
 
-    /* Badge definitions */
-    const BADGES = [
-      { id: "first_mission",   label: "First Mission",   icon: "🎯", check: (sc, st) => Object.keys(sc).length >= 1 },
-      { id: "perfect",         label: "Perfect Score",   icon: "💯", check: (sc, st) => Object.values(sc).some(s => s.accuracy === 100) },
-      { id: "speed_demon",     label: "Speed Demon",     icon: "⚡", check: (sc, st) => st.maxCombo >= 5 },
-      { id: "globetrotter",    label: "Globetrotter",    icon: "🌍", check: (sc, st) => Object.keys(sc).length >= 5 },
-      { id: "world_traveller", label: "World Traveller", icon: "🏆", check: (sc, st) => Object.keys(sc).length >= 10 },
-      { id: "scholar",         label: "Scholar",         icon: "📚", check: (sc, st) => st.totalPoints >= 2000 },
-      { id: "hard_mode_hero",  label: "Hard Mode Hero",  icon: "🔴", check: (sc, st) => Object.values(sc).some(s => s.difficulty === "hard") },
-    ];
+      /* Badge definitions */
+      const BADGES = [
+        { id: "first_mission", label: "First Mission", icon: "🎯", check: (sc, st) => Object.keys(sc).length >= 1 },
+        { id: "perfect", label: "Perfect Score", icon: "💯", check: (sc, st) => Object.values(sc).some(s => s.accuracy === 100) },
+        { id: "speed_demon", label: "Speed Demon", icon: "⚡", check: (sc, st) => st.maxCombo >= 5 },
+        { id: "globetrotter", label: "Globetrotter", icon: "🌍", check: (sc, st) => Object.keys(sc).length >= 5 },
+        { id: "world_traveller", label: "World Traveller", icon: "🏆", check: (sc, st) => Object.keys(sc).length >= 10 },
+        { id: "scholar", label: "Scholar", icon: "📚", check: (sc, st) => st.totalPoints >= 2000 },
+        { id: "hard_mode_hero", label: "Hard Mode Hero", icon: "🔴", check: (sc, st) => Object.values(sc).some(s => s.difficulty === "hard") },
+      ];
 
-    let selectedDiff = localStorage.getItem("tw_diff") || "easy";
+      let selectedDiff = localStorage.getItem("tw_diff") || "easy";
 
-    const renderHUD = () => {
-      const pts    = getNum("tw_points");
-      const streak = getNum("tw_streak");
-      const scores = getObj("tw_scores");
-      const done   = Object.keys(scores).length;
-      const stats  = { maxCombo: getNum("tw_maxCombo"), totalPoints: pts };
+      const renderHUD = () => {
+        const pts = getNum("tw_points");
+        const streak = getNum("tw_streak");
+        const scores = getObj("tw_scores");
+        const done = Object.keys(scores).length;
+        const stats = { maxCombo: getNum("tw_maxCombo"), totalPoints: pts };
 
-      document.getElementById("points").textContent           = pts;
-      document.getElementById("streak").textContent           = streak;
-      document.getElementById("level").textContent            = calcLevel(pts);
-      document.getElementById("missionsComplete").textContent = done;
-      document.getElementById("xpBar").style.width            = `${calcXp(pts)}%`;
+        document.getElementById("points").textContent = pts;
+        document.getElementById("streak").textContent = streak;
+        document.getElementById("level").textContent = calcLevel(pts);
+        document.getElementById("missionsComplete").textContent = done;
+        document.getElementById("xpBar").style.width = `${calcXp(pts)}%`;
 
-      const earned = BADGES.filter(b => b.check(scores, stats));
-      setNum("tw_badges", earned.length);
-      document.getElementById("badgeCount").textContent = earned.length;
+        const earned = BADGES.filter(b => b.check(scores, stats));
+        setNum("tw_badges", earned.length);
+        document.getElementById("badgeCount").textContent = earned.length;
 
-      document.getElementById("badgeGrid").innerHTML = BADGES.map(b => {
-        const ok = earned.find(e => e.id === b.id);
-        return `<span class="badge-pill ${ok ? "badge-earned" : "badge-locked"}">${b.icon} ${b.label}</span>`;
-      }).join("");
-    };
+        document.getElementById("badgeGrid").innerHTML = BADGES.map(b => {
+          const ok = earned.find(e => e.id === b.id);
+          return `<span class="badge-pill ${ok ? "badge-earned" : "badge-locked"}">${b.icon} ${b.label}</span>`;
+        }).join("");
+      };
 
-    /* Render tiles from bookings */
-    const renderTiles = (bookings) => {
-      const scores = getObj("tw_scores");
-      const grid   = document.getElementById("tilesGrid");
+      /* Render tiles from bookings */
+      const renderTiles = (bookings) => {
+        const scores = getObj("tw_scores");
+        const grid = document.getElementById("tilesGrid");
 
-      if (!bookings || bookings.length === 0) {
-        grid.innerHTML = `
+        if (!bookings || bookings.length === 0) {
+          grid.innerHTML = `
           <div class="empty-state">
             <h3>No missions yet</h3>
             <p>You haven't booked any destinations yet.<br>
                Book a destination and your learning mission will appear here.</p>
             <a class="btn btn-primary" href="search-destination.html">Browse Destinations</a>
           </div>`;
-        return;
-      }
+          return;
+        }
 
-      const seen   = new Set();
-      const unique = bookings.filter(b => {
-        if (seen.has(b.destination_slug)) return false;
-        seen.add(b.destination_slug);
-        return true;
-      });
+        const seen = new Set();
+        const unique = bookings.filter(b => {
+          if (seen.has(b.destination_slug)) return false;
+          seen.add(b.destination_slug);
+          return true;
+        });
 
-      grid.innerHTML = unique.map(b => {
-        const slug   = b.destination_slug;
-        const mKey   = SLUG_TO_MISSION[slug];
-        const imgSrc = b.image_url
-          ? (b.image_url.startsWith("/") ? `..${b.image_url}` : `../${b.image_url}`)
-          : `../images/${slug}.png`;
-        const sub    = MISSION_SUB[slug] || "Laws + Etiquette";
-        const s      = mKey ? scores[mKey] : null;
-        const done   = !!s;
+        grid.innerHTML = unique.map(b => {
+          const slug = b.destination_slug;
+          const mKey = SLUG_TO_MISSION[slug];
+          const imgSrc = b.image_url
+            ? (b.image_url.startsWith("/") ? `..${b.image_url}` : `../${b.image_url}`)
+            : `../images/${slug}.png`;
+          const sub = MISSION_SUB[slug] || "Laws + Etiquette";
+          const s = mKey ? scores[mKey] : null;
+          const done = !!s;
 
-        if (!mKey) return "";
+          if (!mKey) return "";
 
-        return `
+          return `
           <a class="learn-tile" href="learning-game.html?mission=${mKey}&diff=${selectedDiff}">
             <img src="${imgSrc}" alt="${b.destination_name}"
                  onerror="this.onerror=null;this.src='../images/logo1.png'" />
@@ -196,75 +201,76 @@
             ${done ? `<span class="tile-badge">✓ Done</span>` : ""}
             ${done ? `<span class="tile-score">⭐ ${s.score}pts · ${s.accuracy}%</span>` : ""}
           </a>`;
-      }).join("");
-    };
+        }).join("");
+      };
 
-    /* Load bookings */
-    const init = async () => {
-      let bookings = [];
-      try {
-        bookings = await apiFetch("/api/bookings/me");
-      } catch (err) {
-        console.error("Could not load bookings:", err.message);
-        if (err.message && err.message.includes("401")) {
-          window.location.href = "traveller-login.html";
-          return;
+      /* Load bookings */
+      const init = async () => {
+        let bookings = [];
+        try {
+          bookings = await apiFetch("/api/bookings/me");
+        } catch (err) {
+          console.error("Could not load bookings:", err.message);
+          if (err.message && err.message.includes("401")) {
+            window.location.href = "traveller-login.html";
+            return;
+          }
         }
-      }
-      renderTiles(bookings);
+        renderTiles(bookings);
 
-      /* Daily challenge */
-      document.getElementById("dailyBtn").addEventListener("click", () => {
-        if (!bookings || bookings.length === 0) {
-          alert("You need at least one booking to start the daily challenge.");
-          return;
-        }
-        const valid = bookings.filter(b => SLUG_TO_MISSION[b.destination_slug]);
-        if (!valid.length) {
-          alert("No missions available for your booked destinations.");
-          return;
-        }
-        const day  = new Date().getDate();
-        const pick = valid[day % valid.length];
-        window.location.href = `learning-game.html?mission=${SLUG_TO_MISSION[pick.destination_slug]}&daily=1&diff=${selectedDiff}`;
+        /* Daily challenge */
+        document.getElementById("dailyBtn").addEventListener("click", () => {
+          if (!bookings || bookings.length === 0) {
+            alert("You need at least one booking to start the daily challenge.");
+            return;
+          }
+          const valid = bookings.filter(b => SLUG_TO_MISSION[b.destination_slug]);
+          if (!valid.length) {
+            alert("No missions available for your booked destinations.");
+            return;
+          }
+          const day = new Date().getDate();
+          const pick = valid[day % valid.length];
+          window.location.href = `learning-game.html?mission=${SLUG_TO_MISSION[pick.destination_slug]}&daily=1&diff=${selectedDiff}`;
+        });
+      };
+
+      /* Difficulty buttons */
+      document.getElementById("diffRow").addEventListener("click", e => {
+        const btn = e.target.closest(".diff-btn");
+        if (!btn) return;
+        selectedDiff = btn.dataset.diff;
+        localStorage.setItem("tw_diff", selectedDiff);
+        document.querySelectorAll(".diff-btn").forEach(b =>
+          b.classList.toggle("active", b.dataset.diff === selectedDiff));
       });
-    };
-
-    /* Difficulty buttons */
-    document.getElementById("diffRow").addEventListener("click", e => {
-      const btn = e.target.closest(".diff-btn");
-      if (!btn) return;
-      selectedDiff = btn.dataset.diff;
-      localStorage.setItem("tw_diff", selectedDiff);
       document.querySelectorAll(".diff-btn").forEach(b =>
         b.classList.toggle("active", b.dataset.diff === selectedDiff));
-    });
-    document.querySelectorAll(".diff-btn").forEach(b =>
-      b.classList.toggle("active", b.dataset.diff === selectedDiff));
 
-    /* Reset */
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      if (!confirm("Reset all learning progress? This cannot be undone.")) return;
-      ["tw_points", "tw_streak", "tw_badges", "tw_maxCombo", "tw_scores", "tw_diff", "tw_lastPlay"]
-        .forEach(k => localStorage.removeItem(k));
-      selectedDiff = "easy";
-      document.querySelectorAll(".diff-btn").forEach(b =>
-        b.classList.toggle("active", b.dataset.diff === "easy"));
+      /* Reset */
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        if (!confirm("Reset all learning progress? This cannot be undone.")) return;
+        ["tw_points", "tw_streak", "tw_badges", "tw_maxCombo", "tw_scores", "tw_diff", "tw_lastPlay"]
+          .forEach(k => localStorage.removeItem(k));
+        selectedDiff = "easy";
+        document.querySelectorAll(".diff-btn").forEach(b =>
+          b.classList.toggle("active", b.dataset.diff === "easy"));
+        renderHUD();
+        init();
+      });
+
+      /* Streak check on load */
+      const today = new Date().toDateString();
+      const lastPlay = localStorage.getItem("tw_lastPlay");
+      if (lastPlay && lastPlay !== today) {
+        const yesterday = new Date(Date.now() - 864e5).toDateString();
+        if (lastPlay !== yesterday) setNum("tw_streak", 0);
+      }
+
       renderHUD();
       init();
-    });
-
-    /* Streak check on load */
-    const today    = new Date().toDateString();
-    const lastPlay = localStorage.getItem("tw_lastPlay");
-    if (lastPlay && lastPlay !== today) {
-      const yesterday = new Date(Date.now() - 864e5).toDateString();
-      if (lastPlay !== yesterday) setNum("tw_streak", 0);
-    }
-
-    renderHUD();
-    init();
-  })();
+    })();
   </script>
 </body>
+
 </html>

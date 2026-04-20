@@ -1,198 +1,201 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TripWise — Community Dashboard</title>
-  <link rel="stylesheet" href="tripwise.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripWise — Community Dashboard</title>
+    <link rel="stylesheet" href="tripwise.css" />
 </head>
 
 <body>
-  <header class="header" aria-label="Top bar"></header>
+    <header class="header" aria-label="Top bar"></header>
 
-  <div class="top" role="banner">
-    <div class="brand">
-      <img src="../images/logo1.png" alt="TripWise logo" />
-      <h1>TripWise</h1>
+    <div class="top" role="banner">
+        <div class="brand">
+            <img src="../images/logo1.png" alt="TripWise logo" />
+            <h1>TripWise</h1>
+        </div>
+        <nav style="display:flex; flex-direction:row; gap:10px; align-items:center;">
+            <a class="btn btn-primary" href="feedback.html">Feedback</a>
+            <a class="btn btn-primary" href="#" id="logoutBtn">Logout</a>
+        </nav>
     </div>
-    <nav style="display:flex; flex-direction:row; gap:10px; align-items:center;">
-      <a class="btn btn-primary" href="feedback.html">Feedback</a>
-      <a class="btn btn-primary" href="#" id="logoutBtn">Logout</a>
-    </nav>
-  </div>
 
-  <main class="container">
+    <main class="container">
 
-    <section class="hero" aria-label="Community overview">
-      <div>
-        <h2 id="heroTitle">Community Dashboard</h2>
-        <p id="heroSub">Loading your community profile…</p>
+        <section class="hero" aria-label="Community overview">
+            <div>
+                <h2 id="heroTitle">Community Dashboard</h2>
+                <p id="heroSub">Loading your community profile…</p>
 
-        <div class="stats" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-          <div class="pill">👤 <strong id="userName">…</strong></div>
-          <div class="pill">📍 <strong id="destName">…</strong></div>
-          <div class="pill">Submitted: <strong id="totalCount">0</strong></div>
-          <div class="pill">Approved: <strong id="approvedCount">0</strong></div>
-          <div class="pill">Pending: <strong id="pendingCount">0</strong></div>
-          <div class="pill">Rejected: <strong id="rejectedCount">0</strong></div>
+                <div class="stats" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+                    <div class="pill">👤 <strong id="userName">…</strong></div>
+                    <div class="pill">📍 <strong id="destName">…</strong></div>
+                    <div class="pill">Submitted: <strong id="totalCount">0</strong></div>
+                    <div class="pill">Approved: <strong id="approvedCount">0</strong></div>
+                    <div class="pill">Pending: <strong id="pendingCount">0</strong></div>
+                    <div class="pill">Rejected: <strong id="rejectedCount">0</strong></div>
+                </div>
+            </div>
+
+            <div class="hero-actions">
+                <button class="btn btn-primary" id="openInsightBtn" type="button">➕ Submit Insight</button>
+            </div>
+        </section>
+
+        <div class="grid">
+
+            <section class="card span-7">
+                <h3>My Submitted Insights</h3>
+                <p>Insights are reviewed by an admin before appearing in TripWise chatbot guidance.</p>
+
+                <div class="detail">
+                    <strong>Latest</strong>
+                    <span id="latestInsight">None yet</span>
+                </div>
+
+                <div style="margin-top:12px">
+                    <button class="btn btn-primary" id="openInsightBtn2" type="button">Submit new insight</button>
+                </div>
+
+                <div style="overflow-x:auto; margin-top:14px">
+                    <table class="insight-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Content</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="insightTableBody">
+                            <tr>
+                                <td colspan="4">Loading…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card span-5">
+                <h3>About Your Role</h3>
+                <p>
+                    As a community partner for <strong id="destNameInfo">your destination</strong>,
+                    you contribute local knowledge that helps travellers understand cultural
+                    expectations, etiquette, and responsible behaviour.
+                </p>
+
+                <div class="detail" style="margin-top:12px">
+                    <strong>How it works</strong>
+                </div>
+                <div class="detail"><span>1. Submit an insight below</span></div>
+                <div class="detail"><span>2. An admin reviews and approves it</span></div>
+                <div class="detail">
+                    <span>3. Approved insights appear in the TripWise chatbot for travellers visiting <strong
+                            id="destNameSteps">your destination</strong></span>
+                </div>
+
+                <div class="detail" style="margin-top:4px">
+                    <strong>Status guide</strong>
+                </div>
+                <div class="detail">
+                    <span class="status-badge status-pending">pending</span>
+                    <span style="font-size:13px;color:#666">Awaiting admin review</span>
+                </div>
+                <div class="detail">
+                    <span class="status-badge status-approved">approved</span>
+                    <span style="font-size:13px;color:#666">Live in chatbot guidance</span>
+                </div>
+                <div class="detail">
+                    <span class="status-badge status-rejected">rejected</span>
+                    <span style="font-size:13px;color:#666">Not published — revise and resubmit</span>
+                </div>
+            </section>
+
         </div>
-      </div>
+    </main>
 
-      <div class="hero-actions">
-        <button class="btn btn-primary" id="openInsightBtn" type="button">➕ Submit Insight</button>
-      </div>
-    </section>
+    <div id="insightModal" role="dialog" aria-modal="true" aria-labelledby="insightModalTitle">
+        <div class="modal-card">
+            <h3 id="insightModalTitle">Submit Local Insight</h3>
+            <p style="font-size:13px;color:#666;margin:0">
+                Share etiquette tips, local laws, or community guidance for
+                <strong id="modalDestName">your destination</strong>.
+                Insights go to admin review before going live.
+            </p>
 
-    <div class="grid">
+            <label style="font-size:13px;font-weight:600;margin-top:4px;display:block">Title</label>
+            <input id="insightTitle" type="text" placeholder="e.g., Remove shoes before entering temples" />
 
-      <section class="card span-7">
-        <h3>My Submitted Insights</h3>
-        <p>Insights are reviewed by an admin before appearing in TripWise chatbot guidance.</p>
+            <label style="font-size:13px;font-weight:600;display:block">Content</label>
+            <textarea id="insightContent"
+                placeholder="Describe the tip or guidance in detail. Be specific and respectful."></textarea>
 
-        <div class="detail">
-          <strong>Latest</strong>
-          <span id="latestInsight">None yet</span>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="cancelInsightBtn" type="button">Cancel</button>
+                <button class="btn btn-primary" id="saveInsightBtn" type="button">Submit for review</button>
+            </div>
         </div>
-
-        <div style="margin-top:12px">
-          <button class="btn btn-primary" id="openInsightBtn2" type="button">Submit new insight</button>
-        </div>
-
-        <div style="overflow-x:auto; margin-top:14px">
-          <table class="insight-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Content</th>
-                <th>Status</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody id="insightTableBody">
-              <tr><td colspan="4">Loading…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card span-5">
-        <h3>About Your Role</h3>
-        <p>
-          As a community partner for <strong id="destNameInfo">your destination</strong>,
-          you contribute local knowledge that helps travellers understand cultural
-          expectations, etiquette, and responsible behaviour.
-        </p>
-
-        <div class="detail" style="margin-top:12px">
-          <strong>How it works</strong>
-        </div>
-        <div class="detail"><span>1. Submit an insight below</span></div>
-        <div class="detail"><span>2. An admin reviews and approves it</span></div>
-        <div class="detail">
-          <span>3. Approved insights appear in the TripWise chatbot for travellers visiting <strong id="destNameSteps">your destination</strong></span>
-        </div>
-
-        <div class="detail" style="margin-top:4px">
-          <strong>Status guide</strong>
-        </div>
-        <div class="detail">
-          <span class="status-badge status-pending">pending</span>
-          <span style="font-size:13px;color:#666">Awaiting admin review</span>
-        </div>
-        <div class="detail">
-          <span class="status-badge status-approved">approved</span>
-          <span style="font-size:13px;color:#666">Live in chatbot guidance</span>
-        </div>
-        <div class="detail">
-          <span class="status-badge status-rejected">rejected</span>
-          <span style="font-size:13px;color:#666">Not published — revise and resubmit</span>
-        </div>
-      </section>
-
     </div>
-  </main>
 
-  <div id="insightModal" role="dialog" aria-modal="true" aria-labelledby="insightModalTitle">
-    <div class="modal-card">
-      <h3 id="insightModalTitle">Submit Local Insight</h3>
-      <p style="font-size:13px;color:#666;margin:0">
-        Share etiquette tips, local laws, or community guidance for
-        <strong id="modalDestName">your destination</strong>.
-        Insights go to admin review before going live.
-      </p>
+    <footer class="footer" aria-label="Footer"></footer>
 
-      <label style="font-size:13px;font-weight:600;margin-top:4px;display:block">Title</label>
-      <input id="insightTitle" type="text"
-             placeholder="e.g., Remove shoes before entering temples" />
+    <div class="toast" id="toast"></div>
 
-      <label style="font-size:13px;font-weight:600;display:block">Content</label>
-      <textarea id="insightContent"
-        placeholder="Describe the tip or guidance in detail. Be specific and respectful."></textarea>
+    <script src="api/api.js"></script>
+    <script>
+        const $ = id => document.getElementById(id);
+        const escHtml = s => String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+        const fmtDate = d => { if (!d) return "—"; const dt = new Date(d); return isNaN(dt) ? d : dt.toLocaleDateString(); };
+        const redirectToLogin = () => { window.location.href = "localcommunities-login.html"; };
 
-      <div class="modal-actions">
-        <button class="btn btn-ghost"   id="cancelInsightBtn" type="button">Cancel</button>
-        <button class="btn btn-primary" id="saveInsightBtn"   type="button">Submit for review</button>
-      </div>
-    </div>
-  </div>
+        /* Toast */
+        let toastTimer = null;
+        function showToast(msg, isError = false) {
+            const t = $("toast");
+            t.textContent = msg;
+            t.classList.toggle("error", isError);
+            t.classList.add("show");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+        }
 
-  <footer class="footer" aria-label="Footer"></footer>
+        const openModal = () => { $("insightModal").classList.add("open"); };
+        const closeModal = () => {
+            $("insightModal").classList.remove("open");
+            $("insightTitle").value = "";
+            $("insightContent").value = "";
+        };
 
-  <div class="toast" id="toast"></div>
+        $("openInsightBtn").addEventListener("click", openModal);
+        $("openInsightBtn2").addEventListener("click", openModal);
+        $("cancelInsightBtn").addEventListener("click", closeModal);
+        $("insightModal").addEventListener("click", e => {
+            if (e.target === $("insightModal")) closeModal();
+        });
 
-  <script src="api/api.js"></script>
-  <script>
-    const $       = id => document.getElementById(id);
-    const escHtml = s  => String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-    const fmtDate = d  => { if (!d) return "—"; const dt = new Date(d); return isNaN(dt) ? d : dt.toLocaleDateString(); };
-    const redirectToLogin = () => { window.location.href = "localcommunities-login.html"; };
+        /* Logout */
+        $("logoutBtn").addEventListener("click", e => {
+            e.preventDefault();
+            clearToken();
+            redirectToLogin();
+        });
 
-    /* Toast */
-    let toastTimer = null;
-    function showToast(msg, isError = false) {
-      const t = $("toast");
-      t.textContent = msg;
-      t.classList.toggle("error", isError);
-      t.classList.add("show");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
-    }
+        /* Load insights */
+        const loadInsights = async () => {
+            try {
+                const rows = await apiFetch("/api/insights/mine");
+                const count = s => rows.filter(r => r.status === s).length;
 
-    const openModal  = () => { $("insightModal").classList.add("open"); };
-    const closeModal = () => {
-      $("insightModal").classList.remove("open");
-      $("insightTitle").value   = "";
-      $("insightContent").value = "";
-    };
+                $("totalCount").textContent = rows.length;
+                $("approvedCount").textContent = count("approved");
+                $("pendingCount").textContent = count("pending");
+                $("rejectedCount").textContent = count("rejected");
+                $("latestInsight").textContent = rows.length ? rows[0].title : "None yet";
 
-    $("openInsightBtn").addEventListener("click",  openModal);
-    $("openInsightBtn2").addEventListener("click", openModal);
-    $("cancelInsightBtn").addEventListener("click", closeModal);
-    $("insightModal").addEventListener("click", e => {
-      if (e.target === $("insightModal")) closeModal();
-    });
-
-    /* Logout */
-    $("logoutBtn").addEventListener("click", e => {
-      e.preventDefault();
-      clearToken();
-      redirectToLogin();
-    });
-
-    /* Load insights */
-    const loadInsights = async () => {
-      try {
-        const rows = await apiFetch("/api/insights/mine");
-        const count = s => rows.filter(r => r.status === s).length;
-
-        $("totalCount").textContent    = rows.length;
-        $("approvedCount").textContent = count("approved");
-        $("pendingCount").textContent  = count("pending");
-        $("rejectedCount").textContent = count("rejected");
-        $("latestInsight").textContent = rows.length ? rows[0].title : "None yet";
-
-        $("insightTableBody").innerHTML = rows.length
-          ? rows.map(r => `
+                $("insightTableBody").innerHTML = rows.length
+                    ? rows.map(r => `
               <tr>
                 <td>${escHtml(r.title)}</td>
                 <td>${escHtml(r.content)}</td>
@@ -203,79 +206,80 @@
                 </td>
                 <td>${fmtDate(r.created_at)}</td>
               </tr>`).join("")
-          : `<tr><td colspan="4" style="color:#666">
+                    : `<tr><td colspan="4" style="color:#666">
                No insights submitted yet — click "Submit Insight" to get started.
              </td></tr>`;
-      } catch (err) {
-        console.error("loadInsights:", err.message);
-        $("insightTableBody").innerHTML = `<tr><td colspan="4">Failed to load insights.</td></tr>`;
-      }
-    };
+            } catch (err) {
+                console.error("loadInsights:", err.message);
+                $("insightTableBody").innerHTML = `<tr><td colspan="4">Failed to load insights.</td></tr>`;
+            }
+        };
 
-    /* Save insight */
-    $("saveInsightBtn").addEventListener("click", async () => {
-      const title   = $("insightTitle").value.trim();
-      const content = $("insightContent").value.trim();
+        /* Save insight */
+        $("saveInsightBtn").addEventListener("click", async () => {
+            const title = $("insightTitle").value.trim();
+            const content = $("insightContent").value.trim();
 
-      if (!title)   { showToast("Please enter a title.", true);   return; }
-      if (!content) { showToast("Please enter the content.", true); return; }
+            if (!title) { showToast("Please enter a title.", true); return; }
+            if (!content) { showToast("Please enter the content.", true); return; }
 
-      $("saveInsightBtn").disabled    = true;
-      $("saveInsightBtn").textContent = "Submitting…";
+            $("saveInsightBtn").disabled = true;
+            $("saveInsightBtn").textContent = "Submitting…";
 
-      try {
-        await apiFetch("/api/insights", {
-          method: "POST",
-          body: JSON.stringify({
-            destination_id: window._destId,
-            title,
-            content
-          })
+            try {
+                await apiFetch("/api/insights", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        destination_id: window._destId,
+                        title,
+                        content
+                    })
+                });
+                closeModal();
+                await loadInsights();
+                showToast("Insight submitted for admin review! ✅");
+            } catch (err) {
+                showToast(err.message || "Failed to submit insight.", true);
+            } finally {
+                $("saveInsightBtn").disabled = false;
+                $("saveInsightBtn").textContent = "Submit for review";
+            }
         });
-        closeModal();
-        await loadInsights();
-        showToast("Insight submitted for admin review! ✅");
-      } catch (err) {
-        showToast(err.message || "Failed to submit insight.", true);
-      } finally {
-        $("saveInsightBtn").disabled    = false;
-        $("saveInsightBtn").textContent = "Submit for review";
-      }
-    });
 
-    (async () => {
-      if (!getToken()) { redirectToLogin(); return; }
+        (async () => {
+            if (!getToken()) { redirectToLogin(); return; }
 
-      let user;
-      try {
-        user = await apiFetch("/api/auth/me");
-        if (!user || user.role !== "community") {
-          showToast("Access denied. Community accounts only.", true);
-          clearToken();
-          setTimeout(redirectToLogin, 1500);
-          return;
-        }
-      } catch (err) {
-        clearToken();
-        redirectToLogin();
-        return;
-      }
+            let user;
+            try {
+                user = await apiFetch("/api/auth/me");
+                if (!user || user.role !== "community") {
+                    showToast("Access denied. Community accounts only.", true);
+                    clearToken();
+                    setTimeout(redirectToLogin, 1500);
+                    return;
+                }
+            } catch (err) {
+                clearToken();
+                redirectToLogin();
+                return;
+            }
 
-      window._destId = user.destination_id;
-      const dest     = user.destination_name || "your destination";
+            window._destId = user.destination_id;
+            const dest = user.destination_name || "your destination";
 
-      $("userName").textContent      = user.full_name || "Partner";
-      $("destName").textContent      = dest;
-      $("destNameInfo").textContent  = dest;
-      $("destNameSteps").textContent = dest;
-      $("modalDestName").textContent = dest;
-      $("heroTitle").textContent     = `${dest} — Community Dashboard `;
-      $("heroSub").textContent       =
-        `You're logged in as a verified local community partner for ${dest}. ` +
-        `Submit insights to help travellers understand local customs and responsible behaviour.`;
+            $("userName").textContent = user.full_name || "Partner";
+            $("destName").textContent = dest;
+            $("destNameInfo").textContent = dest;
+            $("destNameSteps").textContent = dest;
+            $("modalDestName").textContent = dest;
+            $("heroTitle").textContent = `${dest} — Community Dashboard `;
+            $("heroSub").textContent =
+                `You're logged in as a verified local community partner for ${dest}. ` +
+                `Submit insights to help travellers understand local customs and responsible behaviour.`;
 
-      await loadInsights();
-    })();
-  </script>
+            await loadInsights();
+        })();
+    </script>
 </body>
+
 </html>

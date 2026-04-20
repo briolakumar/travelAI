@@ -1,12 +1,14 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Mission Results</title>
   <link rel="stylesheet" href="tripwise.css" />
-  
+
 </head>
+
 <body>
   <header class="header"></header>
   <div class="top" role="banner">
@@ -49,7 +51,7 @@
       <div id="alertBox" style="display:none" class="alert-box"></div>
 
       <div class="action-row">
-        <button class="btn btn-primary" id="replayBtn">🔄 Play Again</button>
+        <button class="btn btn-primary" id="replayBtn">Play Again</button>
         <a class="btn btn-ghost" href="learning-home.html">← Back to Hub</a>
         <a class="btn btn-ghost" id="chatbotBtn" href="chatbot-guidance.html">🤖 Ask Chatbot</a>
       </div>
@@ -58,79 +60,80 @@
 
   <footer class="footer"></footer>
   <script>
-  (() => {
-    "use strict";
+    (() => {
+      "use strict";
 
-    const params   = new URLSearchParams(window.location.search);
-    const mission  = params.get("mission")  || "kyoto-laws-etiquette";
-    const run      = Number(params.get("run")      || 0);
-    const total    = Number(params.get("total")    || 0);
-    const accuracy = Number(params.get("accuracy") || 0);
-    const diff     = params.get("diff")    || "medium";
-    const earned   = params.get("earned")  === "1";
-    const daily    = params.get("daily")   === "1";
+      const params = new URLSearchParams(window.location.search);
+      const mission = params.get("mission") || "kyoto-laws-etiquette";
+      const run = Number(params.get("run") || 0);
+      const total = Number(params.get("total") || 0);
+      const accuracy = Number(params.get("accuracy") || 0);
+      const diff = params.get("diff") || "medium";
+      const earned = params.get("earned") === "1";
+      const daily = params.get("daily") === "1";
 
-    /* Grade */
-    const grade = accuracy === 100 ? "A+" :
-                  accuracy >= 80   ? "A"  :
-                  accuracy >= 65   ? "B"  :
-                  accuracy >= 45   ? "C"  : "D";
+      /* Grade */
+      const grade = accuracy === 100 ? "A+" :
+        accuracy >= 80 ? "A" :
+          accuracy >= 65 ? "B" :
+            accuracy >= 45 ? "C" : "D";
 
-    /* Emoji */
-    const emoji = accuracy === 100 ? "🏆" :
-                  accuracy >= 80   ? "🎉" :
-                  accuracy >= 60   ? "✅" : "📚";
+      /* Emoji */
+      const emoji = accuracy === 100 ? "🏆" :
+        accuracy >= 80 ? "🎉" :
+          accuracy >= 60 ? "✅" : "📚";
 
-    /* Destination name from mission key */
-    const destName = mission.split("-")[0].charAt(0).toUpperCase() +
-                     mission.split("-")[0].slice(1);
+      /* Destination name from mission key */
+      const destName = mission.split("-")[0].charAt(0).toUpperCase() +
+        mission.split("-")[0].slice(1);
 
-    document.getElementById("resultEmoji").textContent    = emoji;
-    document.getElementById("resultTitle").textContent    = daily ? "Daily Challenge Complete! 🔥" : "Mission Complete!";
-    document.getElementById("resultSubtitle").textContent = `${destName} — Laws & Etiquette`;
+      document.getElementById("resultEmoji").textContent = emoji;
+      document.getElementById("resultTitle").textContent = daily ? "Daily Challenge Complete! 🔥" : "Mission Complete!";
+      document.getElementById("resultSubtitle").textContent = `${destName} — Laws & Etiquette`;
 
-    document.getElementById("statEarned").textContent   = run;
-    document.getElementById("statAccuracy").textContent = `${accuracy}%`;
-    document.getElementById("statTotal").textContent    = total;
+      document.getElementById("statEarned").textContent = run;
+      document.getElementById("statAccuracy").textContent = `${accuracy}%`;
+      document.getElementById("statTotal").textContent = total;
 
-    const gradeEl = document.getElementById("statGrade");
-    gradeEl.textContent = grade;
-    gradeEl.className   = `val grade-${CSS.escape ? grade : grade.replace("+","")}`;
+      const gradeEl = document.getElementById("statGrade");
+      gradeEl.textContent = grade;
+      gradeEl.className = `val grade-${CSS.escape ? grade : grade.replace("+", "")}`;
 
-    /* Difficulty badge */
-    const diffEl = document.getElementById("diffBadge");
-    diffEl.textContent = diff === "easy" ? "🟢 Easy" : diff === "medium" ? "🟡 Medium" : "🔴 Hard";
-    diffEl.className   = `diff-badge diff-${diff}`;
+      /* Difficulty badge */
+      const diffEl = document.getElementById("diffBadge");
+      diffEl.textContent = diff === "easy" ? "🟢 Easy" : diff === "medium" ? "🟡 Medium" : "🔴 Hard";
+      diffEl.className = `diff-badge diff-${diff}`;
 
-    /* Alert */
-    const alertBox = document.getElementById("alertBox");
-    if (accuracy === 100) {
-      alertBox.className   = "alert-box alert-success";
-      alertBox.textContent = "🏆 Perfect score! You know this destination inside out.";
-      alertBox.style.display = "block";
-    } else if (earned) {
-      alertBox.className   = "alert-box alert-success";
-      alertBox.textContent = "⭐ New best score for this mission! Keep it up.";
-      alertBox.style.display = "block";
-    } else if (accuracy < 50) {
-      alertBox.className   = "alert-box alert-warning";
-      alertBox.textContent = "📖 Review the hints and try again to improve your accuracy.";
-      alertBox.style.display = "block";
-    }
+      /* Alert */
+      const alertBox = document.getElementById("alertBox");
+      if (accuracy === 100) {
+        alertBox.className = "alert-box alert-success";
+        alertBox.textContent = "🏆 Perfect score! You know this destination inside out.";
+        alertBox.style.display = "block";
+      } else if (earned) {
+        alertBox.className = "alert-box alert-success";
+        alertBox.textContent = "⭐ New best score for this mission! Keep it up.";
+        alertBox.style.display = "block";
+      } else if (accuracy < 50) {
+        alertBox.className = "alert-box alert-warning";
+        alertBox.textContent = "📖 Review the hints and try again to improve your accuracy.";
+        alertBox.style.display = "block";
+      }
 
-    /* Replay button */
-    document.getElementById("replayBtn").addEventListener("click", () => {
-      window.location.href = `learning-game.html?mission=${encodeURIComponent(mission)}&diff=${diff}${daily ? "&daily=1" : ""}`;
-    });
+      /* Replay button */
+      document.getElementById("replayBtn").addEventListener("click", () => {
+        window.location.href = `learning-game.html?mission=${encodeURIComponent(mission)}&diff=${diff}${daily ? "&daily=1" : ""}`;
+      });
 
-    /* Chatbot button */
-    const chatBtn = document.getElementById("chatbotBtn");
-    try {
-      const bookings = JSON.parse(localStorage.getItem("tw_last_booking_id") || "null");
-      if (bookings) chatBtn.href = `chatbot-guidance.html?booking_id=${bookings}`;
-    } catch(e) {}
+      /* Chatbot button */
+      const chatBtn = document.getElementById("chatbotBtn");
+      try {
+        const bookings = JSON.parse(localStorage.getItem("tw_last_booking_id") || "null");
+        if (bookings) chatBtn.href = `chatbot-guidance.html?booking_id=${bookings}`;
+      } catch (e) { }
 
-  })();
+    })();
   </script>
 </body>
+
 </html>

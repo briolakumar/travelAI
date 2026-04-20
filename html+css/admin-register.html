@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,30 +16,29 @@
       <h2 id="page-title">Admin Registration</h2>
       <p class="subtitle">Create an admin account for TripWise management.</p>
 
-     
 
-      <p id="message" style="display:none; color:white; background:#d32f2f; padding:10px; border-radius:4px; text-align:center; margin-bottom:15px; font-weight:bold;"></p>
+
+      <p id="message"
+        style="display:none; color:white; background:#d32f2f; padding:10px; border-radius:4px; text-align:center; margin-bottom:15px; font-weight:bold;">
+      </p>
 
       <form id="adminRegister" novalidate>
         <label for="a_name">Full Name</label>
-        <input id="a_name" name="full_name" type="text" required
-          autocomplete="name" placeholder="e.g., Sam Admin" />
+        <input id="a_name" name="full_name" type="text" required autocomplete="name" placeholder="e.g., Sam Admin" />
 
         <label for="a_email">Work Email</label>
-        <input id="a_email" name="email" type="email" required
-          autocomplete="email" placeholder="name@tripwiseadmin.com"
+        <input id="a_email" name="email" type="email" required autocomplete="email" placeholder="name@tripwiseadmin.com"
           aria-describedby="a_email_hint" />
         <p id="a_email_hint" class="pw-hint">Must end in @tripwiseadmin.com</p>
 
         <label for="a_password">Password</label>
-        <input id="a_password" name="password" type="password" minlength="8" required
-          autocomplete="new-password" placeholder="Minimum 8 characters"
-          aria-describedby="a_pw_hint" />
+        <input id="a_password" name="password" type="password" minlength="8" required autocomplete="new-password"
+          placeholder="Minimum 8 characters" aria-describedby="a_pw_hint" />
         <p id="a_pw_hint" class="pw-hint">Use at least 8 characters.</p>
 
         <label for="a_confirm">Confirm Password</label>
-        <input id="a_confirm" name="confirmPassword" type="password" minlength="8" required
-          autocomplete="new-password" placeholder="Re-enter password" />
+        <input id="a_confirm" name="confirmPassword" type="password" minlength="8" required autocomplete="new-password"
+          placeholder="Re-enter password" />
 
         <button class="btn" type="submit">Create Admin Account</button>
 
@@ -54,14 +54,14 @@
   <script src="api/api.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const form       = document.getElementById("adminRegister");
-      const nameEl     = document.getElementById("a_name");
-      const emailEl    = document.getElementById("a_email");
-      const emailHint  = document.getElementById("a_email_hint");
+      const form = document.getElementById("adminRegister");
+      const nameEl = document.getElementById("a_name");
+      const emailEl = document.getElementById("a_email");
+      const emailHint = document.getElementById("a_email_hint");
       const passwordEl = document.getElementById("a_password");
-      const pwHint     = document.getElementById("a_pw_hint");
-      const confirmEl  = document.getElementById("a_confirm");
-      const msg        = document.getElementById("message");
+      const pwHint = document.getElementById("a_pw_hint");
+      const confirmEl = document.getElementById("a_confirm");
+      const msg = document.getElementById("message");
 
       const showMsg = (text, isSuccess = false) => {
         msg.textContent = text;
@@ -146,10 +146,10 @@
           await apiFetch("/api/auth/register", {
             method: "POST",
             body: JSON.stringify({
-              role:      "admin",
+              role: "admin",
               full_name: nameEl.value.trim(),
-              email:     email,
-              password:  passwordEl.value,
+              email: email,
+              password: passwordEl.value,
             }),
           });
 
@@ -163,4 +163,5 @@
     });
   </script>
 </body>
+
 </html>

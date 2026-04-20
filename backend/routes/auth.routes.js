@@ -12,7 +12,7 @@ const ALLOWED_ROLES = new Set(["traveller", "admin", "community"]);
 
 /* Email domain rules per role */
 const ROLE_DOMAINS = {
-  admin:     "@tripwiseadmin.com",
+  admin: "@tripwiseadmin.com",
   community: "@tripwisecommunity.com",
 };
 

@@ -9,7 +9,7 @@ const router = express.Router();
 function normalize(text = "") { return String(text).toLowerCase().trim(); }
 
 function tokenize(text = "") {
-  return normalize(text).replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(Boolean);
+  return normalize(text).replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
 }
 
 function unique(arr = []) { return [...new Set(arr)]; }
@@ -18,22 +18,22 @@ function unique(arr = []) { return [...new Set(arr)]; }
 function detectIntent(message = "") {
   const msg = normalize(message);
   const rules = [
-    { intent: "laws",           keywords: ["law","illegal","allowed","forbidden","rule","rules","legal"] },
-    { intent: "etiquette",      keywords: ["etiquette","respect","rude","polite","manners","custom","culture"] },
-    { intent: "transport",      keywords: ["transport","train","bus","metro","subway","taxi","ferry","travel around"] },
-    { intent: "photography",    keywords: ["photo","photos","camera","filming","pictures","recording"] },
-    { intent: "food",           keywords: ["food","eat","restaurant","meal","dining","tip","tipping","drink"] },
-    { intent: "safety",         keywords: ["safe","safety","danger","pickpocket","crime","unsafe"] },
-    { intent: "scams",          keywords: ["scam","tourist trap","overcharge","fake guide","rip off"] },
-    { intent: "weather",        keywords: ["weather","rain","cold","hot","snow","clothes","temperature"] },
-    { intent: "timing",         keywords: ["best time","when should i go","when to visit","timing","season","month"] },
-    { intent: "dress_code",     keywords: ["wear","dress","dress code","clothes","shoulders","knees"] },
-    { intent: "religious_sites",keywords: ["temple","church","mosque","shrine","religious site","sacred"] },
-    { intent: "nightlife",      keywords: ["nightlife","night","bar","club","late","drinks"] },
-    { intent: "budget",         keywords: ["budget","cheap","expensive","afford","cost","price","save money"] },
-    { intent: "solo_travel",    keywords: ["solo","alone","travelling alone","traveling alone"] },
-    { intent: "family_travel",  keywords: ["family","kids","children","baby"] },
-    { intent: "emergency",      keywords: ["emergency","hospital","police","help","lost passport","ambulance"] }
+    { intent: "laws", keywords: ["law", "illegal", "allowed", "forbidden", "rule", "rules", "legal"] },
+    { intent: "etiquette", keywords: ["etiquette", "respect", "rude", "polite", "manners", "custom", "culture"] },
+    { intent: "transport", keywords: ["transport", "train", "bus", "metro", "subway", "taxi", "ferry", "travel around"] },
+    { intent: "photography", keywords: ["photo", "photos", "camera", "filming", "pictures", "recording"] },
+    { intent: "food", keywords: ["food", "eat", "restaurant", "meal", "dining", "tip", "tipping", "drink"] },
+    { intent: "safety", keywords: ["safe", "safety", "danger", "pickpocket", "crime", "unsafe"] },
+    { intent: "scams", keywords: ["scam", "tourist trap", "overcharge", "fake guide", "rip off"] },
+    { intent: "weather", keywords: ["weather", "rain", "cold", "hot", "snow", "clothes", "temperature"] },
+    { intent: "timing", keywords: ["best time", "when should i go", "when to visit", "timing", "season", "month"] },
+    { intent: "dress_code", keywords: ["wear", "dress", "dress code", "clothes", "shoulders", "knees"] },
+    { intent: "religious_sites", keywords: ["temple", "church", "mosque", "shrine", "religious site", "sacred"] },
+    { intent: "nightlife", keywords: ["nightlife", "night", "bar", "club", "late", "drinks"] },
+    { intent: "budget", keywords: ["budget", "cheap", "expensive", "afford", "cost", "price", "save money"] },
+    { intent: "solo_travel", keywords: ["solo", "alone", "travelling alone", "traveling alone"] },
+    { intent: "family_travel", keywords: ["family", "kids", "children", "baby"] },
+    { intent: "emergency", keywords: ["emergency", "hospital", "police", "help", "lost passport", "ambulance"] }
   ];
   for (const rule of rules) {
     if (rule.keywords.some(k => msg.includes(k))) return rule.intent;
@@ -43,23 +43,23 @@ function detectIntent(message = "") {
 
 function categoryForIntent(intent) {
   const map = {
-    etiquette:      ["etiquette","culture"],
-    laws:           ["laws"],
-    safety:         ["safety"],
-    scams:          ["safety","laws"],
-    transport:      ["transport"],
-    food:           ["food","culture"],
-    weather:        ["weather"],
-    timing:         ["timing","weather"],
-    photography:    ["etiquette","culture","laws"],
-    dress_code:     ["etiquette","culture","laws"],
-    religious_sites:["etiquette","culture","laws"],
-    nightlife:      ["safety","culture","laws"],
-    budget:         ["transport","food","timing","other"],
-    solo_travel:    ["safety","transport"],
-    family_travel:  ["safety","food","timing"],
-    emergency:      ["safety","laws"],
-    general:        ["etiquette","culture","transport","food","safety","timing","weather","laws"]
+    etiquette: ["etiquette", "culture"],
+    laws: ["laws"],
+    safety: ["safety"],
+    scams: ["safety", "laws"],
+    transport: ["transport"],
+    food: ["food", "culture"],
+    weather: ["weather"],
+    timing: ["timing", "weather"],
+    photography: ["etiquette", "culture", "laws"],
+    dress_code: ["etiquette", "culture", "laws"],
+    religious_sites: ["etiquette", "culture", "laws"],
+    nightlife: ["safety", "culture", "laws"],
+    budget: ["transport", "food", "timing", "other"],
+    solo_travel: ["safety", "transport"],
+    family_travel: ["safety", "food", "timing"],
+    emergency: ["safety", "laws"],
+    general: ["etiquette", "culture", "transport", "food", "safety", "timing", "weather", "laws"]
   };
   return map[intent] || map.general;
 }
@@ -78,7 +78,7 @@ function confidenceFromCounts(kbCount, insightCount, intent) {
 
 function confidenceLabel(score) {
   if (score >= 0.85) return "High";
-  if (score >= 0.6)  return "Medium";
+  if (score >= 0.6) return "Medium";
   return "Low";
 }
 
@@ -124,7 +124,7 @@ async function getBookingContext(bookingId, userId) {
 }
 
 async function getKnowledge(destinationId, intent) {
-  const categories   = categoryForIntent(intent);
+  const categories = categoryForIntent(intent);
   const placeholders = categories.map(() => "?").join(",");
   return runAll(
     `SELECT kb.id, cat.name AS category, kb.title, kb.content
@@ -178,12 +178,12 @@ async function getRecentIntents(sessionId, limit = 4) {
 
 function scoreRowAgainstMessage(row, message, intent) {
   const msgTokens = tokenize(message);
-  const rowText   = `${row.title||""} ${row.content||""} ${row.category||""}`.toLowerCase();
-  let score       = 0;
+  const rowText = `${row.title || ""} ${row.content || ""} ${row.category || ""}`.toLowerCase();
+  let score = 0;
   if (row.category && categoryForIntent(intent).includes(row.category)) score += 4;
   msgTokens.forEach(t => { if (rowText.includes(t)) score += 2; });
-  if (intent !== "general" && rowText.includes(intent.replace("_"," "))) score += 3;
-  if ((row.title||"").length > 0) score += 1;
+  if (intent !== "general" && rowText.includes(intent.replace("_", " "))) score += 3;
+  if ((row.title || "").length > 0) score += 1;
   return score;
 }
 
@@ -197,8 +197,8 @@ function rankInsights(rows, message) {
   const msgTokens = tokenize(message);
   return [...rows]
     .map(row => {
-      const text = `${row.title||""} ${row.content||""}`.toLowerCase();
-      let score  = 1;
+      const text = `${row.title || ""} ${row.content || ""}`.toLowerCase();
+      let score = 1;
       msgTokens.forEach(t => { if (text.includes(t)) score += 2; });
       return { ...row, _score: score };
     })
@@ -253,16 +253,16 @@ function buildIntro(context) {
 function buildTripTypeAdvice(tripType) {
   if (!tripType) return [];
   const advice = {
-    "Solo":     ["As a solo traveller, keep your itinerary shared with someone you trust.",
-                 "Stay in well-reviewed accommodation and keep emergency contacts saved offline."],
-    "Couple":   ["Be aware that public displays of affection rules vary significantly by destination.",
-                 "Research romantic etiquette and any local customs around couples at religious sites."],
-    "Family":   ["Prioritise child-friendly transport options and avoid peak crowd times at major sites.",
-                 "Check whether attractions offer family pricing and accessible facilities."],
-    "Friends":  ["Large groups can attract more attention — stay aware of local noise and behaviour rules.",
-                 "Splitting up for transport in busy areas can reduce disruption to locals."],
+    "Solo": ["As a solo traveller, keep your itinerary shared with someone you trust.",
+      "Stay in well-reviewed accommodation and keep emergency contacts saved offline."],
+    "Couple": ["Be aware that public displays of affection rules vary significantly by destination.",
+      "Research romantic etiquette and any local customs around couples at religious sites."],
+    "Family": ["Prioritise child-friendly transport options and avoid peak crowd times at major sites.",
+      "Check whether attractions offer family pricing and accessible facilities."],
+    "Friends": ["Large groups can attract more attention — stay aware of local noise and behaviour rules.",
+      "Splitting up for transport in busy areas can reduce disruption to locals."],
     "Business": ["Dress conservatively and research local business card and greeting etiquette.",
-                 "Punctuality expectations and hierarchy in meetings vary widely across cultures."]
+      "Punctuality expectations and hierarchy in meetings vary widely across cultures."]
   };
   return advice[tripType] || [];
 }
@@ -285,22 +285,22 @@ function buildContextAdvice(context, intent) {
 
 function buildFollowUps(intent) {
   const map = {
-    etiquette:      ["Ask what behaviour tourists should avoid", "Ask about religious site etiquette"],
-    laws:           ["Ask which tourist mistakes could cause fines", "Ask about photography restrictions"],
-    transport:      ["Ask how to get around cheaply", "Ask which transport mistakes tourists make"],
-    safety:         ["Ask about scams to watch for", "Ask whether crowded areas need extra caution"],
-    scams:          ["Ask how locals spot tourist traps", "Ask what offers to avoid"],
-    food:           ["Ask about dining customs", "Ask about tipping expectations"],
-    photography:    ["Ask where cameras may be inappropriate", "Ask about temple or sacred-site rules"],
-    dress_code:     ["Ask what to wear at religious sites", "Ask what clothing tourists should avoid"],
-    religious_sites:["Ask how to behave at temples or shrines", "Ask about respectful clothing"],
-    weather:        ["Ask what to pack", "Ask the best season for your trip"],
-    timing:         ["Ask what time of day is best for major attractions", "Ask which months are busiest"],
-    budget:         ["Ask about free attractions", "Ask about affordable local transport"],
-    solo_travel:    ["Ask about safety for solo travellers", "Ask about meeting other travellers"],
-    family_travel:  ["Ask about child-friendly attractions", "Ask about family transport options"],
-    emergency:      ["Ask what emergency numbers to save", "Ask about travel insurance advice"],
-    general:        ["Ask about etiquette", "Ask about transport", "Ask about safety"]
+    etiquette: ["Ask what behaviour tourists should avoid", "Ask about religious site etiquette"],
+    laws: ["Ask which tourist mistakes could cause fines", "Ask about photography restrictions"],
+    transport: ["Ask how to get around cheaply", "Ask which transport mistakes tourists make"],
+    safety: ["Ask about scams to watch for", "Ask whether crowded areas need extra caution"],
+    scams: ["Ask how locals spot tourist traps", "Ask what offers to avoid"],
+    food: ["Ask about dining customs", "Ask about tipping expectations"],
+    photography: ["Ask where cameras may be inappropriate", "Ask about temple or sacred-site rules"],
+    dress_code: ["Ask what to wear at religious sites", "Ask what clothing tourists should avoid"],
+    religious_sites: ["Ask how to behave at temples or shrines", "Ask about respectful clothing"],
+    weather: ["Ask what to pack", "Ask the best season for your trip"],
+    timing: ["Ask what time of day is best for major attractions", "Ask which months are busiest"],
+    budget: ["Ask about free attractions", "Ask about affordable local transport"],
+    solo_travel: ["Ask about safety for solo travellers", "Ask about meeting other travellers"],
+    family_travel: ["Ask about child-friendly attractions", "Ask about family transport options"],
+    emergency: ["Ask what emergency numbers to save", "Ask about travel insurance advice"],
+    general: ["Ask about etiquette", "Ask about transport", "Ask about safety"]
   };
   return map[intent] || map.general;
 }
@@ -325,14 +325,14 @@ function buildSessionSummary(intents = [], destinationName = "") {
 
 function getFoodHighlights(destinationName) {
   const highlights = {
-    "Kyoto":     { must: ["Kaiseki multi-course dining", "Yudofu tofu hotpot", "Matcha everything — tea, ice cream, wagashi sweets", "Obanzai home-style small dishes"], tip: "Look for restaurants down narrow lanes away from main temple streets for better value." },
-    "Tokyo":     { must: ["Ramen from a specialist ramen-ya", "Fresh sushi at Tsukiji outer market", "Yakitori skewers from an izakaya", "Tamago sando from a convenience store"], tip: "Convenience stores like 7-Eleven and Lawson have genuinely excellent food — do not overlook them." },
-    "Paris":     { must: ["Fresh croissant from a local boulangerie", "Steak frites at a classic bistro", "Crêpes from a street stall", "Cheese and charcuterie from a fromagerie"], tip: "Avoid restaurants on the main tourist boulevards — walk one or two streets away for better quality at lower prices." },
-    "Rome":      { must: ["Cacio e pepe pasta — a Roman classic", "Supplì rice croquettes as a street snack", "Artichoke alla Romana or alla Giudia", "Gelato from a gelateria with covered containers"], tip: "Eat where you see locals eating. If a restaurant has a laminated menu with photos outside, walk past it." },
+    "Kyoto": { must: ["Kaiseki multi-course dining", "Yudofu tofu hotpot", "Matcha everything — tea, ice cream, wagashi sweets", "Obanzai home-style small dishes"], tip: "Look for restaurants down narrow lanes away from main temple streets for better value." },
+    "Tokyo": { must: ["Ramen from a specialist ramen-ya", "Fresh sushi at Tsukiji outer market", "Yakitori skewers from an izakaya", "Tamago sando from a convenience store"], tip: "Convenience stores like 7-Eleven and Lawson have genuinely excellent food — do not overlook them." },
+    "Paris": { must: ["Fresh croissant from a local boulangerie", "Steak frites at a classic bistro", "Crêpes from a street stall", "Cheese and charcuterie from a fromagerie"], tip: "Avoid restaurants on the main tourist boulevards — walk one or two streets away for better quality at lower prices." },
+    "Rome": { must: ["Cacio e pepe pasta — a Roman classic", "Supplì rice croquettes as a street snack", "Artichoke alla Romana or alla Giudia", "Gelato from a gelateria with covered containers"], tip: "Eat where you see locals eating. If a restaurant has a laminated menu with photos outside, walk past it." },
     "Barcelona": { must: ["Pan con tomate — bread rubbed with tomato and olive oil", "Patatas bravas with aioli", "Fresh seafood paella near the port", "Crema catalana for dessert"], tip: "Eat lunch at a menu del día for the best value — typically three courses with a drink included." },
-    "New York":  { must: ["A folded New York-style pizza slice", "Everything bagel with cream cheese and lox", "Pastrami on rye from a classic deli", "Dim sum in Flushing, Queens"], tip: "Explore immigrant neighbourhoods like Flushing, Jackson Heights, and Arthur Avenue for the most authentic and affordable food." },
+    "New York": { must: ["A folded New York-style pizza slice", "Everything bagel with cream cheese and lox", "Pastrami on rye from a classic deli", "Dim sum in Flushing, Queens"], tip: "Explore immigrant neighbourhoods like Flushing, Jackson Heights, and Arthur Avenue for the most authentic and affordable food." },
     "Marrakech": { must: ["Chicken or lamb tagine with preserved lemon", "Harira soup with khobz bread", "Bastilla — a sweet and savoury pastry pie", "Fresh-squeezed orange juice from the main square"], tip: "The food stalls in Jemaa el-Fna square are lively and generally good. Always confirm prices before ordering." },
-    "Bangkok":   { must: ["Pad Thai from a street stall", "Tom yum soup — spicy and sour", "Mango sticky rice for dessert", "Som tam green papaya salad"], tip: "Follow locals to find the best street food. Long queues at a small stall are always a good sign." },
+    "Bangkok": { must: ["Pad Thai from a street stall", "Tom yum soup — spicy and sour", "Mango sticky rice for dessert", "Som tam green papaya salad"], tip: "Follow locals to find the best street food. Long queues at a small stall are always a good sign." },
     "Reykjavik": { must: ["Skyr with berries and granola", "Icelandic lamb soup — kjötsúpa", "Arctic char — a local freshwater fish", "Hot dog from Bæjarins Beztu Pylsur with remoulade"], tip: "Iceland is expensive to eat out. Stock up at Bónus supermarket for picnic lunches and save restaurant budgets for dinner." },
     "Siem Reap": { must: ["Fish amok — coconut fish curry steamed in banana leaf", "Lok lak — stir-fried pepper beef", "Nom banh chok — Khmer rice noodles for breakfast", "Fresh fruit shakes from market stalls"], tip: "Walk beyond Pub Street to find smaller local restaurants where the food is more authentic and the prices lower." }
   };
@@ -355,13 +355,13 @@ function buildChatbotAnswer(
   context, message, intent, kbRows, insightRows,
   confidence, tripType = null, interests = null, recentIntents = []
 ) {
-  const lines        = [];
-  const bestKb       = kbRows.slice(0, 4);
+  const lines = [];
+  const bestKb = kbRows.slice(0, 4);
   const bestInsights = insightRows.slice(0, 2);
   const contextAdvice = buildContextAdvice(context, intent);
-  const tripAdvice    = buildTripTypeAdvice(tripType);
-  const followUps     = buildFollowUps(intent);
-  const emoji         = intentEmoji(intent);
+  const tripAdvice = buildTripTypeAdvice(tripType);
+  const followUps = buildFollowUps(intent);
+  const emoji = intentEmoji(intent);
 
   /* Header */
   lines.push(`${emoji} ${context.destination_name}, ${context.country_name}`);
@@ -417,13 +417,13 @@ function buildChatbotAnswer(
 
   /* What to avoid */
   const avoidLines = [];
-  if (intent === "photography")    avoidLines.push("Do not assume photography is welcome in temples, with locals, or in restricted areas.");
-  if (intent === "transport")      avoidLines.push("Do not rely on last-minute transport planning — especially for late-night services.");
+  if (intent === "photography") avoidLines.push("Do not assume photography is welcome in temples, with locals, or in restricted areas.");
+  if (intent === "transport") avoidLines.push("Do not rely on last-minute transport planning — especially for late-night services.");
   if (intent === "safety" || intent === "scams") avoidLines.push("Do not accept unofficial offers without verifying prices and legitimacy first.");
   if (intent === "dress_code" || intent === "religious_sites") avoidLines.push("Do not ignore modest clothing requirements — entry is refused at many sites.");
-  if (intent === "laws")           avoidLines.push("Do not assume tourist behaviour is treated differently from local law-breaking.");
-  if (intent === "food")           avoidLines.push("Do not eat at tourist-trap restaurants directly outside major attractions — the food and value are almost always better a short walk away.");
-  if (intent === "nightlife")      avoidLines.push("Do not leave drinks unattended and always agree transport home in advance.");
+  if (intent === "laws") avoidLines.push("Do not assume tourist behaviour is treated differently from local law-breaking.");
+  if (intent === "food") avoidLines.push("Do not eat at tourist-trap restaurants directly outside major attractions — the food and value are almost always better a short walk away.");
+  if (intent === "nightlife") avoidLines.push("Do not leave drinks unattended and always agree transport home in advance.");
 
   if (avoidLines.length > 0) {
     lines.push("");
@@ -474,7 +474,7 @@ router.get("/cultural-warning/:destinationId", auth, requireRole("traveller"), a
 router.get("/session-summary/:bookingId", auth, requireRole("traveller"), async (req, res) => {
   try {
     const bookingId = Number(req.params.bookingId);
-    const context   = await getBookingContext(bookingId, req.user.id);
+    const context = await getBookingContext(bookingId, req.user.id);
     if (!context) return res.status(404).json({ error: "Booking not found" });
 
     const session = await runGet(
@@ -506,7 +506,7 @@ router.post("/generate", auth, requireRole("traveller"), async (req, res) => {
     if (!context) return res.status(404).json({ error: "Booking not found" });
 
     const response = buildIntro(context);
-    const prompt   = `Initial chatbot guidance for booking ${booking_id}`;
+    const prompt = `Initial chatbot guidance for booking ${booking_id}`;
 
     await runWrite(
       `INSERT INTO chatbot_guidance (booking_id, traveller_id, destination_id, prompt, response, created_at)
@@ -525,15 +525,15 @@ router.post("/generate", auth, requireRole("traveller"), async (req, res) => {
 
     if (!existingIntro) {
       await saveMessage(session.id, "assistant", response, "general", 1.0,
-        { source_types: ["booking","destination"] });
+        { source_types: ["booking", "destination"] });
     }
 
     res.json({
-      booking_id:       context.booking_id,
-      destination_id:   context.destination_id,
+      booking_id: context.booking_id,
+      destination_id: context.destination_id,
       destination_name: context.destination_name,
       response,
-      session_id:       session.id
+      session_id: session.id
     });
   } catch (err) {
     console.error("Chatbot generate error:", err);
@@ -546,24 +546,24 @@ router.post("/chat", auth, requireRole("traveller"), async (req, res) => {
   try {
     const { booking_id, message, trip_type, interests } = req.body || {};
 
-    if (!booking_id)                       return res.status(400).json({ error: "booking_id required" });
+    if (!booking_id) return res.status(400).json({ error: "booking_id required" });
     if (!message || !String(message).trim()) return res.status(400).json({ error: "message is required" });
 
     const cleanMessage = String(message).trim();
-    const context      = await getBookingContext(booking_id, req.user.id);
+    const context = await getBookingContext(booking_id, req.user.id);
     if (!context) return res.status(404).json({ error: "Booking not found" });
 
     const session = await getOrCreateSession(context.booking_id, req.user.id, context.destination_id);
-    const intent  = detectIntent(cleanMessage);
+    const intent = detectIntent(cleanMessage);
 
     const recentIntents = await getRecentIntents(session.id, 4);
 
     // Fetch relevant data
-    const rawKbRows      = await getKnowledge(context.destination_id, intent);
+    const rawKbRows = await getKnowledge(context.destination_id, intent);
     const rawInsightRows = await getInsights(context.destination_id);
 
     // Rank results
-    const kbRows      = rankKnowledge(rawKbRows, cleanMessage, intent);
+    const kbRows = rankKnowledge(rawKbRows, cleanMessage, intent);
     const insightRows = rankInsights(rawInsightRows, cleanMessage);
 
     // Estimate confidence
@@ -574,10 +574,10 @@ router.post("/chat", auth, requireRole("traveller"), async (req, res) => {
     );
 
     const sources = {
-      source_types:       ["destination","knowledge_base","insights"],
+      source_types: ["destination", "knowledge_base", "insights"],
       knowledge_base_ids: kbRows.slice(0, 3).map(r => r.id),
-      insight_ids:        insightRows.slice(0, 2).map(r => r.id),
-      categories_used:    unique(kbRows.slice(0, 3).map(r => r.category))
+      insight_ids: insightRows.slice(0, 2).map(r => r.id),
+      categories_used: unique(kbRows.slice(0, 3).map(r => r.category))
     };
 
     // Create chatbot reply
@@ -600,12 +600,12 @@ router.post("/chat", auth, requireRole("traveller"), async (req, res) => {
     );
 
     res.json({
-      session_id:           session.id,
+      session_id: session.id,
       assistant_message_id: assistantMessageId,
       intent,
       confidence,
       reply,
-      suggested_followups:  buildFollowUps(intent)
+      suggested_followups: buildFollowUps(intent)
     });
   } catch (err) {
     console.error("Chatbot chat error:", err);
@@ -617,7 +617,7 @@ router.post("/chat", auth, requireRole("traveller"), async (req, res) => {
 router.get("/history/:bookingId", auth, requireRole("traveller"), async (req, res) => {
   try {
     const bookingId = Number(req.params.bookingId);
-    const context   = await getBookingContext(bookingId, req.user.id);
+    const context = await getBookingContext(bookingId, req.user.id);
     if (!context) return res.status(404).json({ error: "Booking not found" });
 
     const session = await runGet(
@@ -652,8 +652,8 @@ router.post("/feedback", auth, requireRole("traveller"), async (req, res) => {
   try {
     const { message_id, booking_id, rating, reason } = req.body || {};
 
-    if (!message_id)              return res.status(400).json({ error: "message_id required" });
-    if (![1,-1].includes(rating)) return res.status(400).json({ error: "rating must be 1 or -1" });
+    if (!message_id) return res.status(400).json({ error: "message_id required" });
+    if (![1, -1].includes(rating)) return res.status(400).json({ error: "rating must be 1 or -1" });
 
     // Find the chatbot message
     const message = await runGet(
@@ -662,9 +662,9 @@ router.post("/feedback", auth, requireRole("traveller"), async (req, res) => {
       [message_id]
     );
 
-    if (!message)                             return res.status(404).json({ error: "Message not found" });
+    if (!message) return res.status(404).json({ error: "Message not found" });
     if (message.traveller_id !== req.user.id) return res.status(403).json({ error: "Forbidden" });
-    if (message.sender !== "assistant")       return res.status(400).json({ error: "Feedback only for chatbot messages" });
+    if (message.sender !== "assistant") return res.status(400).json({ error: "Feedback only for chatbot messages" });
 
     // Save feedback
     const result = await runWrite(

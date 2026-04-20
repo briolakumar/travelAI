@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Search Results</title>
   <link rel="stylesheet" href="tripwise.css" />
-  
+
 </head>
 
 <body>
@@ -38,7 +39,7 @@
   <script src="api/api.js"></script>
   <script>
     (async () => {
-      const grid        = document.getElementById("resultsGrid");
+      const grid = document.getElementById("resultsGrid");
       const filterInput = document.getElementById("filterInput");
       const resultCount = document.getElementById("resultCount");
 
@@ -100,7 +101,7 @@
         const filtered = allDestinations.filter(d =>
           d.name.toLowerCase().includes(q) ||
           (d.country_name || "").toLowerCase().includes(q) ||
-          (d.description  || "").toLowerCase().includes(q)
+          (d.description || "").toLowerCase().includes(q)
         );
         renderCards(filtered);
       };
@@ -119,4 +120,5 @@
     })();
   </script>
 </body>
+
 </html>

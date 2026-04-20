@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -91,11 +92,11 @@
   <script src="api/api.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      const destSelect  = document.getElementById("destination");
-      const checkin     = document.getElementById("checkin");
-      const checkout    = document.getElementById("checkout");
-      const form        = document.getElementById("searchForm");
-      const searchMsg   = document.getElementById("searchMsg");
+      const destSelect = document.getElementById("destination");
+      const checkin = document.getElementById("checkin");
+      const checkout = document.getElementById("checkout");
+      const form = document.getElementById("searchForm");
+      const searchMsg = document.getElementById("searchMsg");
 
       const today = new Date().toISOString().split("T")[0];
       checkin.setAttribute("min", today);
@@ -132,7 +133,7 @@
         /* If specific destination chosen go straight to details */
         if (slug) {
           let url = `destination-details.html?dest=${slug}`;
-          if (checkin.value)  url += `&checkin=${checkin.value}`;
+          if (checkin.value) url += `&checkin=${checkin.value}`;
           if (checkout.value) url += `&checkout=${checkout.value}`;
           window.location.href = url;
           return;
@@ -144,4 +145,5 @@
     });
   </script>
 </body>
+
 </html>

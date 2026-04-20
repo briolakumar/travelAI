@@ -5,7 +5,7 @@ window.TRIPWISE_DESTINATIONS = [
     name: "Kyoto, Japan",
     country: "Japan",
     tags: ["culture", "temples", "etiquette"],
-    image: "../images/kyoto.png", 
+    image: "../images/kyoto.png",
     images: ["../images/kyoto1.png", "../images/kyoto2.png", "../images/kyoto3.png"],
     visible: false
   },

@@ -1,6 +1,6 @@
 const express = require("express");
-const db      = require("../db");
-const router  = express.Router();
+const db = require("../db");
+const router = express.Router();
 
 /*
   GET /api/destinations
@@ -40,7 +40,7 @@ router.get("/by-slug/:slug", (req, res) => {
      WHERE d.slug = ?`,
     [slug],
     (err, dest) => {
-      if (err)   return res.status(500).json({ error: err.message });
+      if (err) return res.status(500).json({ error: err.message });
       if (!dest) return res.status(404).json({ error: "Destination not found" });
       res.json(dest);
     }

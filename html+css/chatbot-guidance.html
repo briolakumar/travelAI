@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -35,7 +36,7 @@
 
         <label for="destination">Booked destination</label>
         <select id="destination"></select>
-<section class="card trip-context-card span-4" style="overflow: visible;" aria-label="Trip context"></section>
+        <section class="card trip-context-card span-4" style="overflow: visible;" aria-label="Trip context"></section>
         <label for="tripType">Trip type (optional)</label>
         <select id="tripType">
           <option value="">Select…</option>
@@ -64,7 +65,6 @@
         <div class="trip-summary" id="tripSummary">Select a booking to see trip context.</div>
       </section>
 
-      <!-- RIGHT: Chatbot -->
       <section class="card ai-guidance-card span-8" aria-label="Chatbot guidance">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
           <div>
@@ -75,7 +75,7 @@
         </div>
 
         <div id="culturalBanner" role="alert" aria-live="polite">
-          <strong>⚠️ Key cultural note for your destination:</strong>
+          <strong>Key cultural note for your destination:</strong>
           <span id="culturalBannerText"></span>
         </div>
 
@@ -83,20 +83,20 @@
 
         <div class="chat" id="chat">
           <div class="msg ai">
-🌍 Welcome to TripWise!
+            WELCOME to TripWise!
 
-I'm your destination-aware travel assistant.
+            I'm your destination-aware travel assistant.
 
-I can help with:
-• local etiquette and customs
-• laws tourists often miss
-• transport advice
-• food and dining tips
-• safety guidance
-• photography rules
-• common tourist mistakes
+            I can help with:
+            • local etiquette and customs
+            • laws tourists often miss
+            • transport advice
+            • food and dining tips
+            • safety guidance
+            • photography rules
+            • common tourist mistakes
 
-Choose one of your bookings and ask me something specific for the best answer.
+            Choose one of your bookings and ask me something specific for the best answer.
           </div>
         </div>
 
@@ -104,7 +104,8 @@ Choose one of your bookings and ask me something specific for the best answer.
           <input id="q" type="text" placeholder="Type your question…" />
           <button type="button" id="askBtn">Ask</button>
           <button type="button" class="btn-ghost" id="clearBtn">Clear</button>
-          <button type="button" class="btn-ghost" id="exportBtn" title="Save conversation as text file">💾 Save chat</button>
+          <button type="button" class="btn-ghost" id="exportBtn" title="Save conversation as text file">💾 Save
+            chat</button>
         </div>
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
@@ -125,7 +126,6 @@ Choose one of your bookings and ask me something specific for the best answer.
     }
 
     /* Helpers */
-    
     function qp(name) { return new URL(window.location.href).searchParams.get(name); }
 
     function getImagePath(imageUrl, slug) {
@@ -139,12 +139,12 @@ Choose one of your bookings and ask me something specific for the best answer.
       if (!dateStr) return "N/A";
       const date = new Date(dateStr);
       if (Number.isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString(undefined, { day:"2-digit", month:"short", year:"numeric" });
+      return date.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
     }
 
     function prettifyIntent(intent = "") {
       if (!intent) return "General";
-      return intent.replace(/_/g," ").replace(/\b\w/g, c => c.toUpperCase());
+      return intent.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     }
 
     function confidenceText(score) {
@@ -155,7 +155,6 @@ Choose one of your bookings and ask me something specific for the best answer.
     }
 
     /* Cultural warning banner */
-
     async function loadCulturalWarning(destinationId) {
       try {
         const res = await apiFetch(`/api/chatbot/cultural-warning/${destinationId}`);
@@ -181,7 +180,7 @@ Choose one of your bookings and ask me something specific for the best answer.
         const panel = document.getElementById("sessionSummaryPanel");
 
         if (res.summary) {
-          panel.textContent  = res.summary;
+          panel.textContent = res.summary;
           panel.style.display = "block";
           setTimeout(() => { panel.style.display = "none"; }, 8000);
         }
@@ -189,31 +188,28 @@ Choose one of your bookings and ask me something specific for the best answer.
       }
     }
 
-    /* Destination hero */
-
     function updateDestinationHero(booking = null) {
-      const imageEl   = document.getElementById("destinationImage");
-      const titleEl   = document.getElementById("destinationTitle");
+      const imageEl = document.getElementById("destinationImage");
+      const titleEl = document.getElementById("destinationTitle");
       const countryEl = document.getElementById("destinationCountry");
 
       if (!booking) {
-        titleEl.textContent   = "Destination";
+        titleEl.textContent = "Destination";
         countryEl.textContent = "Country";
-        imageEl.src           = "../images/logo1.png";
+        imageEl.src = "../images/logo1.png";
         return;
       }
 
-      titleEl.textContent   = booking.destination_name || "Destination";
-      countryEl.textContent = booking.country_name     || "Country";
-      imageEl.src           = getImagePath(booking.image_url, booking.destination_slug);
-      imageEl.alt           = booking.destination_name || "Destination image";
+      titleEl.textContent = booking.destination_name || "Destination";
+      countryEl.textContent = booking.country_name || "Country";
+      imageEl.src = getImagePath(booking.image_url, booking.destination_slug);
+      imageEl.alt = booking.destination_name || "Destination image";
     }
 
     /* Trip summary */
-
     function renderTripSummary(booking) {
-      const summary   = document.getElementById("tripSummary");
-      const tripType  = document.getElementById("tripType").value  || "Not set";
+      const summary = document.getElementById("tripSummary");
+      const tripType = document.getElementById("tripType").value || "Not set";
       const interests = document.getElementById("interests").value.trim() || "Not set";
 
       if (!booking) { summary.textContent = "No booking loaded."; return; }
@@ -232,17 +228,16 @@ Choose one of your bookings and ask me something specific for the best answer.
     }
 
     /* Chat message rendering */
-
     function addMsg(chatEl, content, who = "ai", meta = null) {
       const wrapper = document.createElement("div");
-      const div     = document.createElement("div");
-      div.className   = `msg ${who}`;
+      const div = document.createElement("div");
+      div.className = `msg ${who}`;
       div.textContent = content;
       wrapper.appendChild(div);
 
       if (meta) {
         const metaDiv = document.createElement("div");
-        metaDiv.className   = "small-meta";
+        metaDiv.className = "small-meta";
         metaDiv.textContent = meta;
         wrapper.appendChild(metaDiv);
       }
@@ -256,13 +251,13 @@ Choose one of your bookings and ask me something specific for the best answer.
       if (!Array.isArray(suggestions) || !suggestions.length) return null;
 
       const row = document.createElement("div");
-      row.className       = "chips";
+      row.className = "chips";
       row.style.marginTop = "8px";
 
       suggestions.slice(0, 3).forEach(text => {
         const chip = document.createElement("button");
-        chip.type        = "button";
-        chip.className   = "chip";
+        chip.type = "button";
+        chip.className = "chip";
         chip.textContent = text;
         chip.addEventListener("click", () => { qInput.value = text; qInput.focus(); });
         row.appendChild(chip);
@@ -286,7 +281,7 @@ Choose one of your bookings and ask me something specific for the best answer.
         });
         btnA.disabled = true;
         btnB.disabled = true;
-        btnA.textContent = rating ===  1 ? "✓ Saved" : btnA.textContent;
+        btnA.textContent = rating === 1 ? "✓ Saved" : btnA.textContent;
         btnB.textContent = rating === -1 ? "✓ Saved" : btnB.textContent;
       } catch (err) { alert(err.message); }
     }
@@ -298,17 +293,17 @@ Choose one of your bookings and ask me something specific for the best answer.
       const wrapper = document.createElement("div");
 
       const div = document.createElement("div");
-      div.className   = "msg ai";
+      div.className = "msg ai";
       div.textContent = content;
       wrapper.appendChild(div);
 
       const metaParts = [];
-      if (intent)          metaParts.push(`Intent: ${prettifyIntent(intent)}`);
+      if (intent) metaParts.push(`Intent: ${prettifyIntent(intent)}`);
       if (confidence != null) metaParts.push(confidenceText(confidence));
 
       if (metaParts.length) {
         const meta = document.createElement("div");
-        meta.className   = "small-meta";
+        meta.className = "small-meta";
         meta.textContent = metaParts.join(" • ");
         wrapper.appendChild(meta);
       }
@@ -317,12 +312,12 @@ Choose one of your bookings and ask me something specific for the best answer.
         const feedbackRow = document.createElement("div");
         feedbackRow.className = "feedback-row";
 
-        const helpfulBtn    = document.createElement("button");
-        helpfulBtn.className   = "feedback-btn";
+        const helpfulBtn = document.createElement("button");
+        helpfulBtn.className = "feedback-btn";
         helpfulBtn.textContent = "👍 Helpful";
 
-        const notHelpfulBtn    = document.createElement("button");
-        notHelpfulBtn.className   = "feedback-btn";
+        const notHelpfulBtn = document.createElement("button");
+        notHelpfulBtn.className = "feedback-btn";
         notHelpfulBtn.textContent = "👎 Not helpful";
 
         helpfulBtn.addEventListener("click", async () => {
@@ -345,7 +340,6 @@ Choose one of your bookings and ask me something specific for the best answer.
     }
 
     /* History */
-
     async function loadChatHistory(bookingId, chatEl, qInput) {
       const history = await apiFetch(`/api/chatbot/history/${bookingId}`);
       if (!history || !history.messages || !history.messages.length) return false;
@@ -386,13 +380,12 @@ Choose one of your bookings and ask me something specific for the best answer.
         chatEl.innerHTML = "";
         addAssistantMessageWithFeedback(chatEl, intro.response, null, 1.0, "general",
           ["What etiquette should I follow here?",
-           "What local laws do tourists often miss?",
-           "How should I use public transport here?"], qInput);
+            "What local laws do tourists often miss?",
+            "How should I use public transport here?"], qInput);
       }
     }
 
     /* Export chat */
-
     function exportChat(currentBooking) {
       const messages = Array.from(document.querySelectorAll("#chat .msg"))
         .map(m => {
@@ -406,29 +399,27 @@ Choose one of your bookings and ask me something specific for the best answer.
         : "TripWise Chat Export\n\n";
 
       const blob = new Blob([header + messages], { type: "text/plain" });
-      const a    = document.createElement("a");
-      a.href     = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
       a.download = `tripwise-chat-${currentBooking?.destination_name || "session"}.txt`;
       a.click();
     }
 
-    /* Main */
-
     document.addEventListener("DOMContentLoaded", async () => {
       const booking_id = qp("booking_id");
-      const chat       = document.getElementById("chat");
-      const qInput     = document.getElementById("q");
-      const askBtn     = document.getElementById("askBtn");
-      const clearBtn   = document.getElementById("clearBtn");
-      const exportBtn  = document.getElementById("exportBtn");
-      const messageEl  = document.getElementById("message");
-      const charCount  = document.getElementById("charCount");
+      const chat = document.getElementById("chat");
+      const qInput = document.getElementById("q");
+      const askBtn = document.getElementById("askBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const exportBtn = document.getElementById("exportBtn");
+      const messageEl = document.getElementById("message");
+      const charCount = document.getElementById("charCount");
       const destSelect = document.getElementById("destination");
-      const chips      = Array.from(document.querySelectorAll(".chip"));
-      const tripType   = document.getElementById("tripType");
-      const interests  = document.getElementById("interests");
+      const chips = Array.from(document.querySelectorAll(".chip"));
+      const tripType = document.getElementById("tripType");
+      const interests = document.getElementById("interests");
 
-      let userBookings   = [];
+      let userBookings = [];
       let currentBooking = null;
 
       /* Character counter */
@@ -442,10 +433,10 @@ Choose one of your bookings and ask me something specific for the best answer.
         userBookings = await apiFetch("/api/bookings/me");
 
         if (!Array.isArray(userBookings) || !userBookings.length) {
-          destSelect.innerHTML  = `<option value="">No booked destinations</option>`;
-          destSelect.disabled   = true;
-          qInput.disabled       = true;
-          askBtn.disabled       = true;
+          destSelect.innerHTML = `<option value="">No booked destinations</option>`;
+          destSelect.disabled = true;
+          qInput.disabled = true;
+          askBtn.disabled = true;
           updateDestinationHero(null);
           document.getElementById("tripSummary").textContent =
             "You need at least one booking before using the chatbot.";
@@ -456,8 +447,8 @@ Choose one of your bookings and ask me something specific for the best answer.
 
         destSelect.innerHTML = "";
         userBookings.forEach(b => {
-          const opt       = document.createElement("option");
-          opt.value       = b.id;
+          const opt = document.createElement("option");
+          opt.value = b.id;
           opt.textContent = `${b.destination_name} (${formatDate(b.check_in)} → ${formatDate(b.check_out)})`;
           destSelect.appendChild(opt);
         });
@@ -521,9 +512,9 @@ Choose one of your bookings and ask me something specific for the best answer.
             method: "POST",
             body: JSON.stringify({
               booking_id: Number(currentBooking.id),
-              message:    text,
-              trip_type:  tripType.value        || null,
-              interests:  interests.value.trim() || null
+              message: text,
+              trip_type: tripType.value || null,
+              interests: interests.value.trim() || null
             })
           });
 
@@ -557,10 +548,10 @@ Choose one of your bookings and ask me something specific for the best answer.
         });
       });
 
-      tripType.addEventListener("change",  () => { if (currentBooking) renderTripSummary(currentBooking); });
-      interests.addEventListener("input",  () => { if (currentBooking) renderTripSummary(currentBooking); });
+      tripType.addEventListener("change", () => { if (currentBooking) renderTripSummary(currentBooking); });
+      interests.addEventListener("input", () => { if (currentBooking) renderTripSummary(currentBooking); });
 
-      /* Booking switch — show session summary before switching */
+      /* Booking switch: show session summary before switching */
       destSelect.addEventListener("change", async () => {
         messageEl.textContent = "";
 
@@ -569,7 +560,7 @@ Choose one of your bookings and ask me something specific for the best answer.
         }
 
         const selectedId = Number(destSelect.value);
-        currentBooking   = userBookings.find(b => Number(b.id) === selectedId);
+        currentBooking = userBookings.find(b => Number(b.id) === selectedId);
 
         if (!currentBooking) {
           messageEl.textContent = "Selected destination is not linked to your bookings.";
@@ -583,4 +574,5 @@ Choose one of your bookings and ask me something specific for the best answer.
 
   </script>
 </body>
+
 </html>

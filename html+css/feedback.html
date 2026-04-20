@@ -147,6 +147,7 @@
 
         } catch (err) {
           console.error("Could not load bookings:", err.message);
+
           /* Fall back to a general option so the user can still submit */
           tripSelect.innerHTML = `<option value="">General feedback (no specific trip)</option>`;
         }

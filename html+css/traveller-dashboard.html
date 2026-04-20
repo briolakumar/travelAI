@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Traveller Dashboard</title>
   <link rel="stylesheet" href="tripwise.css" />
-  
+
 </head>
 
 <body>
@@ -36,7 +37,7 @@
           Your actions support local communities and better travel experiences.
         </p>
         <div class="badge">
-          <span class="spark" aria-hidden="true">✨</span>
+          <span class="spark" aria-hidden="true"></span>
           <span><strong>TripWise status:</strong> Dashboard synced to your real bookings</span>
         </div>
         <div class="progress-wrap" aria-label="Guidance progress">
@@ -48,8 +49,8 @@
       </div>
       <div class="hero-actions">
         <a class="btn btn-primary" href="booking-form.html">Book Now</a>
-        <a class="btn btn-ghost"   href="booking-history.html">View bookings</a>
-        <a class="btn btn-ghost"   href="notifications.html">Notifications</a>
+        <a class="btn btn-ghost" href="booking-history.html">View bookings</a>
+        <a class="btn btn-ghost" href="notifications.html">Notifications</a>
       </div>
     </section>
 
@@ -79,7 +80,9 @@
         <p>Keep track of your trips and open the chatbot from any real booking.</p>
 
         <div id="upcomingBookings" class="list" aria-label="Upcoming bookings list">
-          <div class="item"><div><strong>Loading…</strong></div></div>
+          <div class="item">
+            <div><strong>Loading…</strong></div>
+          </div>
         </div>
 
         <hr style="margin:16px 0; opacity:.2;">
@@ -87,7 +90,9 @@
         <h4 style="margin:0 0 8px 0;">My bookings</h4>
 
         <div id="myBookings" class="list">
-          <div class="item"><div><strong>Loading…</strong></div></div>
+          <div class="item">
+            <div><strong>Loading…</strong></div>
+          </div>
         </div>
 
         <p id="bookingsMsg" style="margin-top:10px;"></p>
@@ -132,7 +137,7 @@
     </div>
   </div>
 
-=  <div class="toast" id="toast"></div>
+  = <div class="toast" id="toast"></div>
 
   <script src="api/api.js"></script>
   <script>
@@ -157,15 +162,15 @@
         document.getElementById("confirmMessage").textContent = msg;
         document.getElementById("confirmOverlay").classList.add("open");
         const yes = document.getElementById("confirmYes");
-        const no  = document.getElementById("confirmNo");
+        const no = document.getElementById("confirmNo");
         const cleanup = result => {
           document.getElementById("confirmOverlay").classList.remove("open");
           yes.replaceWith(yes.cloneNode(true));
           no.replaceWith(no.cloneNode(true));
           resolve(result);
         };
-        document.getElementById("confirmYes").addEventListener("click", () => cleanup(true),  { once: true });
-        document.getElementById("confirmNo").addEventListener("click",  () => cleanup(false), { once: true });
+        document.getElementById("confirmYes").addEventListener("click", () => cleanup(true), { once: true });
+        document.getElementById("confirmNo").addEventListener("click", () => cleanup(false), { once: true });
       });
     }
 
@@ -209,16 +214,16 @@
     }
 
     function isUpcoming(checkIn) {
-      const today = new Date(); today.setHours(0,0,0,0);
-      const start = new Date(checkIn); start.setHours(0,0,0,0);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const start = new Date(checkIn); start.setHours(0, 0, 0, 0);
       return start >= today;
     }
 
     /* Load bookings */
     async function loadDashboardBookings() {
       const upcomingEl = document.getElementById("upcomingBookings");
-      const allEl      = document.getElementById("myBookings");
-      const msg        = document.getElementById("bookingsMsg");
+      const allEl = document.getElementById("myBookings");
+      const msg = document.getElementById("bookingsMsg");
 
       try {
         const bookings = await apiFetch("/api/bookings/me");
@@ -227,7 +232,7 @@
         if (!Array.isArray(bookings) || bookings.length === 0) {
           const emptyHtml = `<div class="item"><div><strong>No bookings found.</strong><small>Create one to unlock the chatbot flow.</small></div></div>`;
           upcomingEl.innerHTML = emptyHtml;
-          allEl.innerHTML      = emptyHtml;
+          allEl.innerHTML = emptyHtml;
           return;
         }
 
@@ -268,8 +273,8 @@
         console.error("Dashboard bookings error:", err);
         const errHtml = `<div class="item" style="color:red;"><div><strong>Error:</strong> ${err.message}</div></div>`;
         upcomingEl.innerHTML = errHtml;
-        allEl.innerHTML      = errHtml;
-        msg.textContent      = "Could not load your bookings.";
+        allEl.innerHTML = errHtml;
+        msg.textContent = "Could not load your bookings.";
       }
     }
 
@@ -283,4 +288,5 @@
     });
   </script>
 </body>
+
 </html>

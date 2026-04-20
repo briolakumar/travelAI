@@ -1,341 +1,347 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Admin Dashboard</title>
-  <link rel="stylesheet" href="tripwise.css"/>
+  <link rel="stylesheet" href="tripwise.css" />
   </style>
 </head>
 
 <body>
 
-<header class="header"></header>
+  <header class="header"></header>
 
-<div class="top">
-  <div class="brand">
-    <img src="../images/logo1.png" alt="TripWise Logo"/>
-    <h1>TripWise</h1>
+  <div class="top">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise Logo" />
+      <h1>TripWise</h1>
+    </div>
+
+    <nav class="actions">
+      <a href="notifications.html" class="btn btn-primary">Notifications</a>
+      <a href="traveller-dashboard.html" class="btn btn-primary">Traveller View</a>
+      <a href="#" class="btn btn-primary" id="logoutBtn">Logout</a>
+    </nav>
   </div>
 
-  <nav class="actions">
-    <a href="notifications.html" class="btn btn-primary">Notifications</a>
-    <a href="traveller-dashboard.html" class="btn btn-primary">Traveller View</a>
-    <a href="#" class="btn btn-primary" id="logoutBtn">Logout</a>
-  </nav>
-</div>
+  <main class="container">
 
-<main class="container">
+    <section class="hero">
+      <div>
+        <h2 id="adminWelcome">Admin Dashboard</h2>
+        <p>Manage TripWise content and monitor platform activity.</p>
 
-  <section class="hero">
-    <div>
-      <h2 id="adminWelcome">Admin Dashboard</h2>
-      <p>Manage TripWise content and monitor platform activity.</p>
-
-      <div class="stats">
-        <div class="pill">👤 <strong id="adminName">Loading…</strong></div>
-        <div class="pill">📧 <strong id="adminEmail">Loading…</strong></div>
-        <div class="pill">KB: <strong id="kbCount">0</strong></div>
-      </div>
-    </div>
-
-    <div class="hero-actions">
-      <button class="btn btn-primary" id="openKbBtn">Add KB Entry</button>
-    </div>
-  </section>
-
-  <div class="grid">
-
-    <section class="card span-7">
-      <h3>Knowledge Base</h3>
-
-      <div class="detail">
-        <strong>Latest:</strong>
-        <span id="kbRecent">Loading…</span>
+        <div class="stats">
+          <div class="pill">👤 <strong id="adminName">Loading…</strong></div>
+          <div class="pill">📧 <strong id="adminEmail">Loading…</strong></div>
+          <div class="pill">KB: <strong id="kbCount">0</strong></div>
+        </div>
       </div>
 
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="openKbBtn">Add KB Entry</button>
+      </div>
+    </section>
+
+    <div class="grid">
+
+      <section class="card span-7">
+        <h3>Knowledge Base</h3>
+
+        <div class="detail">
+          <strong>Latest:</strong>
+          <span id="kbRecent">Loading…</span>
+        </div>
+
+        <div class="actions-row">
+          <button class="btn btn-primary" id="openKbBtn2">Add entry</button>
+        </div>
+
+        <div class="table-wrap kb-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Destination</th>
+                <th>Category</th>
+                <th>Title</th>
+                <th>Updated</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="kbTableBody">
+              <tr>
+                <td colspan="5">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card span-5">
+        <h3>System</h3>
+
+        <div class="detail">
+          <strong>Warnings</strong>
+          <span id="warnLine">0 critical • 0 minor</span>
+        </div>
+
+        <div class="detail">
+          <strong>Pending insights</strong>
+          <span id="insightPendingInline">0</span>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <h3>Chatbot Analytics</h3>
+
+        <div class="detail">
+          <strong>Sessions</strong>
+          <span id="aiCount">0</span>
+        </div>
+
+        <div class="detail">
+          <strong>Total messages</strong>
+          <span id="msgCount">0</span>
+        </div>
+
+        <div class="detail">
+          <strong>Negative feedback</strong>
+          <span id="fallbackCount">0</span>
+        </div>
+
+        <div class="detail">
+          <strong>Total chatbot feedback</strong>
+          <span id="chatbotFeedbackTotal">0</span>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <h3>User Feedback</h3>
+
+        <div class="stats">
+          <div class="pill">Average: <strong id="avgRating">0</strong></div>
+          <div class="pill">Total: <strong id="feedbackTotal">0</strong></div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Rating</th>
+                <th>Topic</th>
+                <th>Comment</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="feedbackTableBody">
+              <tr>
+                <td colspan="5">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <h3>Insight Moderation</h3>
+
+        <div class="stats">
+          <div class="pill">Total <strong id="insightTotal">0</strong></div>
+          <div class="pill">Pending <strong id="insightPending">0</strong></div>
+          <div class="pill">Approved <strong id="insightApproved">0</strong></div>
+          <div class="pill">Rejected <strong id="insightRejected">0</strong></div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Destination</th>
+                <th>Title</th>
+                <th>Content</th>
+                <th>User</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="insightsTableBody">
+              <tr>
+                <td colspan="7">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="kbModal" class="modal">
+    <div class="card modal-card">
+      <h3>Add KB Entry</h3>
+      <select id="kbDestination" class="input"></select>
+      <select id="kbCategory" class="input"></select>
+      <input id="kbTitle" class="input" placeholder="Title" />
+      <textarea id="kbText" class="input" placeholder="Write the knowledge base content here"></textarea>
+      <input id="kbSourceUrl" class="input" placeholder="Source URL (optional)" />
       <div class="actions-row">
-        <button class="btn btn-primary" id="openKbBtn2">Add entry</button>
+        <button class="btn btn-primary" id="saveKbBtn" type="button">Save</button>
+        <button class="btn btn-ghost" id="cancelKbBtn" type="button">Cancel</button>
       </div>
-
-      <div class="table-wrap kb-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Destination</th>
-              <th>Category</th>
-              <th>Title</th>
-              <th>Updated</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="kbTableBody">
-            <tr><td colspan="5">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="card span-5">
-      <h3>System</h3>
-
-      <div class="detail">
-        <strong>Warnings</strong>
-        <span id="warnLine">0 critical • 0 minor</span>
-      </div>
-
-      <div class="detail">
-        <strong>Pending insights</strong>
-        <span id="insightPendingInline">0</span>
-      </div>
-    </section>
-
-    <section class="card span-6">
-      <h3>Chatbot Analytics</h3>
-
-      <div class="detail">
-        <strong>Sessions</strong>
-        <span id="aiCount">0</span>
-      </div>
-
-      <div class="detail">
-        <strong>Total messages</strong>
-        <span id="msgCount">0</span>
-      </div>
-
-      <div class="detail">
-        <strong>Negative feedback</strong>
-        <span id="fallbackCount">0</span>
-      </div>
-
-      <div class="detail">
-        <strong>Total chatbot feedback</strong>
-        <span id="chatbotFeedbackTotal">0</span>
-      </div>
-    </section>
-
-    <section class="card span-6">
-      <h3>User Feedback</h3>
-
-      <div class="stats">
-        <div class="pill">Average: <strong id="avgRating">0</strong></div>
-        <div class="pill">Total: <strong id="feedbackTotal">0</strong></div>
-      </div>
-
-      <div class="table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Rating</th>
-              <th>Topic</th>
-              <th>Comment</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody id="feedbackTableBody">
-            <tr><td colspan="5">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="card span-12">
-      <h3>Insight Moderation</h3>
-
-      <div class="stats">
-        <div class="pill">Total <strong id="insightTotal">0</strong></div>
-        <div class="pill">Pending <strong id="insightPending">0</strong></div>
-        <div class="pill">Approved <strong id="insightApproved">0</strong></div>
-        <div class="pill">Rejected <strong id="insightRejected">0</strong></div>
-      </div>
-
-      <div class="table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Destination</th>
-              <th>Title</th>
-              <th>Content</th>
-              <th>User</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="insightsTableBody">
-            <tr><td colspan="7">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-  </div>
-</main>
-
-<!-- KB Modal -->
-<div id="kbModal" class="modal">
-  <div class="card modal-card">
-    <h3>Add KB Entry</h3>
-    <select   id="kbDestination" class="input"></select>
-    <select   id="kbCategory"    class="input"></select>
-    <input    id="kbTitle"       class="input" placeholder="Title"/>
-    <textarea id="kbText"        class="input" placeholder="Write the knowledge base content here"></textarea>
-    <input    id="kbSourceUrl"   class="input" placeholder="Source URL (optional)"/>
-    <div class="actions-row">
-      <button class="btn btn-primary" id="saveKbBtn"   type="button">Save</button>
-      <button class="btn btn-ghost"   id="cancelKbBtn" type="button">Cancel</button>
     </div>
   </div>
-</div>
 
-<div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
-    <p id="confirmMessage">Are you sure?</p>
-    <div class="actions-row">
-      <button class="btn btn-primary" id="confirmYes" type="button">Delete</button>
-      <button class="btn btn-ghost"   id="confirmNo"  type="button">Cancel</button>
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <p id="confirmMessage">Are you sure?</p>
+      <div class="actions-row">
+        <button class="btn btn-primary" id="confirmYes" type="button">Delete</button>
+        <button class="btn btn-ghost" id="confirmNo" type="button">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="toast" id="toast"></div>
-<script src="api/api.js"></script>
+  <div class="toast" id="toast"></div>
+  <script src="api/api.js"></script>
 
-<script>
-  const $ = id => document.getElementById(id);
+  <script>
+    const $ = id => document.getElementById(id);
 
-  const escapeHtml = str =>
-    String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
+    const escapeHtml = str =>
+      String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
 
-  const formatDate = d => {
-    if (!d) return "—";
-    const dt = new Date(d);
-    return isNaN(dt) ? String(d) : dt.toLocaleString();
-  };
-
-  const redirectToLogin = () => { window.location.href = "admin-login.html"; };
-
-  /* Toast */
-  let toastTimer = null;
-  const showToast = (msg, isError = false) => {
-    const t = $("toast");
-    t.textContent = msg;
-    t.classList.toggle("error", isError);
-    t.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
-  };
-
-  /* Custom confirm */
-  const showConfirm = (msg) => new Promise(resolve => {
-    $("confirmMessage").textContent = msg;
-    $("confirmOverlay").classList.add("open");
-    const yes = $("confirmYes");
-    const no  = $("confirmNo");
-    const cleanup = (result) => {
-      $("confirmOverlay").classList.remove("open");
-      yes.replaceWith(yes.cloneNode(true));
-      no.replaceWith(no.cloneNode(true));
-      resolve(result);
+    const formatDate = d => {
+      if (!d) return "—";
+      const dt = new Date(d);
+      return isNaN(dt) ? String(d) : dt.toLocaleString();
     };
-    $("confirmYes").addEventListener("click", () => cleanup(true),  { once: true });
-    $("confirmNo").addEventListener("click",  () => cleanup(false), { once: true });
-  });
 
-  /* KB Modal */
-  const openModal  = () => $("kbModal").classList.add("open");
-  const closeModal = () => {
-    $("kbModal").classList.remove("open");
-    ["kbDestination","kbCategory","kbTitle","kbText","kbSourceUrl"]
-      .forEach(id => { $(id).value = ""; });
-  };
+    const redirectToLogin = () => { window.location.href = "admin-login.html"; };
 
-  $("openKbBtn").addEventListener("click",  openModal);
-  $("openKbBtn2").addEventListener("click", openModal);
-  $("cancelKbBtn").addEventListener("click", closeModal);
-  $("kbModal").addEventListener("click", e => {
-    if (e.target === $("kbModal")) closeModal();
-  });
+    /* Toast */
+    let toastTimer = null;
+    const showToast = (msg, isError = false) => {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.toggle("error", isError);
+      t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+    };
 
-  /* Logout */
-  $("logoutBtn").addEventListener("click", e => {
-    e.preventDefault();
-    clearToken();
-    redirectToLogin();
-  });
+    /* Custom confirm */
+    const showConfirm = (msg) => new Promise(resolve => {
+      $("confirmMessage").textContent = msg;
+      $("confirmOverlay").classList.add("open");
+      const yes = $("confirmYes");
+      const no = $("confirmNo");
+      const cleanup = (result) => {
+        $("confirmOverlay").classList.remove("open");
+        yes.replaceWith(yes.cloneNode(true));
+        no.replaceWith(no.cloneNode(true));
+        resolve(result);
+      };
+      $("confirmYes").addEventListener("click", () => cleanup(true), { once: true });
+      $("confirmNo").addEventListener("click", () => cleanup(false), { once: true });
+    });
 
-  /* Save KB entry */
-  $("saveKbBtn").addEventListener("click", async () => {
-    const destination_id = $("kbDestination").value;
-    const category_id    = $("kbCategory").value;
-    const title          = $("kbTitle").value.trim();
-    const content        = $("kbText").value.trim();
-    const source_url     = $("kbSourceUrl").value.trim() || null;
+    /* KB Modal */
+    const openModal = () => $("kbModal").classList.add("open");
+    const closeModal = () => {
+      $("kbModal").classList.remove("open");
+      ["kbDestination", "kbCategory", "kbTitle", "kbText", "kbSourceUrl"]
+        .forEach(id => { $(id).value = ""; });
+    };
 
-    if (!destination_id || !category_id || !title || !content) {
-      showToast("Please fill in destination, category, title, and content.", true);
-      return;
-    }
+    $("openKbBtn").addEventListener("click", openModal);
+    $("openKbBtn2").addEventListener("click", openModal);
+    $("cancelKbBtn").addEventListener("click", closeModal);
+    $("kbModal").addEventListener("click", e => {
+      if (e.target === $("kbModal")) closeModal();
+    });
 
-    $("saveKbBtn").disabled    = true;
-    $("saveKbBtn").textContent = "Saving…";
+    /* Logout */
+    $("logoutBtn").addEventListener("click", e => {
+      e.preventDefault();
+      clearToken();
+      redirectToLogin();
+    });
 
-    try {
-      await apiFetch("/api/knowledge-base", {
-        method: "POST",
-        body: JSON.stringify({ destination_id, category_id, title, content, source_url })
-      });
-      closeModal();
-      await loadKB();
-      showToast("Knowledge base entry created successfully.");
-    } catch (err) {
-      console.error("saveKbBtn:", err);
-      showToast(err.message || "Failed to save knowledge base entry.", true);
-    } finally {
-      $("saveKbBtn").disabled    = false;
-      $("saveKbBtn").textContent = "Save";
-    }
-  });
+    /* Save KB entry */
+    $("saveKbBtn").addEventListener("click", async () => {
+      const destination_id = $("kbDestination").value;
+      const category_id = $("kbCategory").value;
+      const title = $("kbTitle").value.trim();
+      const content = $("kbText").value.trim();
+      const source_url = $("kbSourceUrl").value.trim() || null;
 
-  /* Delete KB entry */
-  window.deleteKb = async id => {
-    const confirmed = await showConfirm("Delete this knowledge base entry?");
-    if (!confirmed) return;
-    try {
-      await apiFetch(`/api/knowledge-base/${id}`, { method: "DELETE" });
-      await loadKB();
-      showToast("Entry deleted.");
-    } catch (err) {
-      showToast(err.message || "Failed to delete entry.", true);
-    }
-  };
+      if (!destination_id || !category_id || !title || !content) {
+        showToast("Please fill in destination, category, title, and content.", true);
+        return;
+      }
 
-  /* Update insight status */
-  window.updateInsight = async (id, status) => {
-    try {
-      await apiFetch(`/api/insights/${id}/status`, {
-        method: "POST",
-        body: JSON.stringify({ status })
-      });
-      await loadInsights();
-      showToast(`Insight ${status}.`);
-    } catch (err) {
-      showToast(err.message || "Failed to update insight.", true);
-    }
-  };
+      $("saveKbBtn").disabled = true;
+      $("saveKbBtn").textContent = "Saving…";
 
-  /* Load KB table */
-  const loadKB = async () => {
-    try {
-      const rows = await apiFetch("/api/knowledge-base");
-      $("kbCount").textContent  = rows.length;
-      $("kbRecent").textContent = rows.length ? rows[0].title : "No entries yet.";
-      $("kbTableBody").innerHTML = rows.length
-        ? rows.map(r => `
+      try {
+        await apiFetch("/api/knowledge-base", {
+          method: "POST",
+          body: JSON.stringify({ destination_id, category_id, title, content, source_url })
+        });
+        closeModal();
+        await loadKB();
+        showToast("Knowledge base entry created successfully.");
+      } catch (err) {
+        console.error("saveKbBtn:", err);
+        showToast(err.message || "Failed to save knowledge base entry.", true);
+      } finally {
+        $("saveKbBtn").disabled = false;
+        $("saveKbBtn").textContent = "Save";
+      }
+    });
+
+    /* Delete KB entry */
+    window.deleteKb = async id => {
+      const confirmed = await showConfirm("Delete this knowledge base entry?");
+      if (!confirmed) return;
+      try {
+        await apiFetch(`/api/knowledge-base/${id}`, { method: "DELETE" });
+        await loadKB();
+        showToast("Entry deleted.");
+      } catch (err) {
+        showToast(err.message || "Failed to delete entry.", true);
+      }
+    };
+
+    /* Update insight status */
+    window.updateInsight = async (id, status) => {
+      try {
+        await apiFetch(`/api/insights/${id}/status`, {
+          method: "POST",
+          body: JSON.stringify({ status })
+        });
+        await loadInsights();
+        showToast(`Insight ${status}.`);
+      } catch (err) {
+        showToast(err.message || "Failed to update insight.", true);
+      }
+    };
+
+    /* Load KB table */
+    const loadKB = async () => {
+      try {
+        const rows = await apiFetch("/api/knowledge-base");
+        $("kbCount").textContent = rows.length;
+        $("kbRecent").textContent = rows.length ? rows[0].title : "No entries yet.";
+        $("kbTableBody").innerHTML = rows.length
+          ? rows.map(r => `
             <tr>
               <td>${escapeHtml(r.destination_name)}</td>
               <td>${escapeHtml(r.category_name)}</td>
@@ -345,43 +351,43 @@
                 <button class="btn btn-ghost" onclick="deleteKb(${r.id})">Delete</button>
               </td>
             </tr>`).join("")
-        : `<tr><td colspan="5">No knowledge base entries found.</td></tr>`;
-    } catch (err) {
-      console.error("loadKB:", err.message);
-      $("kbTableBody").innerHTML = `<tr><td colspan="5">Failed to load knowledge base.</td></tr>`;
-    }
-  };
+          : `<tr><td colspan="5">No knowledge base entries found.</td></tr>`;
+      } catch (err) {
+        console.error("loadKB:", err.message);
+        $("kbTableBody").innerHTML = `<tr><td colspan="5">Failed to load knowledge base.</td></tr>`;
+      }
+    };
 
-  /* Load KB dropdowns */
-  const loadKbDropdowns = async () => {
-    try {
-      const [destinations, categories] = await Promise.all([
-        apiFetch("/api/knowledge-base/destinations"),
-        apiFetch("/api/knowledge-base/categories")
-      ]);
-      const toOptions = (items, placeholder) =>
-        `<option value="">${placeholder}</option>` +
-        items.map(i => `<option value="${i.id}">${escapeHtml(i.name)}</option>`).join("");
-      $("kbDestination").innerHTML = toOptions(destinations, "Select destination");
-      $("kbCategory").innerHTML    = toOptions(categories,    "Select category");
-    } catch (err) {
-      console.error("loadKbDropdowns:", err.message);
-      showToast("Could not load destinations / categories.", true);
-    }
-  };
+    /* Load KB dropdowns */
+    const loadKbDropdowns = async () => {
+      try {
+        const [destinations, categories] = await Promise.all([
+          apiFetch("/api/knowledge-base/destinations"),
+          apiFetch("/api/knowledge-base/categories")
+        ]);
+        const toOptions = (items, placeholder) =>
+          `<option value="">${placeholder}</option>` +
+          items.map(i => `<option value="${i.id}">${escapeHtml(i.name)}</option>`).join("");
+        $("kbDestination").innerHTML = toOptions(destinations, "Select destination");
+        $("kbCategory").innerHTML = toOptions(categories, "Select category");
+      } catch (err) {
+        console.error("loadKbDropdowns:", err.message);
+        showToast("Could not load destinations / categories.", true);
+      }
+    };
 
-  /* Load insights */
-  const loadInsights = async () => {
-    try {
-      const rows = await apiFetch("/api/insights/moderation");
-      const count = s => rows.filter(r => r.status === s).length;
-      $("insightTotal").textContent         = rows.length;
-      $("insightPending").textContent       = count("pending");
-      $("insightApproved").textContent      = count("approved");
-      $("insightRejected").textContent      = count("rejected");
-      $("insightPendingInline").textContent = count("pending");
-      $("insightsTableBody").innerHTML = rows.length
-        ? rows.map(r => `
+    /* Load insights */
+    const loadInsights = async () => {
+      try {
+        const rows = await apiFetch("/api/insights/moderation");
+        const count = s => rows.filter(r => r.status === s).length;
+        $("insightTotal").textContent = rows.length;
+        $("insightPending").textContent = count("pending");
+        $("insightApproved").textContent = count("approved");
+        $("insightRejected").textContent = count("rejected");
+        $("insightPendingInline").textContent = count("pending");
+        $("insightsTableBody").innerHTML = rows.length
+          ? rows.map(r => `
             <tr>
               <td>${escapeHtml(r.destination_name)}</td>
               <td>${escapeHtml(r.title)}</td>
@@ -395,88 +401,89 @@
               <td>${formatDate(r.created_at)}</td>
               <td>
                 ${r.status !== "approved"
-                  ? `<button class="btn btn-ghost" onclick="updateInsight(${r.id},'approved')">Approve</button>`
-                  : ""}
+              ? `<button class="btn btn-ghost" onclick="updateInsight(${r.id},'approved')">Approve</button>`
+              : ""}
                 ${r.status !== "rejected"
-                  ? `<button class="btn btn-ghost" onclick="updateInsight(${r.id},'rejected')">Reject</button>`
-                  : ""}
+              ? `<button class="btn btn-ghost" onclick="updateInsight(${r.id},'rejected')">Reject</button>`
+              : ""}
               </td>
             </tr>`).join("")
-        : `<tr><td colspan="7">No insights awaiting moderation.</td></tr>`;
-    } catch (err) {
-      console.error("loadInsights:", err.message);
-      $("insightsTableBody").innerHTML = `<tr><td colspan="7">Failed to load insights.</td></tr>`;
-    }
-  };
+          : `<tr><td colspan="7">No insights awaiting moderation.</td></tr>`;
+      } catch (err) {
+        console.error("loadInsights:", err.message);
+        $("insightsTableBody").innerHTML = `<tr><td colspan="7">Failed to load insights.</td></tr>`;
+      }
+    };
 
-  /* Load feedback */
-  const loadFeedback = async () => {
-    try {
-      const res = await apiFetch("/api/admin/feedback");
-      $("avgRating").textContent     = res.average_rating ?? "—";
-      $("feedbackTotal").textContent = res.total          ?? 0;
-      $("feedbackTableBody").innerHTML = res.data?.length
-        ? res.data.map(r => `
+    /* Load feedback */
+    const loadFeedback = async () => {
+      try {
+        const res = await apiFetch("/api/admin/feedback");
+        $("avgRating").textContent = res.average_rating ?? "—";
+        $("feedbackTotal").textContent = res.total ?? 0;
+        $("feedbackTableBody").innerHTML = res.data?.length
+          ? res.data.map(r => `
             <tr>
               <td>${escapeHtml(r.traveller_name)}</td>
               <td>${r.rating}</td>
-              <td>${escapeHtml(r.topic    || "—")}</td>
+              <td>${escapeHtml(r.topic || "—")}</td>
               <td>${escapeHtml(r.comments || "—")}</td>
               <td>${formatDate(r.created_at)}</td>
             </tr>`).join("")
-        : `<tr><td colspan="5">No feedback submitted yet.</td></tr>`;
-    } catch (err) {
-      console.error("loadFeedback:", err.message);
-      $("feedbackTableBody").innerHTML = `<tr><td colspan="5">Failed to load feedback.</td></tr>`;
-    }
-  };
+          : `<tr><td colspan="5">No feedback submitted yet.</td></tr>`;
+      } catch (err) {
+        console.error("loadFeedback:", err.message);
+        $("feedbackTableBody").innerHTML = `<tr><td colspan="5">Failed to load feedback.</td></tr>`;
+      }
+    };
 
-  /* Load analytics */
-  const loadAnalytics = async () => {
-    try {
-      const res = await apiFetch("/api/admin/analytics");
-      $("aiCount").textContent              = res.sessions       ?? 0;
-      $("msgCount").textContent             = res.messages       ?? 0;
-      $("fallbackCount").textContent        = res.negative       ?? 0;
-      $("chatbotFeedbackTotal").textContent = res.total_feedback ?? 0;
-    } catch (err) {
-      console.error("loadAnalytics:", err.message);
-    }
-  };
+    /* Load analytics */
+    const loadAnalytics = async () => {
+      try {
+        const res = await apiFetch("/api/admin/analytics");
+        $("aiCount").textContent = res.sessions ?? 0;
+        $("msgCount").textContent = res.messages ?? 0;
+        $("fallbackCount").textContent = res.negative ?? 0;
+        $("chatbotFeedbackTotal").textContent = res.total_feedback ?? 0;
+      } catch (err) {
+        console.error("loadAnalytics:", err.message);
+      }
+    };
 
-  (async () => {
-    if (!getToken()) { redirectToLogin(); return; }
+    (async () => {
+      if (!getToken()) { redirectToLogin(); return; }
 
-    let currentUser;
-    try {
-      currentUser = await apiFetch("/api/auth/me");
-      if (!currentUser || currentUser.role !== "admin") {
-        showToast("Access denied. Admins only.", true);
+      let currentUser;
+      try {
+        currentUser = await apiFetch("/api/auth/me");
+        if (!currentUser || currentUser.role !== "admin") {
+          showToast("Access denied. Admins only.", true);
+          clearToken();
+          setTimeout(redirectToLogin, 1500);
+          return;
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err.message);
         clearToken();
-        setTimeout(redirectToLogin, 1500);
+        redirectToLogin();
         return;
       }
-    } catch (err) {
-      console.error("Auth check failed:", err.message);
-      clearToken();
-      redirectToLogin();
-      return;
-    }
 
-    $("adminName").textContent    = currentUser.full_name || "Admin";
-    $("adminEmail").textContent   = currentUser.email     || "N/A";
-    $("adminWelcome").textContent =
-      `Admin Dashboard — Welcome, ${currentUser.full_name || "Admin"}`;
+      $("adminName").textContent = currentUser.full_name || "Admin";
+      $("adminEmail").textContent = currentUser.email || "N/A";
+      $("adminWelcome").textContent =
+        `Admin Dashboard — Welcome, ${currentUser.full_name || "Admin"}`;
 
-    await Promise.all([
-      loadKbDropdowns(),
-      loadKB(),
-      loadInsights(),
-      loadFeedback(),
-      loadAnalytics()
-    ]);
-  })();
-</script>
+      await Promise.all([
+        loadKbDropdowns(),
+        loadKB(),
+        loadInsights(),
+        loadFeedback(),
+        loadAnalytics()
+      ]);
+    })();
+  </script>
 
 </body>
+
 </html>
