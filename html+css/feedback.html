@@ -17,8 +17,8 @@
       <h1>TripWise</h1>
     </div>
     <nav class="actions" aria-label="Page links">
-      <a class="link" href="traveller-dashboard.html">Dashboard</a>
-      <a class="link" href="booking-history.html">Booking history</a>
+      <a class="btn btn-primary" href="traveller-dashboard.html">Dashboard</a>
+      <a class="btn btn-primary" href="booking-history.html">Booking history</a>
     </nav>
   </div>
 
@@ -50,14 +50,14 @@
 
         <div class="field">
           <span class="label">Rating</span>
-         <div class="stars" role="group" aria-labelledby="rating-label">
-  <span id="rating-label" class="sr-only">Star rating out of 5</span>
-  <button class="star" type="button" data-v="1" aria-label="1 star" aria-pressed="false">★</button>
-  <button class="star" type="button" data-v="2" aria-label="2 stars" aria-pressed="false">★</button>
-  <button class="star" type="button" data-v="3" aria-label="3 stars" aria-pressed="false">★</button>
-  <button class="star" type="button" data-v="4" aria-label="4 stars" aria-pressed="false">★</button>
-  <button class="star" type="button" data-v="5" aria-label="5 stars" aria-pressed="false">★</button>
-</div>
+          <div class="stars" role="group" aria-labelledby="rating-label">
+            <span id="rating-label" class="sr-only">Star rating out of 5</span>
+            <button class="star" type="button" data-v="1" aria-label="1 star" aria-pressed="false">★</button>
+            <button class="star" type="button" data-v="2" aria-label="2 stars" aria-pressed="false">★</button>
+            <button class="star" type="button" data-v="3" aria-label="3 stars" aria-pressed="false">★</button>
+            <button class="star" type="button" data-v="4" aria-label="4 stars" aria-pressed="false">★</button>
+            <button class="star" type="button" data-v="5" aria-label="5 stars" aria-pressed="false">★</button>
+          </div>
           <input id="rating" name="rating" type="hidden" value="0" />
         </div>
 
@@ -95,18 +95,18 @@
         window.location.href = "traveller-login.html";
       }
 
-      const form       = document.getElementById("feedbackForm");
+      const form = document.getElementById("feedbackForm");
       const tripSelect = document.getElementById("trip");
-      const starBtns   = document.querySelectorAll(".star");
-      const ratingInput= document.getElementById("rating");
-      const submitBtn  = document.getElementById("submitBtn");
-      const errorMsg   = document.getElementById("errorMsg");
+      const starBtns = document.querySelectorAll(".star");
+      const ratingInput = document.getElementById("rating");
+      const submitBtn = document.getElementById("submitBtn");
+      const errorMsg = document.getElementById("errorMsg");
       const successMsg = document.getElementById("success");
 
       /* Helpers */
-      const showError  = msg => { errorMsg.textContent = msg; errorMsg.style.display = "block"; successMsg.hidden = true; };
-      const clearError = ()  => { errorMsg.style.display = "none"; errorMsg.textContent = ""; };
-      const setLoading = on  => { submitBtn.disabled = on; submitBtn.textContent = on ? "Submitting…" : "Submit feedback"; };
+      const showError = msg => { errorMsg.textContent = msg; errorMsg.style.display = "block"; successMsg.hidden = true; };
+      const clearError = () => { errorMsg.style.display = "none"; errorMsg.textContent = ""; };
+      const setLoading = on => { submitBtn.disabled = on; submitBtn.textContent = on ? "Submitting…" : "Submit feedback"; };
 
       /* Star rating */
       const setRating = value => {
@@ -114,7 +114,7 @@
         starBtns.forEach(btn => {
           const v = Number(btn.dataset.v);
           btn.classList.toggle("active", v <= value);
-btn.setAttribute("aria-pressed", String(v <= value));
+          btn.setAttribute("aria-pressed", String(v <= value));
         });
       };
 
@@ -171,9 +171,9 @@ btn.setAttribute("aria-pressed", String(v <= value));
         }
 
         const bookingId = tripSelect.value ? Number(tripSelect.value) : null;
-        const rating    = Number(ratingInput.value);
-        const topic     = document.getElementById("topic").value;
-        const comments  = document.getElementById("comments").value.trim() || null;
+        const rating = Number(ratingInput.value);
+        const topic = document.getElementById("topic").value;
+        const comments = document.getElementById("comments").value.trim() || null;
 
         setLoading(true);
 

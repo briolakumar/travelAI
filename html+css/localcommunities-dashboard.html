@@ -15,9 +15,9 @@
       <img src="../images/logo1.png" alt="TripWise logo" />
       <h1>TripWise</h1>
     </div>
-    <nav class="actions" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <a class="link" href="feedback.html">⭐ Feedback</a>
-      <a class="link" href="#" id="logoutBtn">Logout</a>
+    <nav style="display:flex; flex-direction:row; gap:10px; align-items:center;">
+      <a class="btn btn-primary" href="feedback.html">Feedback</a>
+      <a class="btn btn-primary" href="#" id="logoutBtn">Logout</a>
     </nav>
   </div>
 
@@ -25,16 +25,16 @@
 
     <section class="hero" aria-label="Community overview">
       <div>
-        <h2 id="heroTitle">Community Dashboard 🌍</h2>
+        <h2 id="heroTitle">Community Dashboard</h2>
         <p id="heroSub">Loading your community profile…</p>
 
         <div class="stats" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
           <div class="pill">👤 <strong id="userName">…</strong></div>
           <div class="pill">📍 <strong id="destName">…</strong></div>
-          <div class="pill">📝 Submitted: <strong id="totalCount">0</strong></div>
-          <div class="pill">✅ Approved: <strong id="approvedCount">0</strong></div>
-          <div class="pill">⏳ Pending: <strong id="pendingCount">0</strong></div>
-          <div class="pill">❌ Rejected: <strong id="rejectedCount">0</strong></div>
+          <div class="pill">Submitted: <strong id="totalCount">0</strong></div>
+          <div class="pill">Approved: <strong id="approvedCount">0</strong></div>
+          <div class="pill">Pending: <strong id="pendingCount">0</strong></div>
+          <div class="pill">Rejected: <strong id="rejectedCount">0</strong></div>
         </div>
       </div>
 
@@ -86,12 +86,8 @@
         <div class="detail" style="margin-top:12px">
           <strong>How it works</strong>
         </div>
-        <div class="detail">
-          <span>1. Submit an insight below</span>
-        </div>
-        <div class="detail">
-          <span>2. An admin reviews and approves it</span>
-        </div>
+        <div class="detail"><span>1. Submit an insight below</span></div>
+        <div class="detail"><span>2. An admin reviews and approves it</span></div>
         <div class="detail">
           <span>3. Approved insights appear in the TripWise chatbot for travellers visiting <strong id="destNameSteps">your destination</strong></span>
         </div>
@@ -142,14 +138,25 @@
 
   <footer class="footer" aria-label="Footer"></footer>
 
+  <div class="toast" id="toast"></div>
+
   <script src="api/api.js"></script>
   <script>
-
     const $       = id => document.getElementById(id);
     const escHtml = s  => String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
     const fmtDate = d  => { if (!d) return "—"; const dt = new Date(d); return isNaN(dt) ? d : dt.toLocaleDateString(); };
     const redirectToLogin = () => { window.location.href = "localcommunities-login.html"; };
 
+    /* Toast */
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.toggle("error", isError);
+      t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+    }
 
     const openModal  = () => { $("insightModal").classList.add("open"); };
     const closeModal = () => {
@@ -166,7 +173,6 @@
     });
 
     /* Logout */
-
     $("logoutBtn").addEventListener("click", e => {
       e.preventDefault();
       clearToken();
@@ -174,11 +180,9 @@
     });
 
     /* Load insights */
-
     const loadInsights = async () => {
       try {
         const rows = await apiFetch("/api/insights/mine");
-
         const count = s => rows.filter(r => r.status === s).length;
 
         $("totalCount").textContent    = rows.length;
@@ -202,22 +206,19 @@
           : `<tr><td colspan="4" style="color:#666">
                No insights submitted yet — click "Submit Insight" to get started.
              </td></tr>`;
-
       } catch (err) {
         console.error("loadInsights:", err.message);
-        $("insightTableBody").innerHTML =
-          `<tr><td colspan="4">Failed to load insights.</td></tr>`;
+        $("insightTableBody").innerHTML = `<tr><td colspan="4">Failed to load insights.</td></tr>`;
       }
     };
 
     /* Save insight */
-
     $("saveInsightBtn").addEventListener("click", async () => {
       const title   = $("insightTitle").value.trim();
       const content = $("insightContent").value.trim();
 
-      if (!title)   { alert("Please enter a title.");   return; }
-      if (!content) { alert("Please enter the content."); return; }
+      if (!title)   { showToast("Please enter a title.", true);   return; }
+      if (!content) { showToast("Please enter the content.", true); return; }
 
       $("saveInsightBtn").disabled    = true;
       $("saveInsightBtn").textContent = "Submitting…";
@@ -231,31 +232,27 @@
             content
           })
         });
-
         closeModal();
         await loadInsights();
-        alert("Insight submitted for admin review.");
-
+        showToast("Insight submitted for admin review! ✅");
       } catch (err) {
-        alert(err.message || "Failed to submit insight.");
+        showToast(err.message || "Failed to submit insight.", true);
       } finally {
         $("saveInsightBtn").disabled    = false;
         $("saveInsightBtn").textContent = "Submit for review";
       }
     });
 
-
     (async () => {
-
       if (!getToken()) { redirectToLogin(); return; }
 
       let user;
       try {
         user = await apiFetch("/api/auth/me");
         if (!user || user.role !== "community") {
-          alert("Access denied. Community accounts only.");
+          showToast("Access denied. Community accounts only.", true);
           clearToken();
-          redirectToLogin();
+          setTimeout(redirectToLogin, 1500);
           return;
         }
       } catch (err) {
@@ -264,25 +261,21 @@
         return;
       }
 
-      // Store destination_id for the save handler
       window._destId = user.destination_id;
+      const dest     = user.destination_name || "your destination";
 
-      const dest = user.destination_name || "your destination";
-
-      $("userName").textContent        = user.full_name  || "Partner";
-      $("destName").textContent        = dest;
-      $("destNameInfo").textContent    = dest;
-      $("destNameSteps").textContent   = dest;
-      $("modalDestName").textContent   = dest;
-      $("heroTitle").textContent       = `${dest} — Community Dashboard 🌍`;
-      $("heroSub").textContent         =
+      $("userName").textContent      = user.full_name || "Partner";
+      $("destName").textContent      = dest;
+      $("destNameInfo").textContent  = dest;
+      $("destNameSteps").textContent = dest;
+      $("modalDestName").textContent = dest;
+      $("heroTitle").textContent     = `${dest} — Community Dashboard `;
+      $("heroSub").textContent       =
         `You're logged in as a verified local community partner for ${dest}. ` +
         `Submit insights to help travellers understand local customs and responsible behaviour.`;
 
       await loadInsights();
-
     })();
-
   </script>
 </body>
 </html>

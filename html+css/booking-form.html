@@ -13,10 +13,10 @@
       <img src="../images/logo1.png" alt="TripWise logo" />
       <h1>TripWise</h1>
     </div>
-    <nav class="row">
-      <a class="link" href="search-results.html">← Back to results</a>
-      <a class="link" href="traveller-dashboard.html">Dashboard</a>
-    </nav>
+    <nav style="display:flex; flex-direction:row; gap:10px; align-items:center;">
+  <a class="btn btn-primary" href="search-results.html">Back to results</a>
+  <a class="btn btn-primary" href="traveller-dashboard.html">Dashboard</a>
+</nav>
   </div>
 
   <main class="container">
@@ -80,16 +80,30 @@
     </div>
   </main>
 
+  <div class="toast" id="toast"></div>
+
   <script src="api/api.js"></script>
   <script>
+
+    /* Toast */
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.toggle("error", isError);
+      t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
-      const form        = document.getElementById("bookingForm");
-      const destSelect  = document.getElementById("destinationSelect");
-      const stayType    = document.getElementById("stayType");
-      const checkin     = document.getElementById("checkin");
-      const checkout    = document.getElementById("checkout");
-      const guests      = document.getElementById("guests");
-      const msg         = document.getElementById("message");
+      const form       = document.getElementById("bookingForm");
+      const destSelect = document.getElementById("destinationSelect");
+      const stayType   = document.getElementById("stayType");
+      const checkin    = document.getElementById("checkin");
+      const checkout   = document.getElementById("checkout");
+      const guests     = document.getElementById("guests");
+      const msg        = document.getElementById("message");
 
       const today = new Date().toISOString().split("T")[0];
       checkin.setAttribute("min", today);
@@ -98,13 +112,12 @@
       const parseDate = val => val ? new Date(val + "T00:00:00") : null;
 
       /* Summary */
-
       function updateSummary() {
-        const stayOpt  = stayType.options[stayType.selectedIndex];
-        const destOpt  = destSelect.options[destSelect.selectedIndex];
-        const nightly  = Number(stayOpt?.dataset.price || 0);
-        const inDate   = parseDate(checkin.value);
-        const outDate  = parseDate(checkout.value);
+        const stayOpt = stayType.options[stayType.selectedIndex];
+        const destOpt = destSelect.options[destSelect.selectedIndex];
+        const nightly = Number(stayOpt?.dataset.price || 0);
+        const inDate  = parseDate(checkin.value);
+        const outDate = parseDate(checkout.value);
 
         document.getElementById("sumStay").textContent =
           stayOpt?.value ? stayOpt.textContent.split(" — ")[0] : "—";
@@ -134,30 +147,25 @@
         }
       }
 
-      /* Load accommodations for a destination */
-
+      /* Load accommodations */
       async function loadAccommodations(destinationId) {
         stayType.innerHTML = `<option value="">Loading…</option>`;
         stayType.disabled  = true;
-
         try {
-const accommodations = await apiFetch(`/api/destinations/${destinationId}/accommodations`);
+          const accommodations = await apiFetch(`/api/destinations/${destinationId}/accommodations`);
           if (!accommodations || !accommodations.length) {
             stayType.innerHTML = `<option value="">No accommodation found</option>`;
             stayType.disabled  = false;
             updateSummary();
             return;
           }
-
-          stayType.innerHTML = accommodations.map(a => `
-            <option value="${a.id}" data-price="${a.price_per_night}">
-              ${a.title} — £${a.price_per_night}/night ★${a.rating}
-            </option>
-          `).join("");
-
+          stayType.innerHTML = accommodations.map(a =>
+            `<option value="${a.id}" data-price="${a.price_per_night}">
+               ${a.title} — £${a.price_per_night}/night ★${a.rating}
+             </option>`
+          ).join("");
           stayType.disabled = false;
           updateSummary();
-
         } catch (err) {
           stayType.innerHTML = `<option value="">Could not load accommodation</option>`;
           stayType.disabled  = false;
@@ -166,16 +174,13 @@ const accommodations = await apiFetch(`/api/destinations/${destinationId}/accomm
       }
 
       /* Load destinations */
-
       try {
         const destinations = await apiFetch("/api/destinations");
-
         if (!destinations || !destinations.length) {
           destSelect.innerHTML = `<option value="">No destinations found</option>`;
           msg.textContent = "Could not load destinations.";
           return;
         }
-
         destSelect.innerHTML =
           `<option value="">Select destination</option>` +
           destinations.map(d =>
@@ -192,9 +197,7 @@ const accommodations = await apiFetch(`/api/destinations/${destinationId}/accomm
             await loadAccommodations(match.id);
           }
         }
-
         updateSummary();
-
       } catch (err) {
         msg.textContent = "Could not load destinations from server.";
         destSelect.innerHTML = `<option value="">Error loading destinations</option>`;
@@ -217,7 +220,6 @@ const accommodations = await apiFetch(`/api/destinations/${destinationId}/accomm
       });
 
       /* Submit */
-
       form.addEventListener("submit", async e => {
         e.preventDefault();
         msg.textContent = "";
@@ -234,6 +236,10 @@ const accommodations = await apiFetch(`/api/destinations/${destinationId}/accomm
           msg.textContent = "Check-out must be after check-in."; return;
         }
 
+        const btn = document.getElementById("confirmBooking");
+        btn.disabled    = true;
+        btn.textContent = "Booking…";
+
         try {
           await apiFetch("/api/bookings", {
             method: "POST",
@@ -246,12 +252,12 @@ const accommodations = await apiFetch(`/api/destinations/${destinationId}/accomm
               status:           "confirmed"
             })
           });
-
-          alert("Booking confirmed!");
-          window.location.href = "traveller-dashboard.html";
-
+          showToast("Booking confirmed! Redirecting…");
+          setTimeout(() => { window.location.href = "traveller-dashboard.html"; }, 1500);
         } catch (err) {
           msg.textContent = "Booking failed: " + err.message;
+          btn.disabled    = false;
+          btn.textContent = "Confirm Booking";
         }
       });
     });

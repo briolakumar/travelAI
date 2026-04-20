@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Traveller Dashboard</title>
   <link rel="stylesheet" href="tripwise.css" />
+  
 </head>
 
 <body>
@@ -15,15 +16,13 @@
       <div class="brand">
         <h1>TripWise</h1>
       </div>
-
       <div class="user-area">
         <div class="pill">
           <span class="dot" aria-hidden="true"></span>
           Signed in as <strong id="signedInRole">Traveller</strong>
         </div>
-
         <button class="btn btn-ghost" type="button" data-action="profile">👤 Profile</button>
-        <button class="btn btn-primary" type="button" data-action="logout">🚪 Log out</button>
+        <button class="btn btn-primary" type="button" data-action="logout">Log out</button>
       </div>
     </div>
   </div>
@@ -31,17 +30,15 @@
   <main class="container">
     <section class="hero" aria-label="Dashboard overview">
       <div>
-        <h2>Ready for your next journey? 🌍</h2>
+        <h2>Ready for your next journey?</h2>
         <p>
           Search destinations, book responsibly, and get personalised cultural, legal, and etiquette guidance.
           Your actions support local communities and better travel experiences.
         </p>
-
         <div class="badge">
           <span class="spark" aria-hidden="true">✨</span>
           <span><strong>TripWise status:</strong> Dashboard synced to your real bookings</span>
         </div>
-
         <div class="progress-wrap" aria-label="Guidance progress">
           <div class="progress" role="progressbar" aria-valuemin="0" aria-valuenow="100" aria-valuemax="100">
             <div style="width: 100%"></div>
@@ -49,19 +46,17 @@
           <div class="progress-label">Live account view</div>
         </div>
       </div>
-
       <div class="hero-actions">
         <a class="btn btn-primary" href="booking-form.html">Book Now</a>
-        <a class="btn btn-ghost" href="booking-history.html">📚 View bookings</a>
-        <a class="btn btn-ghost" href="notifications.html">🔔 Notifications</a>
+        <a class="btn btn-ghost"   href="booking-history.html">View bookings</a>
+        <a class="btn btn-ghost"   href="notifications.html">Notifications</a>
       </div>
     </section>
 
     <section class="grid" aria-label="Dashboard cards">
       <article class="card span-6">
-        <h3><span class="ico" aria-hidden="true">🧭</span> Quick Actions</h3>
+        <h3><span class="ico" aria-hidden="true"></span> Quick Actions</h3>
         <p>Jump straight into the most common tasks.</p>
-
         <div class="actions">
           <a class="btn btn-ghost" href="search-destination.html">Search</a>
           <a class="btn btn-ghost" href="booking-history.html">Bookings</a>
@@ -70,18 +65,17 @@
       </article>
 
       <article class="card span-6">
-        <h3><span class="ico" aria-hidden="true">🌿</span> Responsible Tip of the Day</h3>
+        <h3><span class="ico" aria-hidden="true"></span> Responsible Tip of the Day</h3>
         <p>
           <strong>Small actions matter:</strong> choose locally owned stays and respect photo rules at cultural sites.
         </p>
-
         <div class="actions">
           <a class="btn btn-primary" href="learning-home.html">Open learning module</a>
         </div>
       </article>
 
       <article class="card span-8">
-        <h3><span class="ico" aria-hidden="true">📌</span> Upcoming Bookings</h3>
+        <h3><span class="ico" aria-hidden="true"></span> Upcoming Bookings</h3>
         <p>Keep track of your trips and open the chatbot from any real booking.</p>
 
         <div id="upcomingBookings" class="list" aria-label="Upcoming bookings list">
@@ -104,9 +98,8 @@
       </article>
 
       <article class="card span-4">
-        <h3><span class="ico" aria-hidden="true">🔔</span> Latest Notifications</h3>
-        <p>Quick look at what’s new.</p>
-
+        <h3><span class="ico" aria-hidden="true"></span> Latest Notifications</h3>
+        <p>Quick look at what's new.</p>
         <div class="list" aria-label="Notifications preview">
           <div class="item">
             <div>
@@ -116,7 +109,6 @@
             <span class="tag info">New</span>
           </div>
         </div>
-
         <div class="actions" style="margin-top: 12px">
           <a class="btn btn-ghost" href="notifications.html" id="viewAllNotif">View all</a>
         </div>
@@ -129,24 +121,63 @@
     <div class="footer-bar">© TripWise • Smart Travel, Respectful Journey</div>
   </footer>
 
-  <script src="api/api.js"></script>
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <p id="confirmMessage">Are you sure?</p>
+      <div class="actions-row">
+        <button class="btn btn-primary" id="confirmYes" type="button"
+          style="background:#dc2626;border-color:#dc2626;">Cancel booking</button>
+        <button class="btn btn-ghost" id="confirmNo" type="button">Keep it</button>
+      </div>
+    </div>
+  </div>
 
+=  <div class="toast" id="toast"></div>
+
+  <script src="api/api.js"></script>
   <script>
     if (!localStorage.getItem("tripwise_token")) {
       window.location.href = "traveller-login.html";
     }
 
-    document.addEventListener("click", (e) => {
+    /* Toast */
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.toggle("error", isError);
+      t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    /* Custom confirm */
+    function showConfirm(msg) {
+      return new Promise(resolve => {
+        document.getElementById("confirmMessage").textContent = msg;
+        document.getElementById("confirmOverlay").classList.add("open");
+        const yes = document.getElementById("confirmYes");
+        const no  = document.getElementById("confirmNo");
+        const cleanup = result => {
+          document.getElementById("confirmOverlay").classList.remove("open");
+          yes.replaceWith(yes.cloneNode(true));
+          no.replaceWith(no.cloneNode(true));
+          resolve(result);
+        };
+        document.getElementById("confirmYes").addEventListener("click", () => cleanup(true),  { once: true });
+        document.getElementById("confirmNo").addEventListener("click",  () => cleanup(false), { once: true });
+      });
+    }
+
+    /* Button actions */
+    document.addEventListener("click", e => {
       const btn = e.target.closest("[data-action]");
       if (!btn) return;
-
       const action = btn.dataset.action;
-
       if (action === "profile") {
-        alert("Profile page coming soon!");
+        showToast("Profile page coming soon!");
         return;
       }
-
       if (action === "logout") {
         localStorage.removeItem("tripwise_token");
         localStorage.removeItem("tripwise_role");
@@ -155,45 +186,39 @@
       }
     });
 
+    /* Delete booking */
     async function deleteBooking(bookingId) {
-      if (!confirm("Are you sure you want to cancel this booking?")) return;
-
+      const confirmed = await showConfirm("Are you sure you want to cancel this booking?");
+      if (!confirmed) return;
       try {
-        await apiFetch(`/api/bookings/${bookingId}`, {
-          method: "DELETE"
-        });
-
-        alert("Booking deleted.");
+        await apiFetch(`/api/bookings/${bookingId}`, { method: "DELETE" });
+        showToast("Booking cancelled.");
         await loadDashboardBookings();
       } catch (error) {
         console.error("Delete failed:", error);
-        alert(error.message);
+        showToast(error.message || "Could not cancel booking.", true);
       }
     }
 
+    /* Helpers */
     function formatDate(dateStr) {
       if (!dateStr) return "N/A";
       const date = new Date(dateStr);
       if (Number.isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString(undefined, {
-        day: "2-digit",
-        month: "short",
-        year: "numeric"
-      });
+      return date.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
     }
 
     function isUpcoming(checkIn) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const start = new Date(checkIn);
-      start.setHours(0, 0, 0, 0);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const start = new Date(checkIn); start.setHours(0,0,0,0);
       return start >= today;
     }
 
+    /* Load bookings */
     async function loadDashboardBookings() {
       const upcomingEl = document.getElementById("upcomingBookings");
-      const allEl = document.getElementById("myBookings");
-      const msg = document.getElementById("bookingsMsg");
+      const allEl      = document.getElementById("myBookings");
+      const msg        = document.getElementById("bookingsMsg");
 
       try {
         const bookings = await apiFetch("/api/bookings/me");
@@ -202,14 +227,14 @@
         if (!Array.isArray(bookings) || bookings.length === 0) {
           const emptyHtml = `<div class="item"><div><strong>No bookings found.</strong><small>Create one to unlock the chatbot flow.</small></div></div>`;
           upcomingEl.innerHTML = emptyHtml;
-          allEl.innerHTML = emptyHtml;
+          allEl.innerHTML      = emptyHtml;
           return;
         }
 
-        const upcoming = bookings.filter((b) => isUpcoming(b.check_in));
+        const upcoming = bookings.filter(b => isUpcoming(b.check_in));
 
         upcomingEl.innerHTML = "";
-        (upcoming.length ? upcoming : bookings.slice(0, 1)).forEach((b) => {
+        (upcoming.length ? upcoming : bookings.slice(0, 1)).forEach(b => {
           const item = document.createElement("div");
           item.className = "item";
           item.innerHTML = `
@@ -217,43 +242,34 @@
               <strong>${b.destination_name}${b.accommodation_title ? ` — ${b.accommodation_title}` : ""}</strong>
               <small>${formatDate(b.check_in)} – ${formatDate(b.check_out)} • Chatbot available</small>
             </div>
-            <span class="tag ok">${b.status || "confirmed"}</span>
-          `;
+            <span class="tag ok">${b.status || "confirmed"}</span>`;
           upcomingEl.appendChild(item);
         });
 
         allEl.innerHTML = "";
-        bookings.forEach((b) => {
+        bookings.forEach(b => {
           const item = document.createElement("div");
           item.className = "item";
           item.innerHTML = `
-            <div style="flex-grow: 1;">
+            <div style="flex-grow:1;">
               <strong>${b.destination_name}, ${b.country_name || ""}</strong>
               <small>${formatDate(b.check_in)} to ${formatDate(b.check_out)} • Status: ${b.status}</small>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <a class="btn btn-ghost" href="booking-details.html?booking_id=${b.id}">
-                View details
-              </a>
-              <a class="btn btn-ghost" href="chatbot-guidance.html?booking_id=${b.id}">
-                🤖 Open chatbot
-              </a>
-              <button
-                class="btn"
-                style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5;"
-                onclick="deleteBooking(${b.id})"
-              >
-                🗑️ Cancel
-              </button>
-            </div>
-          `;
+              <a class="btn btn-ghost" href="booking-details.html?booking_id=${b.id}">View details</a>
+              <a class="btn btn-ghost" href="chatbot-guidance.html?booking_id=${b.id}">Open chatbot</a>
+              <button class="btn" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;"
+                onclick="deleteBooking(${b.id})">Cancel</button>
+            </div>`;
           allEl.appendChild(item);
         });
+
       } catch (err) {
         console.error("Dashboard bookings error:", err);
-        upcomingEl.innerHTML = `<div class="item" style="color:red;"><div><strong>Error:</strong> ${err.message}</div></div>`;
-        allEl.innerHTML = `<div class="item" style="color:red;"><div><strong>Error:</strong> ${err.message}</div></div>`;
-        msg.textContent = "Could not load your bookings.";
+        const errHtml = `<div class="item" style="color:red;"><div><strong>Error:</strong> ${err.message}</div></div>`;
+        upcomingEl.innerHTML = errHtml;
+        allEl.innerHTML      = errHtml;
+        msg.textContent      = "Could not load your bookings.";
       }
     }
 
@@ -263,7 +279,6 @@
         document.getElementById("signedInRole").textContent =
           role.charAt(0).toUpperCase() + role.slice(1);
       }
-
       await loadDashboardBookings();
     });
   </script>

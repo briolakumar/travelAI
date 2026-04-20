@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,9 +18,9 @@
     </div>
 
     <nav class="actions" aria-label="Primary navigation">
-      <a class="link" href="traveller-dashboard.html">Dashboard</a>
-      <a class="link" href="search-destination.html">Search</a>
-      <a class="link" href="learning-home.html">Learning Hub</a>
+      <a class="btn btn-primary" href="traveller-dashboard.html">Dashboard</a>
+      <a class="btn btn-primary" href="search-destination.html">Search</a>
+      <a class="btn btn-primary" href="learning-home.html">Learning Hub</a>
     </nav>
   </div>
 
@@ -53,7 +54,9 @@
       </div>
 
       <div class="list" id="bookingHistoryList" aria-label="Bookings list">
-        <div class="item"><div><strong>Loading…</strong></div></div>
+        <div class="item">
+          <div><strong>Loading…</strong></div>
+        </div>
       </div>
 
       <p id="historyMsg" style="margin-top: 12px;"></p>
@@ -73,15 +76,20 @@
 
   <script src="api/api.js"></script>
   <script>
+
+    // Redirect user to login page if not authenticated
     if (!localStorage.getItem("tripwise_token")) {
       window.location.href = "traveller-login.html";
     }
 
+    // Store all bookings globally for filtering
     let allBookings = [];
 
     function formatDate(dateStr) {
       if (!dateStr) return "N/A";
       const date = new Date(dateStr);
+
+      // Handle invalid date values
       if (Number.isNaN(date.getTime())) return dateStr;
       return date.toLocaleDateString(undefined, {
         day: "2-digit",
@@ -90,6 +98,7 @@
       });
     }
 
+    // Determine booking state
     function getBookingState(booking) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -139,14 +148,15 @@
         const state = getBookingState(b);
         const tagClass =
           state === "upcoming" || state === "confirmed" ? "ok" :
-          state === "past" ? "up" : "info";
+            state === "past" ? "up" : "info";
 
         const stateLabel =
           state === "upcoming" ? "Upcoming" :
-          state === "past" ? "Past" :
-          state === "cancelled" ? "Cancelled" :
-          "Confirmed";
+            state === "past" ? "Past" :
+              state === "cancelled" ? "Cancelled" :
+                "Confirmed";
 
+        // Create booking item
         const item = document.createElement("div");
         item.className = "item";
         item.innerHTML = `
@@ -177,7 +187,6 @@
             .includes(search)
         );
       }
-
       if (filter !== "all") {
         filtered = filtered.filter((b) => getBookingState(b) === filter);
       }
@@ -203,4 +212,5 @@
     });
   </script>
 </body>
+
 </html>
