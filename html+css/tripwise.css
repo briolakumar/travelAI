@@ -4204,159 +4204,167 @@ body:has(.hub-hero) .top+.container {
   gap: 10px;
   justify-content: center;
 }
+
 /* Homepage */
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(22px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
 
-    .home-box {
-      animation: cardIn 0.45s ease both;
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-    /* Feature strip */
-    .feature-strip {
-      display: flex;
-      justify-content: center;
-      gap: 18px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
+.home-box {
+  animation: cardIn 0.45s ease both;
+}
 
-    .feature-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--muted);
-    }
+/* Feature strip */
+.feature-strip {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
 
-    .feature-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #2bb673;
-      flex-shrink: 0;
-    }
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
 
-    /* Role buttons */
-    .home-role-btn {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      width: 100%;
-      padding: 14px 16px;
-      margin-bottom: 10px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #fff;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .15s ease;
-    }
+.feature-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2bb673;
+  flex-shrink: 0;
+}
 
-    .home-role-btn:hover {
-      border-color: #b8a7ff;
-      background: #faf9ff;
-      box-shadow: 0 4px 16px rgba(90, 44, 255, .10);
-      transform: translateY(-1px);
-    }
+/* Role buttons */
+.home-role-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .15s ease;
+}
 
-    .home-role-btn:last-of-type {
-      margin-bottom: 0;
-    }
+.home-role-btn:hover {
+  border-color: #b8a7ff;
+  background: #faf9ff;
+  box-shadow: 0 4px 16px rgba(90, 44, 255, .10);
+  transform: translateY(-1px);
+}
 
-    /* Icon circles with inline SVG */
-    .role-icon-circle {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
+.home-role-btn:last-of-type {
+  margin-bottom: 0;
+}
 
-    .role-icon-circle.trav {
-      background: rgba(90, 44, 255, 0.08);
-      border: 1px solid rgba(90, 44, 255, 0.18);
-    }
+/* Icon circles with inline SVG */
+.role-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
-    .role-icon-circle.adm {
-      background: rgba(43, 182, 115, 0.10);
-      border: 1px solid rgba(43, 182, 115, 0.22);
-    }
+.role-icon-circle.trav {
+  background: rgba(90, 44, 255, 0.08);
+  border: 1px solid rgba(90, 44, 255, 0.18);
+}
 
-    .role-icon-circle.com {
-      background: rgba(245, 158, 11, 0.10);
-      border: 1px solid rgba(245, 158, 11, 0.22);
-    }
+.role-icon-circle.adm {
+  background: rgba(43, 182, 115, 0.10);
+  border: 1px solid rgba(43, 182, 115, 0.22);
+}
 
-    .role-text-block {
-      flex: 1;
-      text-align: left;
-    }
+.role-icon-circle.com {
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+}
 
-    .role-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: #111;
-      margin-bottom: 2px;
-    }
+.role-text-block {
+  flex: 1;
+  text-align: left;
+}
 
-    .role-desc {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.4;
-    }
+.role-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 2px;
+}
 
-    .role-arrow {
-      font-size: 20px;
-      color: #ddd;
-      transition: color .15s ease, transform .15s ease;
-      line-height: 1;
-    }
+.role-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
 
-    .home-role-btn:hover .role-arrow {
-      color: #5a2cff;
-      transform: translateX(4px);
-    }
+.role-arrow {
+  font-size: 20px;
+  color: #ddd;
+  transition: color .15s ease, transform .15s ease;
+  line-height: 1;
+}
 
-    .home-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 16px 0;
-    }
+.home-role-btn:hover .role-arrow {
+  color: #5a2cff;
+  transform: translateX(4px);
+}
 
-    /* Tagline banner */
-    .home-tagline {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 14px 16px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(45, 26, 74, 0.05), rgba(90, 44, 255, 0.04));
-      border: 1px solid rgba(45, 26, 74, 0.10);
-      margin-bottom: 20px;
-    }
+.home-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
 
-    .home-tagline-icon {
-      font-size: 22px;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
+/* Tagline banner */
+.home-tagline {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(45, 26, 74, 0.05), rgba(90, 44, 255, 0.04));
+  border: 1px solid rgba(45, 26, 74, 0.10);
+  margin-bottom: 20px;
+}
 
-    .home-tagline p {
-      font-size: 13px;
-      color: #444;
-      line-height: 1.55;
-      margin: 0;
-    }
+.home-tagline-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
 
-    .home-tagline strong {
-      display: block;
-      font-size: 13px;
-      color: var(--brand);
-      margin-bottom: 2px;
-    }
+.home-tagline p {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.home-tagline strong {
+  display: block;
+  font-size: 13px;
+  color: var(--brand);
+  margin-bottom: 2px;
+}
