@@ -52,7 +52,7 @@ app.use("/images", express.static(path.join(__dirname, "../html+css/images")));
 app.use("/images", express.static(path.join(__dirname, "../images")));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../html+css/traveller-login.html"));
+  res.sendFile(path.join(__dirname, "../html+css/homepage.html"));
 });
 /* API routes */
 app.use("/api/auth", require("./routes/auth.routes"));
