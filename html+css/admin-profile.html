@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Admin Profile</title>
+  <link rel="stylesheet" href="tripwise.css" />
+  
+</head>
+<body>
+  <header class="header"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+    <nav style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <a class="btn btn-primary" href="admin-dashboard.html">Dashboard</a>
+      <a class="btn btn-primary" href="notifications.html">Notifications</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <div class="grid">
+
+      <section class="card span-8">
+        <div class="profile-header">
+          <div class="profile-avatar" id="avatarInitial">…</div>
+          <div>
+            <h2 id="profileName">Loading…</h2>
+            <p id="profileEmail">—</p>
+            <div class="admin-badge">Admin</div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Full Name</label>
+          <div class="field-locked" id="nameDisplay">—</div>
+        </div>
+
+        <div class="field-group">
+          <label>Email Address</label>
+          <div class="field-locked" id="emailDisplay">—</div>
+          <p style="font-size:12px;color:var(--muted);margin-top:6px;">Admin email addresses are locked to the @tripwiseadmin.com domain.</p>
+        </div>
+
+        <div class="field-group">
+          <label>Account Type</label>
+          <div class="field-locked">Administrator — Full platform access</div>
+        </div>
+
+        <div class="field-group">
+          <label>Member Since</label>
+          <div class="field-locked" id="profileJoined">—</div>
+        </div>
+      </section>
+
+      <aside class="card span-4">
+        <h3>Admin Activity</h3>
+        <p style="margin-bottom:16px;">Your contribution to TripWise content.</p>
+
+        <div class="stat-row">
+          <div class="stat-box">
+            <strong id="statKb">0</strong>
+            <span>KB Entries</span>
+          </div>
+          <div class="stat-box">
+            <strong id="statInsights">0</strong>
+            <span>Moderated</span>
+          </div>
+          <div class="stat-box">
+            <strong id="statUsers">0</strong>
+            <span>Users</span>
+          </div>
+          <div class="stat-box">
+            <strong id="statFeedback">0</strong>
+            <span>Feedback</span>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <h3 style="margin-bottom:10px;">Quick Links</h3>
+          <div class="list">
+            <a class="item" href="admin-dashboard.html" style="text-decoration:none;">
+              <div><strong>Dashboard</strong><small>Manage KB and insights</small></div>
+              <span>→</span>
+            </a>
+            <a class="item" href="traveller-dashboard.html" style="text-decoration:none;">
+              <div><strong>Traveller View</strong><small>See the platform as a traveller</small></div>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="api/api.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.toggle("error", isError);
+      t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    function formatDate(d) {
+      if (!d) return "—";
+      return new Date(d).toLocaleDateString(undefined, { day:"2-digit", month:"long", year:"numeric" });
+    }
+
+    (async () => {
+      if (!getToken()) { window.location.href = "admin-login.html"; return; }
+
+      let user;
+      try {
+        user = await apiFetch("/api/auth/me");
+        if (!user || user.role !== "admin") {
+          window.location.href = "admin-login.html"; return;
+        }
+      } catch { window.location.href = "admin-login.html"; return; }
+
+      const initial = (user.full_name || "A").charAt(0).toUpperCase();
+      $("avatarInitial").textContent = initial;
+      $("profileName").textContent   = user.full_name || "Admin";
+      $("profileEmail").textContent  = user.email || "—";
+      $("nameDisplay").textContent   = user.full_name || "—";
+      $("emailDisplay").textContent  = user.email || "—";
+      $("profileJoined").textContent = formatDate(user.created_at);
+
+      // Load stats
+      try {
+        const [kb, insights, users, feedback] = await Promise.all([
+          apiFetch("/api/knowledge-base"),
+          apiFetch("/api/insights/moderation"),
+          apiFetch("/api/admin/users"),
+          apiFetch("/api/admin/feedback")
+        ]);
+        $("statKb").textContent       = kb.length ?? 0;
+        $("statInsights").textContent = insights.filter(i => i.status !== "pending").length ?? 0;
+        $("statUsers").textContent    = users.length ?? 0;
+        $("statFeedback").textContent = feedback.total ?? 0;
+      } catch (err) {
+        console.error("Stats load error:", err.message);
+      }
+    })();
+  </script>
+</body>
+</html>

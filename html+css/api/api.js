@@ -1,22 +1,39 @@
 const API_BASE = "http://localhost:3000";
 
-function setToken(token) {
-  localStorage.setItem("tripwise_token", token);
+/* Determines the user role based on the current page URL. */
+function _getRoleFromPage() {
+  const page = window.location.pathname.split("/").pop();
+  if (page.startsWith("admin"))            return "admin";
+  if (page.startsWith("localcommunities")) return "community";
+  return "traveller";
+}
+
+/* Returns the correct localStorage key based on user role. */
+
+function _tokenKey(role) {
+  const r = role || _getRoleFromPage();
+  if (r === "admin")     return "tripwise_token_admin";
+  if (r === "community") return "tripwise_token_community";
+  return "tripwise_token_traveller";
+}
+
+/* Stores the authentication token in localStorage. */
+function setToken(token, role) {
+  localStorage.setItem(_tokenKey(role), token);
 }
 
 function getToken() {
-  return localStorage.getItem("tripwise_token");
+  return localStorage.getItem(_tokenKey());
 }
 
 function clearToken() {
-  localStorage.removeItem("tripwise_token");
-  localStorage.removeItem("tripwise_role");
-  localStorage.removeItem("tripwise_name");
+  localStorage.removeItem(_tokenKey());
 }
 
 async function apiFetch(path, options = {}) {
   const token = getToken();
 
+  // Default headers for JSON communication
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {})
@@ -26,6 +43,7 @@ async function apiFetch(path, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
+  // Send request to backend API
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers

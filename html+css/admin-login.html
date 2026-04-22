@@ -1,13 +1,11 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Admin Login</title>
   <link rel="stylesheet" href="tripwise.css" />
 </head>
-
 <body class="auth-page">
   <header class="header" aria-label="Site header"></header>
 
@@ -24,14 +22,15 @@
 
       <form id="adminLogin" novalidate>
         <label for="a_email">Work Email</label>
-        <input id="a_email" name="email" type="email" required autocomplete="email" placeholder="admin@tripwise.com" />
+        <input id="a_email" name="email" type="email" required autocomplete="email"
+          placeholder="admin@tripwiseadmin.com" />
 
         <label for="a_password">Password</label>
         <input id="a_password" name="password" type="password" required autocomplete="current-password"
           placeholder="Your password" />
 
         <div class="row">
-          <a class="link" href="forgot-password.html">Forgot password?</a>
+          <a class="link" href="forgot-password.html?role=admin">Forgot password?</a>
         </div>
 
         <button class="btn" type="submit">Log In</button>
@@ -46,10 +45,10 @@
   <script src="api/api.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("adminLogin");
+      const form    = document.getElementById("adminLogin");
       const emailEl = document.getElementById("a_email");
-      const passEl = document.getElementById("a_password");
-      const msg = document.getElementById("message");
+      const passEl  = document.getElementById("a_password");
+      const msg     = document.getElementById("message");
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -62,7 +61,7 @@
           const data = await apiFetch("/api/auth/login", {
             method: "POST",
             body: JSON.stringify({
-              email: emailEl.value.trim().toLowerCase(),
+              email:    emailEl.value.trim().toLowerCase(),
               password: passEl.value
             })
           });
@@ -73,9 +72,7 @@
             return;
           }
 
-          // Role-specific token key
-          localStorage.setItem("tripwise_token_admin", data.token);
-          localStorage.setItem("tripwise_token", data.token);
+          setToken(data.token, "admin");
           localStorage.setItem("tripwise_role", data.role);
           localStorage.setItem("tripwise_name", data.full_name || "");
 
@@ -89,5 +86,4 @@
     });
   </script>
 </body>
-
 </html>

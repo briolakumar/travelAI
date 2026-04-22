@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Community Profile</title>
+  <link rel="stylesheet" href="tripwise.css" />
+
+</head>
+<body>
+  <header class="header"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+    <nav style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <a class="btn btn-primary" href="localcommunities-dashboard.html">Dashboard</a>
+      <a class="btn btn-primary" href="feedback.html">Feedback</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <div class="grid">
+
+      <section class="card span-8">
+        <div class="profile-header">
+          <div class="profile-avatar" id="avatarInitial">…</div>
+          <div>
+            <h2 id="profileName">Loading…</h2>
+            <p id="profileEmail">—</p>
+            <div class="community-badge">Local Community Partner</div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Full Name</label>
+          <div class="field-locked" id="nameDisplay">—</div>
+        </div>
+
+        <div class="field-group">
+          <label>Email Address</label>
+          <div class="field-locked" id="emailDisplay">—</div>
+        </div>
+
+        <div class="field-group">
+          <label>Member Since</label>
+          <div class="field-locked" id="profileJoined">—</div>
+        </div>
+
+        <div class="field-group">
+          <label>Assigned Destination</label>
+          <div class="dest-card">
+            <div class="dest-icon">📍</div>
+            <div>
+              <strong id="destDisplay">Loading…</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card span-4">
+        <h3>My Contributions</h3>
+        <p style="margin-bottom:16px;">Your insight submissions to TripWise.</p>
+
+        <div class="stat-row">
+          <div class="stat-box">
+            <strong id="statTotal">0</strong>
+            <span>Submitted</span>
+          </div>
+          <div class="stat-box">
+            <strong id="statApproved">0</strong>
+            <span>Approved</span>
+          </div>
+          <div class="stat-box">
+            <strong id="statPending">0</strong>
+            <span>Pending</span>
+          </div>
+          <div class="stat-box">
+            <strong id="statRejected">0</strong>
+            <span>Rejected</span>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <h3 style="margin-bottom:10px;">Quick Links</h3>
+          <div class="list">
+            <a class="item" href="localcommunities-dashboard.html" style="text-decoration:none;">
+              <div><strong>My Insights</strong><small>View and submit insights</small></div>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding:14px;border-radius:12px;background:#eafbea;border:1px solid #c8e6c9;">
+          <p style="font-size:13px;color:#1b5e20;margin:0;line-height:1.5;">
+            <strong>Your approved insights</strong> appear directly in the TripWise chatbot for travellers visiting your destination.
+          </p>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="api/api.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.toggle("error", isError);
+      t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    function formatDate(d) {
+      if (!d) return "—";
+      return new Date(d).toLocaleDateString(undefined, { day:"2-digit", month:"long", year:"numeric" });
+    }
+
+    (async () => {
+      if (!getToken()) { window.location.href = "localcommunities-login.html"; return; }
+
+      let user;
+      try {
+        user = await apiFetch("/api/auth/me");
+        if (!user || user.role !== "community") {
+          window.location.href = "localcommunities-login.html"; return;
+        }
+      } catch { window.location.href = "localcommunities-login.html"; return; }
+
+      const initial = (user.full_name || "C").charAt(0).toUpperCase();
+      $("avatarInitial").textContent = initial;
+      $("profileName").textContent   = user.full_name || "Community Partner";
+      $("profileEmail").textContent  = user.email || "—";
+      $("nameDisplay").textContent   = user.full_name || "—";
+      $("emailDisplay").textContent  = user.email || "—";
+      $("profileJoined").textContent = formatDate(user.created_at);
+      $("destDisplay").textContent   = user.destination_name || "Not assigned";
+
+      // Load insight stats
+      try {
+        const rows = await apiFetch("/api/insights/mine");
+        const count = s => rows.filter(r => r.status === s).length;
+        $("statTotal").textContent    = rows.length;
+        $("statApproved").textContent = count("approved");
+        $("statPending").textContent  = count("pending");
+        $("statRejected").textContent = count("rejected");
+      } catch (err) {
+        console.error("Insights load error:", err.message);
+      }
+    })();
+  </script>
+</body>
+</html>

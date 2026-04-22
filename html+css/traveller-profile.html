@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — My Profile</title>
+  <link rel="stylesheet" href="tripwise.css" />
+  
+</head>
+<body>
+  <header class="header"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+    <nav style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <a class="btn btn-primary" href="traveller-dashboard.html">Dashboard</a>
+      <a class="btn btn-primary" href="booking-history.html">Booking history</a>
+      <a class="btn btn-primary" href="learning-home.html">Learning Hub</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <div class="grid">
+
+      <section class="card span-8">
+        <div class="profile-header">
+          <div class="profile-avatar" id="avatarInitial">…</div>
+          <div>
+            <h2 id="profileName">Loading…</h2>
+            <p id="profileRole">Traveller Account</p>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Full Name</label>
+          <div class="field-row">
+            <input type="text" id="editName" placeholder="Your full name" />
+            <button class="btn btn-primary" id="saveNameBtn" type="button">Save</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Email Address</label>
+          <div class="field-locked" id="profileEmail">—</div>
+        </div>
+
+        <div class="field-group">
+          <label>Member Since</label>
+          <div class="field-locked" id="profileJoined">—</div>
+        </div>
+
+        <div class="danger-zone">
+          <h4>Danger Zone</h4>
+          <p>Deleting your account is permanent and cannot be undone. All your bookings, chat history, and feedback will be removed.</p>
+          <button class="btn" id="deleteAccountBtn" type="button"
+            style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;">
+            Delete my account
+          </button>
+        </div>
+      </section>
+
+      <aside class="card span-4">
+        <h3>Account Stats</h3>
+        <p style="margin-bottom:16px;">Your activity on TripWise.</p>
+
+        <div class="stat-row">
+          <div class="stat-box">
+            <strong id="statBookings">0</strong>
+            <span>Bookings</span>
+          </div>
+          <div class="stat-box">
+            <strong id="statFeedback">0</strong>
+            <span>Feedback</span>
+          </div>
+          <div class="stat-box">
+            <strong id="statChats">0</strong>
+            <span>Chats</span>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <h3 style="margin-bottom:10px;">Quick Links</h3>
+          <div class="list">
+            <a class="item" href="booking-history.html" style="text-decoration:none;">
+              <div><strong>My Bookings</strong><small>View and manage trips</small></div>
+              <span>→</span>
+            </a>
+            <a class="item" href="chatbot-guidance.html" style="text-decoration:none;">
+              <div><strong>Chatbot</strong><small>Get destination guidance</small></div>
+              <span>→</span>
+            </a>
+            <a class="item" href="feedback.html" style="text-decoration:none;">
+              <div><strong>Leave Feedback</strong><small>Rate your experience</small></div>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <p id="confirmMessage">Are you sure?</p>
+      <div class="actions-row">
+        <button class="btn btn-primary" id="confirmYes" type="button"
+          style="background:#dc2626;">Delete account</button>
+        <button class="btn btn-ghost" id="confirmNo" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="api/api.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.toggle("error", isError);
+      t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    function showConfirm(msg) {
+      return new Promise(resolve => {
+        $("confirmMessage").textContent = msg;
+        $("confirmOverlay").classList.add("open");
+        const yes = $("confirmYes"), no = $("confirmNo");
+        const cleanup = result => {
+          $("confirmOverlay").classList.remove("open");
+          yes.replaceWith(yes.cloneNode(true));
+          no.replaceWith(no.cloneNode(true));
+          resolve(result);
+        };
+        $("confirmYes").addEventListener("click", () => cleanup(true),  { once: true });
+        $("confirmNo").addEventListener("click",  () => cleanup(false), { once: true });
+      });
+    }
+
+    function formatDate(d) {
+      if (!d) return "—";
+      return new Date(d).toLocaleDateString(undefined, { day:"2-digit", month:"long", year:"numeric" });
+    }
+
+    function getInitial(name) {
+      return (name || "?").charAt(0).toUpperCase();
+    }
+
+    (async () => {
+      if (!getToken()) { window.location.href = "traveller-login.html"; return; }
+
+      let user;
+      try {
+        user = await apiFetch("/api/auth/me");
+        if (!user || user.role !== "traveller") {
+          window.location.href = "traveller-login.html"; return;
+        }
+      } catch { window.location.href = "traveller-login.html"; return; }
+
+      $("avatarInitial").textContent  = getInitial(user.full_name);
+      $("profileName").textContent    = user.full_name || "Traveller";
+      $("profileRole").textContent    = "Traveller Account";
+      $("editName").value             = user.full_name || "";
+      $("profileEmail").textContent   = user.email || "—";
+      $("profileJoined").textContent  = formatDate(user.created_at);
+
+      // Load stats
+      try {
+        const bookings = await apiFetch("/api/bookings/me");
+        $("statBookings").textContent = bookings.length ?? 0;
+
+        // Count chat sessions from bookings
+        let chatCount = 0;
+        for (const b of bookings.slice(0, 10)) {
+          try {
+            const h = await apiFetch(`/api/chatbot/history/${b.id}`);
+            if (h?.messages?.length) chatCount++;
+          } catch {}
+        }
+        $("statChats").textContent = chatCount;
+      } catch {}
+
+      // Save name
+      $("saveNameBtn").addEventListener("click", async () => {
+        const name = $("editName").value.trim();
+        if (!name) { showToast("Name cannot be empty.", true); return; }
+        try {
+          await apiFetch("/api/auth/update-profile", {
+            method: "PATCH",
+            body: JSON.stringify({ full_name: name })
+          });
+          $("profileName").textContent   = name;
+          $("avatarInitial").textContent = getInitial(name);
+          showToast("Name updated successfully.");
+        } catch (err) {
+          showToast(err.message || "Could not update name.", true);
+        }
+      });
+
+      // Delete account
+      $("deleteAccountBtn").addEventListener("click", async () => {
+        const confirmed = await showConfirm("Delete your account permanently? This cannot be undone.");
+        if (!confirmed) return;
+        try {
+          await apiFetch(`/api/auth/delete-account`, { method: "DELETE" });
+          clearToken();
+          window.location.href = "traveller-login.html";
+        } catch (err) {
+          showToast(err.message || "Could not delete account.", true);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

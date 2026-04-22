@@ -18,12 +18,9 @@
         <h1>TripWise</h1>
       </div>
       <div class="user-area">
-        <div class="pill">
-          <span class="dot" aria-hidden="true"></span>
-          Signed in as <strong id="signedInRole">Traveller</strong>
-        </div>
-        <button class="btn btn-ghost" type="button" data-action="profile">👤 Profile</button>
-        <button class="btn btn-primary" type="button" data-action="logout">Log out</button>
+        
+<a class="btn btn-ghost" href="traveller-profile.html">👤 Profile</a>        
+<button class="btn btn-primary" type="button" data-action="logout">Log out</button>
       </div>
     </div>
   </div>
@@ -137,13 +134,12 @@
     </div>
   </div>
 
-  = <div class="toast" id="toast"></div>
-
+<div class="toast" id="toast"></div>
   <script src="api/api.js"></script>
   <script>
-    if (!localStorage.getItem("tripwise_token")) {
-      window.location.href = "traveller-login.html";
-    }
+    if (!getToken()) {
+  window.location.href = "traveller-login.html";
+}
 
     /* Toast */
     let toastTimer = null;
@@ -279,13 +275,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      const role = localStorage.getItem("tripwise_role");
-      if (role) {
-        document.getElementById("signedInRole").textContent =
-          role.charAt(0).toUpperCase() + role.slice(1);
-      }
-      await loadDashboardBookings();
-    });
+  await loadDashboardBookings();
+});
   </script>
 </body>
 

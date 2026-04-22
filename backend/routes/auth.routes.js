@@ -45,7 +45,6 @@ router.post("/register", async (req, res) => {
 
     const normalizedEmail = String(email).trim().toLowerCase();
 
-    /* Domain check */
     if (!validateEmailForRole(normalizedEmail, role)) {
       const required = ROLE_DOMAINS[role];
       return res.status(400).json({
@@ -119,7 +118,6 @@ router.post("/login", (req, res) => {
   );
 });
 
-
 router.get("/me", auth, (req, res) => {
   db.get(
     `SELECT
@@ -159,7 +157,7 @@ router.post("/forgot-password", (req, res) => {
   const normalizedEmail = String(email).trim().toLowerCase();
 
   db.get(
-    "SELECT id, email, full_name FROM users WHERE email = ?",
+    "SELECT id, email, full_name, role FROM users WHERE email = ?",
     [normalizedEmail],
     (err, user) => {
       if (err) {
@@ -170,15 +168,19 @@ router.post("/forgot-password", (req, res) => {
       if (user) {
         const token = crypto.randomBytes(32).toString("hex");
         const expiresAt = Date.now() + TOKEN_TTL_MS;
-        resetTokens.set(token, { userId: user.id, expiresAt });
+        resetTokens.set(token, { userId: user.id, expiresAt, role: user.role });
 
         const BASE_URL = process.env.HOST || `http://localhost:${process.env.PORT || 3000}`;
-        const resetUrl = `${BASE_URL}/reset-password.html?token=${token}`;
 
+        const resetUrl = `${BASE_URL}/reset-password.html?token=${token}&role=${user.role}`;
+
+        console.log("\n========================================");
         console.log("PASSWORD RESET LINK");
         console.log(`  User  : ${user.full_name} <${user.email}>`);
+        console.log(`  Role  : ${user.role}`);
         console.log(`  Link  : ${resetUrl}`);
-        console.log(`  Expires in 1 hour`);
+        console.log("  Expires in 1 hour");
+        console.log("========================================\n");
       }
 
       res.status(200).json({ message: "If that email exists, a reset link has been sent." });
@@ -205,7 +207,7 @@ router.get("/reset-password", (req, res) => {
     return res.status(400).json({ message: "Reset token has expired" });
   }
 
-  res.status(200).json({ message: "Token is valid" });
+  res.status(200).json({ message: "Token is valid", role: entry.role });
 });
 
 /* Reset Password */
@@ -248,7 +250,7 @@ router.post("/reset-password", async (req, res) => {
         }
 
         resetTokens.delete(token);
-        console.log(`\nPassword reset success for user ID ${entry.userId}\n`);
+        console.log(`\nPassword reset success for user ID ${entry.userId} (${entry.role})\n`);
         res.status(200).json({ message: "Password reset successfully" });
       }
     );
