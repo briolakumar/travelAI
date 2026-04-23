@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Admin Notifications</title>
+  <link rel="stylesheet" href="tripwise.css" />
+</head>
+<body>
+  <header class="header"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+    <nav style="display:flex;flex-direction:row;gap:10px;align-items:center;">
+      <a class="btn btn-primary" href="admin-dashboard.html">Dashboard</a>
+      <a class="btn btn-primary" href="admin-profile.html">Profile</a>
+      <a class="btn btn-primary" href="#" id="logoutBtn">Logout</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <section class="card" aria-labelledby="page-title">
+      <h2 id="page-title">Admin Notifications</h2>
+      <p>Live updates on insights, feedback, and new users across the platform.</p>
+
+      <div class="actions" style="margin-bottom:16px;margin-top:12px;">
+        <button class="btn btn-primary" id="markReadBtn" type="button">Mark all as read</button>
+        <a class="btn btn-ghost" href="admin-dashboard.html">Back to Dashboard</a>
+      </div>
+
+      <div id="notificationList" class="list">
+        <div class="item"><div><strong>Loading…</strong></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"></footer>
+  <div class="toast" id="toast"></div>
+
+  <script src="api/api.js"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      /* Always use admin token directly */
+      const adminToken = localStorage.getItem("tripwise_token_admin");
+      if (!adminToken) {
+        window.location.href = "admin-login.html";
+        return;
+      }
+
+      let toastTimer = null;
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+      }
+
+      /* Local fetch that always sends the admin token */
+      async function adminFetch(path) {
+        const response = await fetch(`http://localhost:3000${path}`, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${adminToken}`
+          }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || data.error || "Request failed");
+        return data;
+      }
+
+      function buildNotifications(insights, feedback, users) {
+        const notifications = [];
+
+        const pending  = insights.filter(i => i.status === "pending");
+        const approved = insights.filter(i => i.status === "approved").length;
+        const rejected = insights.filter(i => i.status === "rejected").length;
+
+        if (pending.length > 0) {
+          notifications.push({
+            title: `${pending.length} insight${pending.length > 1 ? "s" : ""} awaiting moderation`,
+            sub:   pending.slice(0,3).map(i => `"${i.title}" — ${i.destination_name}`).join(", ") +
+                   (pending.length > 3 ? ` and ${pending.length - 3} more` : ""),
+            tag: "warn", label: "Action needed",
+            link: "admin-dashboard.html", linkText: "Review in dashboard →"
+          });
+        }
+
+        if (approved + rejected > 0) {
+          notifications.push({
+            title: `${approved + rejected} insight${approved + rejected > 1 ? "s" : ""} moderated`,
+            sub:   `${approved} approved · ${rejected} rejected`,
+            tag: "ok", label: "Info"
+          });
+        }
+
+        if (feedback.total > 0) {
+          notifications.push({
+            title: `${feedback.total} feedback submission${feedback.total > 1 ? "s" : ""} received`,
+            sub:   `Platform average rating: ${feedback.average_rating} ⭐`,
+            tag: "info", label: "Feedback",
+            link: "admin-dashboard.html", linkText: "View feedback →"
+          });
+        }
+
+        if (users.length > 0) {
+          const travellers = users.filter(u => u.role === "traveller").length;
+          const admins     = users.filter(u => u.role === "admin").length;
+          const community  = users.filter(u => u.role === "community").length;
+          notifications.push({
+            title: `${users.length} total registered user${users.length > 1 ? "s" : ""}`,
+            sub:   `${travellers} traveller${travellers !== 1 ? "s" : ""} · ${admins} admin${admins !== 1 ? "s" : ""} · ${community} community partner${community !== 1 ? "s" : ""}`,
+            tag: "info", label: "Users"
+          });
+          const latest = users[0];
+          if (latest) {
+            notifications.push({
+              title: `Latest registration: ${latest.full_name}`,
+              sub:   `${latest.email} — ${latest.role} — joined ${new Date(latest.created_at).toLocaleDateString()}`,
+              tag: "ok", label: "New user"
+            });
+          }
+        }
+
+        if (notifications.length === 0) {
+          notifications.push({
+            title: "All caught up!",
+            sub:   "No pending actions at the moment.",
+            tag: "", label: "Info"
+          });
+        }
+
+        return notifications;
+      }
+
+      function renderNotifications(notifications) {
+        document.getElementById("notificationList").innerHTML =
+          notifications.map((n, i) => `
+            <div class="item">
+              <div>
+                <strong>${n.title}</strong>
+                <small>${n.sub}</small>
+                ${n.link ? `<div style="margin-top:6px;"><a class="link" href="${n.link}">${n.linkText}</a></div>` : ""}
+              </div>
+              <span class="tag ${n.tag}" id="ntag-${i}">${n.label}</span>
+            </div>`).join("");
+      }
+
+      document.getElementById("markReadBtn").addEventListener("click", () => {
+        document.querySelectorAll("[id^='ntag-']").forEach(tag => {
+          tag.textContent = "Read";
+          tag.className   = "tag";
+        });
+        showToast("All notifications marked as read.");
+      });
+
+      document.getElementById("logoutBtn").addEventListener("click", e => {
+        e.preventDefault();
+        localStorage.removeItem("tripwise_token_admin");
+        window.location.href = "admin-login.html";
+      });
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const user = await adminFetch("/api/auth/me");
+          if (!user || user.role !== "admin") {
+            localStorage.removeItem("tripwise_token_admin");
+            window.location.href = "admin-login.html";
+            return;
+          }
+
+          const [insights, feedback, users] = await Promise.all([
+            adminFetch("/api/insights/moderation"),
+            adminFetch("/api/admin/feedback"),
+            adminFetch("/api/admin/users")
+          ]);
+
+          renderNotifications(buildNotifications(insights, feedback, users));
+
+        } catch (err) {
+          console.error("Admin notifications error:", err);
+          document.getElementById("notificationList").innerHTML =
+            `<div class="item"><div><strong>Could not load notifications.</strong><small>${err.message}</small></div></div>`;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

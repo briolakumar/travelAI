@@ -18,8 +18,8 @@
     </div>
 
     <nav class="actions" aria-label="Secondary navigation">
-      <a class="link" href="booking-history.html">← Booking history</a>
-      <a class="link" href="traveller-dashboard.html">Dashboard</a>
+      <a class="btn btn-primary" href="booking-history.html">← Booking history</a>
+      <a class="btn btn-primary" href="traveller-dashboard.html">Dashboard</a>
     </nav>
   </div>
 
@@ -64,9 +64,9 @@
 
   <script src="api/api.js"></script>
   <script>
-    if (!localStorage.getItem("tripwise_token")) {
-      window.location.href = "traveller-login.html";
-    }
+    if (!getToken()) {
+  window.location.href = "traveller-login.html";
+}
 
     function qp(name) {
       return new URL(window.location.href).searchParams.get(name);

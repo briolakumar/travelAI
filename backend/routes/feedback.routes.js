@@ -5,8 +5,14 @@ const { requireRole } = require("../middleware/requireRole");
 
 const router = express.Router();
 
-/* Traveller submits trip feedback */
-router.post("/", auth, requireRole("traveller"), (req, res) => {
+/* Submit feedback (traveller OR community) */
+router.post("/", auth, (req, res) => {
+
+  /* Only travellers and community partners can submit feedback */
+  if (!["traveller", "community"].includes(req.user.role)) {
+    return res.status(403).json({ error: "Only travellers and community partners can submit feedback." });
+  }
+
   const { booking_id, rating, topic, comments } = req.body || {};
 
   if (!rating || rating < 1 || rating > 5) {
@@ -28,7 +34,6 @@ router.post("/", auth, requireRole("traveller"), (req, res) => {
         console.error("Feedback insert error:", err.message);
         return res.status(500).json({ error: err.message });
       }
-
       res.status(201).json({
         id: this.lastID,
         message: "Feedback submitted successfully"
@@ -37,7 +42,7 @@ router.post("/", auth, requireRole("traveller"), (req, res) => {
   );
 });
 
-/* Admin views submitted feedback */
+/* Admin views all feedback */
 router.get("/", auth, requireRole("admin"), (req, res) => {
   db.all(
     `SELECT
@@ -46,11 +51,13 @@ router.get("/", auth, requireRole("admin"), (req, res) => {
        f.topic,
        f.comments,
        f.created_at,
-       u.email AS traveller_email,
-       d.name AS destination_name
+       u.full_name AS traveller_name,
+       u.email     AS traveller_email,
+       u.role      AS submitter_role,
+       d.name      AS destination_name
      FROM feedback f
      JOIN users u ON u.id = f.traveller_id
-     LEFT JOIN bookings b ON b.id = f.booking_id
+     LEFT JOIN bookings b    ON b.id  = f.booking_id
      LEFT JOIN destinations d ON d.id = b.destination_id
      ORDER BY f.created_at DESC
      LIMIT 200`,
@@ -60,7 +67,6 @@ router.get("/", auth, requireRole("admin"), (req, res) => {
         console.error("Feedback fetch error:", err.message);
         return res.status(500).json({ error: err.message });
       }
-
       res.json(rows);
     }
   );

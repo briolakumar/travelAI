@@ -5,6 +5,7 @@ function _getRoleFromPage() {
   const page = window.location.pathname.split("/").pop();
   if (page.startsWith("admin"))            return "admin";
   if (page.startsWith("localcommunities")) return "community";
+  if (page.startsWith("community"))        return "community";
   return "traveller";
 }
 

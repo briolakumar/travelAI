@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TripWise — Admin Login</title>
   <link rel="stylesheet" href="tripwise.css" />
 </head>
+
 <body class="auth-page">
   <header class="header" aria-label="Site header"></header>
 
@@ -34,7 +36,10 @@
         </div>
 
         <button class="btn" type="submit">Log In</button>
-        <a class="link" href="admin-register.html">Don't have an account? Register</a>
+      <div class="row-actions" style="display:flex;flex-direction:column;gap:8px;align-items:center;margin-top:10px;">
+  <a class="link" href="admin-register.html">Don't have an account? Register</a>
+  <a class="link" href="homepage.html">← Back to home</a>
+</div>
       </form>
     </section>
   </main>
@@ -45,10 +50,10 @@
   <script src="api/api.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const form    = document.getElementById("adminLogin");
+      const form = document.getElementById("adminLogin");
       const emailEl = document.getElementById("a_email");
-      const passEl  = document.getElementById("a_password");
-      const msg     = document.getElementById("message");
+      const passEl = document.getElementById("a_password");
+      const msg = document.getElementById("message");
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -61,7 +66,7 @@
           const data = await apiFetch("/api/auth/login", {
             method: "POST",
             body: JSON.stringify({
-              email:    emailEl.value.trim().toLowerCase(),
+              email: emailEl.value.trim().toLowerCase(),
               password: passEl.value
             })
           });
@@ -86,4 +91,5 @@
     });
   </script>
 </body>
+
 </html>

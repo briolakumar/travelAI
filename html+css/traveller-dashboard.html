@@ -18,9 +18,9 @@
         <h1>TripWise</h1>
       </div>
       <div class="user-area">
-        
-<a class="btn btn-ghost" href="traveller-profile.html">👤 Profile</a>        
-<button class="btn btn-primary" type="button" data-action="logout">Log out</button>
+
+        <a class="btn btn-ghost" href="traveller-profile.html">👤 Profile</a>
+        <button class="btn btn-primary" type="button" data-action="logout">Log out</button>
       </div>
     </div>
   </div>
@@ -134,12 +134,12 @@
     </div>
   </div>
 
-<div class="toast" id="toast"></div>
+  <div class="toast" id="toast"></div>
   <script src="api/api.js"></script>
   <script>
     if (!getToken()) {
-  window.location.href = "traveller-login.html";
-}
+      window.location.href = "traveller-login.html";
+    }
 
     /* Toast */
     let toastTimer = null;
@@ -180,9 +180,7 @@
         return;
       }
       if (action === "logout") {
-        localStorage.removeItem("tripwise_token");
-        localStorage.removeItem("tripwise_role");
-        localStorage.removeItem("tripwise_full_name");
+        clearToken();
         window.location.href = "traveller-login.html";
       }
     });
@@ -275,8 +273,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-  await loadDashboardBookings();
-});
+      await loadDashboardBookings();
+    });
   </script>
 </body>
 

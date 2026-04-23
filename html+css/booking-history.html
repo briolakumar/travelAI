@@ -78,7 +78,7 @@
   <script>
 
     // Redirect user to login page if not authenticated
-    if (!localStorage.getItem("tripwise_token")) {
+    if (!getToken()) {
       window.location.href = "traveller-login.html";
     }
 

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripWise — Community Feedback</title>
+  <link rel="stylesheet" href="tripwise.css" />
+  
+</head>
+<body>
+  <header class="header"></header>
+
+  <div class="top" role="banner">
+    <div class="brand">
+      <img src="../images/logo1.png" alt="TripWise logo" />
+      <h1>TripWise</h1>
+    </div>
+    <nav style="display:flex;flex-direction:row;gap:10px;align-items:center;">
+      <a class="btn btn-primary" href="localcommunities-dashboard.html">Dashboard</a>
+      <a class="btn btn-primary" href="community-profile.html">Profile</a>
+      <a class="btn btn-primary" href="#" id="logoutBtn">Logout</a>
+    </nav>
+  </div>
+
+  <main class="container">
+    <div class="grid">
+
+      <section class="card span-7" aria-labelledby="page-title">
+        <h2 id="page-title">Submit Feedback</h2>
+        <p>Share your experience as a TripWise community partner. Your feedback helps us improve the platform for everyone.</p>
+
+        <form id="feedbackForm" novalidate style="margin-top:16px;">
+
+          <label>Overall rating</label>
+          <div class="stars" id="starsRow" role="group" aria-label="Star rating">
+            <span class="star" data-val="1" role="button" tabindex="0">★</span>
+            <span class="star" data-val="2" role="button" tabindex="0">★</span>
+            <span class="star" data-val="3" role="button" tabindex="0">★</span>
+            <span class="star" data-val="4" role="button" tabindex="0">★</span>
+            <span class="star" data-val="5" role="button" tabindex="0">★</span>
+          </div>
+          <p id="ratingHint" style="font-size:12px;color:var(--muted);margin-top:6px;">Click a star to rate</p>
+
+          <label for="topicSelect" style="margin-top:16px;">Topic</label>
+          <select id="topicSelect">
+            <option value="platform_usability">Platform usability</option>
+            <option value="insight_submission">Insight submission process</option>
+            <option value="moderation_process">Moderation process</option>
+            <option value="communication">Communication from TripWise</option>
+            <option value="impact">Impact of my contributions</option>
+            <option value="general">General feedback</option>
+          </select>
+
+          <label for="commentsArea" style="margin-top:16px;">Comments</label>
+          <textarea id="commentsArea" rows="5" placeholder="Tell us what's working well, what could be improved, or any suggestions you have as a community partner…" style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--border);font-size:14px;resize:vertical;outline:none;"></textarea>
+
+          <div class="actions" style="margin-top:16px;">
+            <button class="btn btn-primary" id="submitBtn" type="submit">Submit Feedback</button>
+            <a class="btn btn-ghost" href="localcommunities-dashboard.html">Cancel</a>
+          </div>
+
+          <div id="successMsg" style="display:none;margin-top:16px;padding:14px;border-radius:12px;background:#eafbea;border:1px solid #c8e6c9;color:#1b5e20;font-size:14px;">
+            Thank you for your feedback! Your response has been submitted and will help us improve TripWise.
+          </div>
+
+        </form>
+      </section>
+
+      <aside class="card span-5">
+        <h3>Your Contribution Summary</h3>
+        <p style="margin-bottom:16px;">A snapshot of your impact as a community partner.</p>
+
+        <div id="statsList">
+          <div class="insight-stat"><span>Total submitted</span><strong id="statTotal"> —</strong></div>
+          <div class="insight-stat"><span>✅ Approved</span><strong id="statApproved"> —</strong></div>
+          <div class="insight-stat"><span>⏳ Pending</span><strong id="statPending"> —</strong></div>
+          <div class="insight-stat"><span>❌ Rejected</span><strong id="statRejected"> —</strong></div>
+        </div>
+
+        <div style="margin-top:20px;padding:14px;border-radius:12px;background:rgba(45,26,74,0.05);border:1px solid rgba(45,26,74,0.10);">
+          <p style="font-size:13px;color:#2d1a4a;font-weight:700;margin-bottom:4px;">📍 Your destination</p>
+          <p style="font-size:14px;color:#111;margin:0;" id="destInfo">Loading…</p>
+        </div>
+
+        <div style="margin-top:16px;padding:14px;border-radius:12px;background:#eafbea;border:1px solid #c8e6c9;">
+          <p style="font-size:13px;color:#1b5e20;line-height:1.5;margin:0;">
+            <strong>Why feedback matters:</strong> Your input directly shapes how TripWise supports community partners. We read every submission.
+          </p>
+        </div>
+
+        <div style="margin-top:16px;">
+          <a class="btn btn-primary" href="localcommunities-dashboard.html" style="width:100%;justify-content:center;">
+            Submit a new insight →
+          </a>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="footer"></footer>
+  <div class="toast" id="toast"></div>
+
+  <script src="api/api.js"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      if (!getToken()) { window.location.href = "localcommunities-login.html"; return; }
+
+      let toastTimer = null;
+      function showToast(msg, isError = false) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.toggle("error", isError);
+        t.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+      }
+
+      /* Star rating */
+      let selectedRating = 0;
+      const stars = document.querySelectorAll(".star");
+      const ratingHints = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
+
+      stars.forEach(star => {
+        star.addEventListener("click", () => {
+          selectedRating = Number(star.dataset.val);
+          updateStars(selectedRating);
+        });
+        star.addEventListener("mouseover", () => updateStars(Number(star.dataset.val)));
+        star.addEventListener("mouseout",  () => updateStars(selectedRating));
+        star.addEventListener("keydown", e => {
+          if (e.key === "Enter" || e.key === " ") {
+            selectedRating = Number(star.dataset.val);
+            updateStars(selectedRating);
+          }
+        });
+      });
+
+      function updateStars(val) {
+        stars.forEach(s => s.classList.toggle("active", Number(s.dataset.val) <= val));
+        document.getElementById("ratingHint").textContent = val ? ratingHints[val] : "Click a star to rate";
+      }
+
+      /* Logout */
+      document.getElementById("logoutBtn").addEventListener("click", e => {
+        e.preventDefault();
+        clearToken();
+        window.location.href = "localcommunities-login.html";
+      });
+
+      /* Submit */
+      document.getElementById("feedbackForm").addEventListener("submit", async e => {
+        e.preventDefault();
+
+        if (!selectedRating) {
+          showToast("Please select a star rating.", true);
+          return;
+        }
+
+        const topic    = document.getElementById("topicSelect").value;
+        const comments = document.getElementById("commentsArea").value.trim();
+
+        const btn = document.getElementById("submitBtn");
+        btn.disabled    = true;
+        btn.textContent = "Submitting…";
+
+        try {
+          await apiFetch("/api/feedback", {
+            method: "POST",
+            body: JSON.stringify({ rating: selectedRating, topic, comments })
+          });
+
+          document.getElementById("successMsg").style.display = "block";
+          document.getElementById("feedbackForm").querySelectorAll("select, textarea, button").forEach(el => el.disabled = true);
+          stars.forEach(s => s.style.pointerEvents = "none");
+          showToast("Feedback submitted — thank you! ✅");
+
+        } catch (err) {
+          showToast(err.message || "Failed to submit feedback.", true);
+          btn.disabled    = false;
+          btn.textContent = "Submit Feedback";
+        }
+      });
+
+      /* Load user stats */
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const user = await apiFetch("/api/auth/me");
+          if (!user || user.role !== "community") {
+            clearToken();
+            window.location.href = "localcommunities-login.html";
+            return;
+          }
+
+          document.getElementById("destInfo").textContent = user.destination_name || "Not assigned";
+
+          const insights = await apiFetch("/api/insights/mine");
+          const count    = s => insights.filter(i => i.status === s).length;
+
+          document.getElementById("statTotal").textContent    = insights.length;
+          document.getElementById("statApproved").textContent = count("approved");
+          document.getElementById("statPending").textContent  = count("pending");
+          document.getElementById("statRejected").textContent = count("rejected");
+
+        } catch (err) {
+          console.error("Community feedback load error:", err.message);
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
