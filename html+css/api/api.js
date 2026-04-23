@@ -1,7 +1,7 @@
 const API_BASE = window.location.hostname === "localhost"
   ? "http://localhost:3000"
-  : "https://your-render-service-name.onrender.com";
-  
+  : "https://tripwise-vx0k.onrender.com";
+
 /* Determines the user role based on the current page URL. */
 function _getRoleFromPage() {
   const page = window.location.pathname.split("/").pop();
