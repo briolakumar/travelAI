@@ -38,7 +38,7 @@ function detectIntent(message = "") {
   for (const rule of rules) {
     if (rule.keywords.some(k => msg.includes(k))) return rule.intent;
   }
-  return "general";
+  return null;
 }
 
 function categoryForIntent(intent) {
@@ -377,9 +377,8 @@ function buildChatbotAnswer(
     bestKb.forEach(row => lines.push(`• ${row.title}\n  ${row.content}`));
   } else {
     lines.push("📌 General guidance:");
-    lines.push("• Respect local customs and posted rules at all times.");
-    lines.push("• Plan transport and major visits in advance.");
-    lines.push("• Keep important travel details available offline.");
+    lines.push(`• I found limited specific data for your question about ${intent.replace(/_/g, " ")} in ${context.destination_name}.`);
+    lines.push("• Try rephrasing your question or ask about a specific topic like laws, etiquette, or transport.");
   }
 
   /* Community insights */
@@ -556,6 +555,17 @@ router.post("/chat", auth, requireRole("traveller"), async (req, res) => {
     const session = await getOrCreateSession(context.booking_id, req.user.id, context.destination_id);
     const intent = detectIntent(cleanMessage);
 
+    if (!intent) {
+      await saveMessage(session.id, "user", cleanMessage, null, null, null);
+      return res.json({
+        session_id: session.id,
+        assistant_message_id: null,
+        intent: null,
+        confidence: 0,
+        reply: `I'm not sure what you're asking about. I can help with:\n\n• Etiquette and customs\n• Local laws and rules\n• Transport options\n• Photography rules\n• Food and dining\n• Safety and scams\n• Weather and packing\n• Dress code\n• Religious sites\n• Nightlife\n• Budget tips\n• Solo or family travel\n• Emergencies\n\nTry asking something like "What should I wear?" or "Is it safe to take photos?"`,
+        suggested_followups: buildFollowUps("general")
+      });
+    }
     const recentIntents = await getRecentIntents(session.id, 4);
 
     // Fetch relevant data
